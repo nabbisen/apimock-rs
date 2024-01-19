@@ -1,6 +1,8 @@
 use std::net::SocketAddr;
 use std::str::FromStr;
+use std::collections::HashMap;
 use warp::Filter;
+use warp::reply::json as warp_json;
 
 const LISTEN_ADDR: &str = "127.0.0.1";
 const LISTEN_PORT: &str = "3001";
@@ -22,7 +24,15 @@ async fn main() {
         .map(|name: String| format!("Hello, {} !", name));
     // /sum/:u32/:u32
     let sum = warp::path!("sum" / u32 / u32).map(|a, b| format!("{} + {} = {}", a, b, a + b));
-    let paths = root_path.or(hi).or(hello).or(sum);
+    // /json
+    let json = warp::path("json").map(|| {
+        let json_body = warp_json(&HashMap::from([
+            ("id", 1),
+            ("name", 2),
+        ]));
+        json_body
+    });
+    let paths = root_path.or(hi).or(hello).or(sum).or(json);
 
     let get_routes = warp::get().and(paths);
     let post_routes = warp::post().and(paths);
