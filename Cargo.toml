@@ -1,5 +1,5 @@
 [package]
-name = "tc-json-server"
+name = "json5-server"
 version = "0.1.0"
 edition = "2021"
 
