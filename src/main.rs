@@ -1,8 +1,8 @@
+use console::style;
+use hyper::service::{make_service_fn, service_fn};
+use hyper::Server;
 use std::convert::Infallible;
 use std::env;
-use hyper::Server;
-use hyper::service::{service_fn, make_service_fn};  
-use console::style;
 
 mod config;
 mod server;
@@ -23,9 +23,7 @@ async fn main() {
     let make_svc = make_service_fn(|_| {
         let config = config.clone();
         async move {
-            let service = service_fn(move |req| {
-                handle(req, config.clone())
-            });
+            let service = service_fn(move |req| handle(req, config.clone()));
             Ok::<_, Infallible>(service)
         }
     });
@@ -40,17 +38,15 @@ async fn main() {
 fn config_path() -> String {
     let args: Vec<String> = env::args().collect();
 
-    let config_option_entry = args.iter().position(|arg| 
-        arg.as_str().eq("-c") || arg.as_str().eq("--config")
-    );
+    let config_option_entry = args
+        .iter()
+        .position(|arg| arg.as_str().eq("-c") || arg.as_str().eq("--config"));
     let config_path = match config_option_entry {
-        Some(config_option_entry) => {
-            match args.get(config_option_entry + 1) {
-                Some(config_option) => config_option,
-                _ => CONFIG_FILENAME
-            }
+        Some(config_option_entry) => match args.get(config_option_entry + 1) {
+            Some(config_option) => config_option,
+            _ => CONFIG_FILENAME,
         },
-        _ => CONFIG_FILENAME
+        _ => CONFIG_FILENAME,
     };
     config_path.to_owned()
 }
