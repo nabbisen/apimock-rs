@@ -31,6 +31,18 @@ cargo build --release
 ./target/release/json-responder
 ```
 
+Alternatively, just running `cargo run` works.
+
+#### Screenshots
+
+Server started to listen:
+
+![server starts](images/demo-01.png)
+
+`curl` test result:
+
+![server responds](images/demo-02.png)
+
 ### Configure
 
 `json-responder.toml`
