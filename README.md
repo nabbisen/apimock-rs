@@ -2,7 +2,7 @@
 
 Generating JSON Responses Server written in [Rust](https://www.rust-lang.org/)
 
-[![License](https://img.shields.io/github/license/nabbisen/json-responder-rs)](https://github.com/nabbisen/json-responder-rs/blob/main/LICENSE)
+[![License](https://img.shields.io/github/license/nabbisen/json-responder)](https://github.com/nabbisen/json-responder/blob/main/LICENSE)
 
 ## Summary
 
