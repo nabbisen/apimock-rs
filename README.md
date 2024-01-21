@@ -31,7 +31,7 @@ cargo build --release
 ./target/release/json-responder
 ```
 
-### Configure (todo)
+### Configure
 
 `json-responder.toml`
 
@@ -39,7 +39,7 @@ cargo build --release
 [general]
 port = 3001                                 # optional
 data_dir = "./"                             # optional
-always = "{ greetings: \"Hello, world.\" }" # optional
+# always = "{ greetings: \"Hello, world.\" }" # optional
 
 [url]
 path_prefix = "api/v1" # optional
@@ -48,24 +48,24 @@ home = "home.json"
 "some/path" = "subdir/some_path.json5"
 ```
 
-### Options (todo: planned)
+### Options
 
 Available are config file path and those in `[general]` only.
 
 #### `-c` / `--config`
 
-config file path (todo)
-default: json-responder.toml
+Config file path.
+default: `json-responder.toml`
 
-#### `-p` / `--port`
+#### `-p` / `--port` (todo)
 
-port number (todo)
-default: 3001
+Port number.
+default: `3001`
 
-#### `-a` / `--always`
+#### `-a` / `--always` (todo)
 
-always returns fixed response (todo)
-default: None (= disabled)
+Always returns fixed response.
+default: `None` (= disabled)
 
 ## Acknowledgements
 

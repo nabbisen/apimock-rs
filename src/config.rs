@@ -31,13 +31,18 @@ pub fn config(path: &str) -> Config {
         match key.as_str() {
             "port" => {
                 match value.as_integer() {
-                    Some(port) => config.port = port as u16,
+                    Some(port) => {
+                        config.port = port as u16
+                    },
                     _ => ()
                 }
             },
             "data_dir" => {
                 match value.as_str() {
-                    Some(data_dir) => config.data_dir = Some(data_dir.to_owned()),
+                    Some(data_dir) => {
+                        println!("[data_dir] {}", data_dir);
+                        config.data_dir = Some(data_dir.to_owned())
+                    },
                     _ => ()
                 }
             },
@@ -56,11 +61,20 @@ pub fn config(path: &str) -> Config {
         }
     }
 
-    let path_prefix = match toml_content.get(CONFIG_KEY_PATH_PREFIX) {
-        Some(s) => s.as_str().unwrap().to_owned(),
-        _ => String::new(),
-    };
     let url_config = toml_content.get(CONFIG_SECTION_URL).expect(format!("[{}] section missing", CONFIG_SECTION_GENERAL).as_str()).as_table().expect(format!("Invalid [{}] section", CONFIG_SECTION_URL).as_str());
+    let path_prefix = match url_config.get(CONFIG_KEY_PATH_PREFIX) {
+        Some(got) => {
+            match got.as_str() {
+                Some(s) => {
+                    println!("[path_prefix] {}", s);
+                    s
+                },
+                _ => ""
+            }
+        },
+        _ => "",
+    };
+    config.path_prefix = Some(path_prefix.to_owned());
     for (key, value) in url_config {
         match key.as_str() {
             "paths" => {

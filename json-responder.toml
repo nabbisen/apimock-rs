@@ -1,7 +1,7 @@
 [general]
 port = 3001
 data_dir = "datadir"
-always = "{ greetings: \"Hello, world.\" }" # todo
+# always = "{ greetings: \"Hello, world.\" }"
 
 [url]
 path_prefix = "api/v1"
