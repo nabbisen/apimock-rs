@@ -7,4 +7,7 @@ edition = "2021"
 
 [dependencies]
 tokio = { version = "1", features = ["full"] }
-warp = "0.3"
+warp = { vertion = "0.3", default-features = false, features = ["compression"] }
+toml = "^0.8"
+serde = "1"
+console = "^0.15"

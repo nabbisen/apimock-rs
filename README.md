@@ -31,6 +31,37 @@ cargo build --release
 ./target/release/json5-server
 ```
 
+### Configure (todo)
+
+`json5-server.toml`
+
+```toml
+[general]
+port = 3001 # optional
+always = "{ greetings: \"Hello, world.\" }" 
+[url]
+path_prefix = "api/v1"
+[url.paths]
+home = "home.json"
+some/path = "some_path.json5"
+```
+
+### Options (todo)
+
+Available are config file path and those in `[general]` only.
+
+#### `-c` / `--config`
+
+config file path (todo)
+
+#### `-p` / `--port`
+
+port number (todo)
+
+#### `-a` / `--always`
+
+always returns fixed response (todo)
+
 ## Acknowledgements
 
 Depends on [tokio](https://github.com/tokio-rs/tokio), and [warp](https://github.com/seanmonstar/warp) which is built on top of [hyper](https://hyper.rs/).
