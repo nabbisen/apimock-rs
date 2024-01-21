@@ -37,35 +37,24 @@ cargo build --release
 
 ```toml
 [general]
-port = 3001                                 # optional
-data_dir = "./"                             # optional
+port = 3001                                   # optional
+data_dir = "./"                               # optional
 # always = "{ greetings: \"Hello, world.\" }" # optional
 
 [url]
 path_prefix = "api/v1" # optional
-[url.paths]            # required when `always` is not specified
+# required when `always` is not specified
+[url.paths]
 home = "home.json"
 "some/path" = "subdir/some_path.json5"
 ```
 
 ### Options
 
-Available are config file path and those in `[general]` only.
-
 #### `-c` / `--config`
 
 Config file path.
 default: `json-responder.toml`
-
-#### `-p` / `--port` (todo)
-
-Port number.
-default: `3001`
-
-#### `-a` / `--always` (todo)
-
-Always returns fixed response.
-default: `None` (= disabled)
 
 ## Acknowledgements
 
