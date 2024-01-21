@@ -2,6 +2,8 @@ use std::fs;
 use std::collections::HashMap;
 use std::path::Path;
 use toml;
+use serde_json::Value;
+use json5;
 use console::style;
 
 use crate::LISTEN_PORT;
@@ -27,9 +29,29 @@ pub fn config(path: &str) -> Config {
     let general_config = toml_content.get(CONFIG_SECTION_GENERAL).expect(format!("[{}] section missing", CONFIG_SECTION_GENERAL).as_str()).as_table().expect(format!("Invalid [{}] section", CONFIG_SECTION_GENERAL).as_str());
     for (key, value) in general_config {
         match key.as_str() {
-            "port" => config.port = value.as_integer().unwrap() as u16,
-            "data_dir" => config.data_dir = Some(value.as_str().unwrap().to_owned()),
-            "always" => config.always = Some(value.as_str().unwrap().to_owned()),
+            "port" => {
+                match value.as_integer() {
+                    Some(port) => config.port = port as u16,
+                    _ => ()
+                }
+            },
+            "data_dir" => {
+                match value.as_str() {
+                    Some(data_dir) => config.data_dir = Some(data_dir.to_owned()),
+                    _ => ()
+                }
+            },
+            "always" => {
+                match value.as_str() {
+                    Some(always) => {
+                        let _ = json5::from_str::<Value>(&always).expect("Invalid always value");
+                        config.always = Some(always.to_owned());
+                        println!("[always] is specified");
+                        return config;
+                    },
+                    _ => ()
+                }
+            },
             _ => (),
         }
     }

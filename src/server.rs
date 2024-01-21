@@ -7,6 +7,18 @@ use json5;
 use crate::config::Config;
 
 pub async fn handle(req: Request<Body>, config: Config) -> Result<Response<Body>, Infallible> {
+    match config.always {
+        Some(always) => {
+            let mut response = Response::new(Body::from(always));
+            response.headers_mut().insert(
+                CONTENT_TYPE, 
+                HeaderValue::from_static("application/json")
+            );
+            return Ok(response)
+        },
+        _ => ()
+    }
+
     let path = req.uri().path();
     let path_wo_trailing_slash = if path.ends_with("/") { &path[..path.len() - 1] } else { path };
 
