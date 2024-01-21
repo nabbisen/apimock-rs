@@ -1,48 +1,56 @@
-use std::net::SocketAddr;
-use std::str::FromStr;
-use std::collections::HashMap;
-use warp::Filter;
-use warp::reply::json as warp_json;
+use std::convert::Infallible;
+use std::env;
+use hyper::Server;
+use hyper::service::{service_fn, make_service_fn};  
+use console::style;
 
-const LISTEN_ADDR: &str = "127.0.0.1";
-const LISTEN_PORT: &str = "3001";
-// const PATHS: [(&str, usize); 3] = [
-//     ("hi", "Hello, world!"),
-//     ("hello", "Hello, {}!"),
-//     ("sum", "{}"),
-// ];
+mod config;
+mod server;
+use crate::config::config;
+use crate::server::handle;
+
+pub const LISTEN_PORT: u16 = 3001;
+pub const CONFIG_FILENAME: &str = "json-responder.toml";
 
 #[tokio::main]
 async fn main() {
-    // /
-    let root_path = warp::path::end().map(|| "Hello, world from ROOT !");
-    // /hi
-    let hi = warp::path("hi").map(|| "Hello, world !");
-    // /hello/:string
-    let hello = warp::path("hello")
-        .and(warp::path::param())
-        .map(|name: String| format!("Hello, {} !", name));
-    // /sum/:u32/:u32
-    let sum = warp::path!("sum" / u32 / u32).map(|a, b| format!("{} + {} = {}", a, b, a + b));
-    // /json
-    let json = warp::path("json").map(|| {
-        let json_body = warp_json(&HashMap::from([
-            ("id", 1),
-            ("name", 2),
-        ]));
-        json_body
+    println!("Greetings from JSON Responder !!");
+
+    let config_path = config_path();
+    println!("[config] {}", config_path);
+    let config = config(&config_path);
+
+    let make_svc = make_service_fn(|_| {
+        let config = config.clone();
+        async move {
+            let service = service_fn(move |req| {
+                handle(req, config.clone())
+            });
+            Ok::<_, Infallible>(service)
+        }
     });
-    let paths = root_path.or(hi).or(hello).or(sum).or(json);
 
-    let get_routes = warp::get().and(paths);
-    let post_routes = warp::post().and(paths);
-    let routes = get_routes.or(post_routes);
+    let addr = ([127, 0, 0, 1], config.port).into();
+    let server = Server::bind(&addr).serve(make_svc);
+    println!("Listening on {}", style(format!("http://{}", addr)).cyan());
 
-    let addr_port = format!("{}:{}", LISTEN_ADDR, LISTEN_PORT);
-    let listener = SocketAddr::from_str(addr_port.as_str()).unwrap();
-    println!("Start listening on {} ...", addr_port);
+    server.await.unwrap();
+}
 
-    warp::serve(routes)
-        .run(listener)
-        .await;
+fn config_path() -> String {
+    let args: Vec<String> = env::args().collect();
+
+    let config_option_entry = args.iter().position(|arg| 
+        arg.as_str().eq("-c") || arg.as_str().eq("--config")
+    );
+    let config_path = match config_option_entry {
+        Some(config_option_entry) => {
+            match args.get(config_option_entry + 1) {
+                Some(config_option) => config_option,
+                _ => CONFIG_FILENAME
+            }
+        },
+        _ => CONFIG_FILENAME
+    };
+    config_path.to_owned()
 }

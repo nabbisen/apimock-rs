@@ -1,5 +1,5 @@
 [package]
-name = "json5-server"
+name = "json-responder"
 version = "0.1.0"
 edition = "2021"
 
@@ -7,4 +7,9 @@ edition = "2021"
 
 [dependencies]
 tokio = { version = "1", features = ["full"] }
-warp = "0.3"
+hyper = { version = "0.14", features = ["server", "http1", "http2", "tcp"] }
+toml = "^0.8"
+serde = "1"
+serde_json = "1"
+json5 = "^0.4"
+console = "^0.15"
