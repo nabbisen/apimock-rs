@@ -5,30 +5,36 @@ use toml;
 use crate::LISTEN_PORT;
 use crate::CONFIG_FILENAME;
 
-#[derive(Debug)]
+#[derive(Default, Debug)]
 pub struct Config {
-    port: u16,
-    always: Option<String>,
-    path_prefix: Option<String>,
-    paths: Option<HashMap<String, String>>,
+    pub port: u16,
+    pub data_dir: Option<String>,
+    pub always: Option<String>,
+    pub path_prefix: Option<String>,
+    pub paths: Option<HashMap<String, String>>,
 }
+
+const CONFIG_SECTION_GENERAL: &str = "general";
+const CONFIG_SECTION_URL: &str = "url";
 
 pub fn config() -> Config {
     let mut config = default_config();
 
     let toml_string = fs::read_to_string(CONFIG_FILENAME).expect("No toml config file");
     let toml_content: toml::Value = toml::from_str(&toml_string).expect("Invalid toml file");
-    let general_config = toml_content.get("general").expect("[general] section missing").as_table().expect("Invalid [general] section");
+    let general_config = toml_content.get(CONFIG_SECTION_GENERAL).expect(format!("[{}] section missing", CONFIG_SECTION_GENERAL).as_str()).as_table().expect(format!("Invalid [{}] section", CONFIG_SECTION_GENERAL).as_str());
     for (key, value) in general_config {
+        println!("{}: {:?}", key, value); // todo
         match key.as_str() {
             "port" => config.port = value.as_integer().unwrap() as u16,
+            "data_dir" => config.data_dir = Some(value.as_str().unwrap().to_owned()),
             "always" => config.always = Some(value.as_str().unwrap().to_owned()),
             _ => (),
         }
-        println!("{}: {:?}", key, value); // todo
     }
-    let url_config = toml_content.get("url").expect("[url] section missing").as_table().expect("Invalid [url] section");
+    let url_config = toml_content.get(CONFIG_SECTION_URL).expect(format!("[{}] section missing", CONFIG_SECTION_GENERAL).as_str()).as_table().expect(format!("Invalid [{}] section", CONFIG_SECTION_URL).as_str());
     for (key, value) in url_config {
+        println!("{}: {:?}", key, value); // todo
         match key.as_str() {
             "path_prefix" => config.path_prefix = Some(value.as_str().unwrap().to_owned()),
             "paths" => {
@@ -41,17 +47,13 @@ pub fn config() -> Config {
             },
             _ => (),
         }
-        println!("{}: {:?}", key, value); // todo
     }
 
     config
 }
 
 fn default_config() -> Config {
-    Config {
-        port: LISTEN_PORT,
-        always: None,
-        path_prefix: Some(String::new()),
-        paths: None,
-    }
+    let mut config = Config::default();
+    config.port = LISTEN_PORT;
+    config
 }

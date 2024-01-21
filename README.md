@@ -1,8 +1,8 @@
-# json5-server
+# json-responder
 
 Generating JSON Responses Server written in [Rust](https://www.rust-lang.org/)
 
-[![License](https://img.shields.io/github/license/nabbisen/json5-server-rs)](https://github.com/nabbisen/json5-server-rs/blob/main/LICENSE)
+[![License](https://img.shields.io/github/license/nabbisen/json-responder-rs)](https://github.com/nabbisen/json-responder-rs/blob/main/LICENSE)
 
 ## Summary
 
@@ -28,22 +28,23 @@ cargo build --release
 ### Run
 
 ```
-./target/release/json5-server
+./target/release/json-responder
 ```
 
 ### Configure (todo)
 
-`json5-server.toml`
+`json-responder.toml`
 
 ```toml
 [general]
 port = 3001 # optional
-always = "{ greetings: \"Hello, world.\" }" 
+data_dir = "."
+always = "{ greetings: \"Hello, world.\" }"
 [url]
 path_prefix = "api/v1"
 [url.paths]
 home = "home.json"
-some/path = "some_path.json5"
+"some/path" = "subdir/some_path.json5"
 ```
 
 ### Options (todo)
