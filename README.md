@@ -1,6 +1,7 @@
 # json-responder
 
-Generating JSON Responses Server written in [Rust](https://www.rust-lang.org/)
+Server generating JSON responses written in [Rust](https://www.rust-lang.org/).
+Aims to help dev to easily get dummy API responses due to several paths.
 
 [![License](https://img.shields.io/github/license/nabbisen/json-responder)](https://github.com/nabbisen/json-responder/blob/main/LICENSE)
 
@@ -8,7 +9,8 @@ Generating JSON Responses Server written in [Rust](https://www.rust-lang.org/)
 
 Designed in mind with:
 
-- Fast performance and low memory consumption
+- Fast performance
+- Low memory consumption
 - Cross-platform support
 
 ### Features
@@ -33,6 +35,17 @@ cargo build --release
 
 Alternatively, just running `cargo run` works.
 
+#### Notes
+
+What is modifiable after server started:
+
+- content of `.json` / `.json5`
+
+What is not modifiable after server started:
+
+- `always` config
+- routing on `paths`
+
 #### Screenshots
 
 Server started to listen:
@@ -50,7 +63,7 @@ Server started to listen:
 ```toml
 [general]
 port = 3001                                   # optional
-data_dir = "./"                               # optional
+data_dir = "tests"                            # optional
 # always = "{ greetings: \"Hello, world.\" }" # optional
 
 [url]
@@ -72,4 +85,4 @@ default: `json-responder.toml`
 
 Depends on:
 
-[tokio](https://github.com/tokio-rs/tokio) / [hyper](https://hyper.rs/) [toml](https://github.com/toml-rs/toml) / [serde](https://serde.rs/) / [serde_json](https://github.com/serde-rs/json) / [json5](https://github.com/callum-oakley/json5-rs) / [console](https://github.com/console-rs/console)
+[tokio](https://github.com/tokio-rs/tokio) / [hyper](https://hyper.rs/) / [toml](https://github.com/toml-rs/toml) / [serde](https://serde.rs/) / [serde_json](https://github.com/serde-rs/json) / [json5](https://github.com/callum-oakley/json5-rs) / [console](https://github.com/console-rs/console)
