@@ -1,10 +1,10 @@
-# wip (todo)
 [general]
 port = 3001
-data_dir = "./"
-always = "{ greetings: \"Hello, world.\" }"
+data_dir = "datadir"
+always = "{ greetings: \"Hello, world.\" }" # todo
+
 [url]
 path_prefix = "api/v1"
 [url.paths]
 home = "home.json"
-"some/path" = "some_path.json5"
+"some/path" = "subdir/some.json5"

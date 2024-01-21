@@ -1,30 +1,56 @@
-use std::net::SocketAddr;
-use std::str::FromStr;
+use std::convert::Infallible;
+use std::env;
+use hyper::Server;
+use hyper::service::{service_fn, make_service_fn};  
+use console::style;
 
 mod config;
 mod server;
 use crate::config::config;
-use crate::server::routes;
+use crate::server::handle;
 
-pub const LISTEN_ADDR: &str = "127.0.0.1";
 pub const LISTEN_PORT: u16 = 3001;
-// const PATHS: [(&str, usize); 3] = [
-//     ("hi", "Hello, world!"),
-//     ("hello", "Hello, {}!"),
-//     ("sum", "{}"),
-// ];
 pub const CONFIG_FILENAME: &str = "json-responder.toml";
 
 #[tokio::main]
 async fn main() {
-    let config = config();
-    let routes = routes(&config);
+    println!("Greetings from JSON Responder !!");
 
-    let addr_port = format!("{}:{}", LISTEN_ADDR, config.port.to_string());
-    let listener = SocketAddr::from_str(addr_port.as_str()).unwrap();
+    let config_path = config_path();
+    println!("[config] {}", config_path);
+    let config = config(&config_path);
 
-    println!("Start listening on {} ...", addr_port);
-    warp::serve(routes)
-        .run(listener)
-        .await;
+    let make_svc = make_service_fn(|_| {
+        let config = config.clone();
+        async move {
+            let service = service_fn(move |req| {
+                handle(req, config.clone())
+            });
+            Ok::<_, Infallible>(service)
+        }
+    });
+
+    let addr = ([127, 0, 0, 1], config.port).into();
+    let server = Server::bind(&addr).serve(make_svc);
+    println!("Listening on {}", style(format!("http://{}", addr)).cyan());
+
+    server.await.unwrap();
+}
+
+fn config_path() -> String {
+    let args: Vec<String> = env::args().collect();
+
+    let config_option_entry = args.iter().position(|arg| 
+        arg.as_str().eq("-c") || arg.as_str().eq("--config")
+    );
+    let config_path = match config_option_entry {
+        Some(config_option_entry) => {
+            match args.get(config_option_entry + 1) {
+                Some(config_option) => config_option,
+                _ => CONFIG_FILENAME
+            }
+        },
+        _ => CONFIG_FILENAME
+    };
+    config_path.to_owned()
 }
