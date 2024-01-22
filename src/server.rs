@@ -1,4 +1,7 @@
-use hyper::header::{HeaderValue, CONTENT_TYPE};
+use hyper::header::{
+    HeaderValue, ACCESS_CONTROL_ALLOW_HEADERS, ACCESS_CONTROL_ALLOW_METHODS,
+    ACCESS_CONTROL_ALLOW_ORIGIN, CONTENT_TYPE,
+};
 use hyper::{Body, Request, Response, StatusCode};
 use json5;
 use serde_json::Value;
@@ -53,11 +56,17 @@ pub async fn handle(req: Request<Body>, config: Config) -> Result<Response<Body>
         }
     };
 
-    let mut response = Response::new(Body::from(body));
-
-    response
-        .headers_mut()
-        .insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
+    let response = Response::builder()
+        .status(StatusCode::OK)
+        .header(ACCESS_CONTROL_ALLOW_ORIGIN, HeaderValue::from_static("*"))
+        .header(ACCESS_CONTROL_ALLOW_HEADERS, HeaderValue::from_static("*"))
+        .header(
+            ACCESS_CONTROL_ALLOW_METHODS,
+            HeaderValue::from_static("GET, POST, OPTIONS"),
+        )
+        .header(CONTENT_TYPE, HeaderValue::from_static("application/json"))
+        .body(Body::from(body))
+        .unwrap();
 
     Ok(response)
 }
