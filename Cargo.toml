@@ -8,6 +8,7 @@ description = "Server generating JSON responses written in Rust"
 [profile.release]
 lto = true
 codegen-units = 1
+strip = true
 
 [dependencies]
 tokio = { version = "1", features = ["full"] }
