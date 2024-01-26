@@ -42,7 +42,7 @@ jobs:
     - name: Update release with new asset
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: gh release upload $MDBOOK_TAG $MDBOOK_ASSET
+      run: gh release upload $APP_TAG $APP_ASSET
   # pages:
   #   name: GitHub Pages
   #   runs-on: ubuntu-latest

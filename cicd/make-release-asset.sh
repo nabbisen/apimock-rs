@@ -48,6 +48,6 @@ if [[ -z "$GITHUB_ENV" ]]
 then
   echo "GITHUB_ENV not set, run: gh release upload $TAG target/$asset"
 else
-  echo "MDBOOK_TAG=$TAG" >> $GITHUB_ENV
-  echo "MDBOOK_ASSET=target/$asset" >> $GITHUB_ENV
+  echo "APP_TAG=$TAG" >> $GITHUB_ENV
+  echo "APP_ASSET=target/$asset" >> $GITHUB_ENV
 fi
