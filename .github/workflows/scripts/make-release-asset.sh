@@ -42,7 +42,7 @@ case $1 in
     ;;
   windows*)
     asset="json-responder-$os_tag-$TAG.zip"
-    7z a ../../$asset json-responder.exe json-responder.toml tests/home.json
+    7z a -w ../../$asset json-responder.exe json-responder.toml tests/home.json
     ;;
   *)
     echo "OS should be first parameter, was: $1"
