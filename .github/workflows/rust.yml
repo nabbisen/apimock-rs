@@ -5,24 +5,18 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
-  
+
 jobs:
   test:
     name: Test
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        build: [stable, beta, nightly, macos, windows, msrv]
+        build: [stable, macos, windows, msrv]
         include:
           - build: stable
             os: ubuntu-latest
             rust: stable
-          - build: beta
-            os: ubuntu-latest
-            rust: beta
-          - build: nightly
-            os: ubuntu-latest
-            rust: nightly
           - build: macos
             os: macos-latest
             rust: stable
