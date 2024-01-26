@@ -16,19 +16,20 @@ Designed in mind with:
 ### Features
 
 - Multiple .json/.json5 files treated as JSON Response
-    - [JSON5](https://json5.org/) support
 - Multiple paths
 - Error responses (HTTP 400 ~ 599)
 
 ## Usage
 
-### Build
+[Releases](../../releases) are available.
+
+### Build manually
 
 ```
 cargo build --release
 ```
 
-### Run
+Then run:
 
 ```
 ./target/release/json-responder
