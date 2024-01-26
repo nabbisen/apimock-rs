@@ -30,7 +30,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Install Rust
-      run: bash cicd/install-rust.sh ${{ matrix.rust }}
+      run: bash .github/workflows/scripts/install-rust.sh ${{ matrix.rust }}
     #- name: Build and run tests
     #  run: cargo test --locked
     #- name: Test no default

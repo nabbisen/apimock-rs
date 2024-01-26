@@ -18,30 +18,37 @@ then
 fi
 export CARGO_PROFILE_RELEASE_LTO=true
 cargo build --locked --bin json-responder --release --target $target
+
 cd target/$target/release
+
+os_tag=$3
+cp $GITHUB_WORKSPACE/json-responder.toml .
+mkdir tests
+cp $GITHUB_WORKSPACE/tests/home.json tests/
 case $1 in
   ubuntu*)
-    asset="json-responder-$TAG-$target.tar.gz"
-    tar czf ../../$asset json-responder
+    asset="json-responder-$os_tag-$TAG.tar.gz"
+    tar czf ../../$asset json-responder json-responder.toml tests/home.json
     ;;
   macos*)
-    asset="json-responder-$TAG-$target.tar.gz"
+    asset="json-responder-$os_tag-$TAG.tar.gz"
     # There is a bug with BSD tar on macOS where the first 8MB of the file are
     # sometimes all NUL bytes. See https://github.com/actions/cache/issues/403
     # and https://github.com/rust-lang/cargo/issues/8603 for some more
     # information. An alternative solution here is to install GNU tar, but
     # flushing the disk cache seems to work, too.
     sudo /usr/sbin/purge
-    tar czf ../../$asset json-responder
+    tar czf ../../$asset json-responder json-responder.toml tests/home.json
     ;;
   windows*)
-    asset="json-responder-$TAG-$target.zip"
-    7z a ../../$asset json-responder.exe
+    asset="json-responder-$os_tag-$TAG.zip"
+    7z a ../../$asset json-responder.exe json-responder.toml tests/home.json
     ;;
   *)
     echo "OS should be first parameter, was: $1"
     ;;
 esac
+
 cd ../..
 
 if [[ -z "$GITHUB_ENV" ]]

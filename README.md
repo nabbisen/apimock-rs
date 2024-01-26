@@ -72,7 +72,7 @@ path_prefix = "api/v1" # optional
 # required when `always` is not specified
 [url.paths]
 home = "home.json"
-"some/path" = "subdir/some_path.json5"
+# "some/path" = "subdir/some_path.json5"
 [url.errors]
 403 = ["403"]
 404 = []
