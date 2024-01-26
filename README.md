@@ -15,9 +15,10 @@ Designed in mind with:
 
 ### Features
 
-- [JSON5](https://json5.org/) support
-- Multiple paths
 - Multiple .json/.json5 files treated as JSON Response
+    - [JSON5](https://json5.org/) support
+- Multiple paths
+- Error responses (HTTP 400 ~ 599)
 
 ## Usage
 
@@ -44,7 +45,7 @@ What is modifiable after server started:
 What is not modifiable after server started:
 
 - `always` config
-- routing on `paths`
+- routing on `paths` / `errors`
 
 #### Screenshots
 
@@ -72,6 +73,9 @@ path_prefix = "api/v1" # optional
 [url.paths]
 home = "home.json"
 "some/path" = "subdir/some_path.json5"
+[url.errors]
+403 = ["403"]
+404 = []
 ```
 
 ### Options

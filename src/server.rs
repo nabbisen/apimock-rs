@@ -21,15 +21,25 @@ pub async fn handle(req: Request<Body>, config: Config) -> Result<Response<Body>
         _ => (),
     }
 
-    let path = req.uri().path();
-    let path_wo_trailing_slash = if path.ends_with("/") {
-        &path[..path.len() - 1]
+    let uri_path = req.uri().path();
+    let path = if uri_path.ends_with("/") {
+        &uri_path[..uri_path.len() - 1]
     } else {
-        path
+        uri_path
     };
 
+    let errors = config.errors.clone().unwrap();
+    for (code, paths) in errors {
+        if paths.into_iter().any(|x| x.as_str() == path) {
+            return Ok(Response::builder()
+                .status(code)
+                .body(Body::empty())
+                .unwrap());
+        }
+    }
+
     let paths = config.paths.clone().unwrap();
-    let json_file = paths.get(path_wo_trailing_slash);
+    let json_file = paths.get(path);
     let body = match json_file {
         Some(json_file) => match std::fs::read_to_string(json_file) {
             Ok(content) => match json5::from_str::<Value>(&content) {
