@@ -36,9 +36,9 @@ jobs:
     steps:
     - uses: actions/checkout@master
     - name: Install Rust
-      run: cicd/install-rust.sh stable ${{ matrix.target }}
+      run: bash cicd/install-rust.sh stable ${{ matrix.target }}
     - name: Build asset
-      run: cicd/make-release-asset.sh ${{ matrix.os }} ${{ matrix.target }}
+      run: bash cicd/make-release-asset.sh ${{ matrix.os }} ${{ matrix.target }}
     - name: Update release with new asset
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
