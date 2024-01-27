@@ -23,42 +23,28 @@ Designed in mind with:
 
 [Releases](../../releases) are available.
 
-### Build manually
+### Screenshots
 
-```
-cargo build --release
-```
+Server started to listen:
 
-Then run:
+![server starts](.docs-assets/demo-01.png)
 
-```
-./target/release/json-responder
-```
+`curl` test result:
 
-Alternatively, just running `cargo run` works.
+![server responds](.docs-assets/demo-02.png)
 
-#### Notes
+### After server started
 
-What is modifiable after server started:
+What is modifiable:
 
 - content of `.json` / `.json5`
 
-What is not modifiable after server started:
+What is NOT modifiable:
 
 - `always` config
 - routing on `paths` / `errors`
 
-#### Screenshots
-
-Server started to listen:
-
-![server starts](images/demo-01.png)
-
-`curl` test result:
-
-![server responds](images/demo-02.png)
-
-### Configure
+## Configure
 
 `json-responder.toml`
 
@@ -79,12 +65,26 @@ home = "home.json"
 404 = []
 ```
 
-### Options
+## Options
 
-#### `-c` / `--config`
+### `-c` / `--config`
 
 Config file path.
 default: `json-responder.toml`
+
+## Build manually
+
+```
+cargo build --release
+```
+
+Then run to start the server:
+
+```
+./target/release/json-responder
+```
+
+Alternatively, just running `cargo run` works.
 
 ## Acknowledgements
 
