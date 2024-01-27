@@ -9,18 +9,24 @@ Aims to help dev to easily get dummy API responses due to several paths.
 
 [hyper](https://hyper.rs/)-based HTTP server.
 
-Designed in mind with:
-
-- Fast performance
-- Low memory consumption
-- Cross-platform support
-
 ### Features
 
 - GET / POST methods
 - Multiple .json/.json5 files treated as JSON Response
 - Multiple paths
 - Error responses (HTTP 4xx and 5xx)
+- Validates configuration: Missing JSON files, duplicate paths etc.
+- Prints out routing at startup
+
+#### Designed in mind with
+
+- Performance
+    - Fast speed
+    - Low memory consumption
+- Easy usage
+    - Built as single (and small) executable
+    - Integrated configuration
+- Cross-platform support
 
 ### Screenshots
 
@@ -54,8 +60,8 @@ path_prefix = "api/v1" # optional
 home = "home.json"
 # "some/path" = "subdir/some_path.json5"
 [url.errors]
-401 = ["401"]
-403 = ["api-403"]
+401 = ["api-401"]
+403 = ["some/path/to/fail"]
 404 = []
 ```
 
@@ -95,4 +101,4 @@ Alternatively, just running `cargo run` works.
 
 Depends on:
 
-[tokio](https://github.com/tokio-rs/tokio) / [hyper](https://hyper.rs/) / [toml](https://github.com/toml-rs/toml) / [serde](https://serde.rs/) / [serde_json](https://github.com/serde-rs/json) / [json5](https://github.com/callum-oakley/json5-rs) / [console](https://github.com/console-rs/console)
+[tokio](https://github.com/tokio-rs/tokio) / [hyper](https://hyper.rs/) / [toml](https://github.com/toml-rs/toml) / [serde](https://serde.rs/) / [serde_json](https://github.com/serde-rs/json) / [json5](https://github.com/callum-oakley/json5-rs) / [console](https://github.com/console-rs/console). In addition, [mdbook](https://github.com/rust-lang/mdBook) (as to workflows)

@@ -9,6 +9,6 @@ path_prefix = "api/v1"
 home = "home.json"
 # "some/path" = "api.json5"
 [url.errors]
-401 = ["401"]
-403 = ["api-403"]
+401 = ["api-401"]
+403 = ["some/path/to/fail"]
 404 = []
