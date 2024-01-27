@@ -1,6 +1,6 @@
 [package]
 name = "json-responder"
-version = "0.9.0"
+version = "1.0.1"
 edition = "2021"
 description = "Server generating JSON responses written in Rust"
 
