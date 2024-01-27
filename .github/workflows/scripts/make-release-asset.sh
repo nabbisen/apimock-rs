@@ -21,16 +21,18 @@ cargo build --locked --bin json-responder --release --target $target
 
 cd target/$target/release
 
+mkdir -p json-responder-main/tests
+cp $GITHUB_WORKSPACE/json-responder.toml json-responder-main/
+cp $GITHUB_WORKSPACE/tests/home.json json-responder-main/tests/
 os_tag=$3
-cp $GITHUB_WORKSPACE/json-responder.toml .
-mkdir tests
-cp $GITHUB_WORKSPACE/tests/home.json tests/
 case $1 in
   ubuntu*)
+    cp json-responder json-responder-main/
     asset="json-responder-$os_tag-$TAG.tar.gz"
-    tar czf ../../$asset json-responder json-responder.toml tests/home.json
+    tar czf ../../$asset json-responder-main
     ;;
   macos*)
+    cp json-responder json-responder-main/
     asset="json-responder-$os_tag-$TAG.tar.gz"
     # There is a bug with BSD tar on macOS where the first 8MB of the file are
     # sometimes all NUL bytes. See https://github.com/actions/cache/issues/403
@@ -38,11 +40,12 @@ case $1 in
     # information. An alternative solution here is to install GNU tar, but
     # flushing the disk cache seems to work, too.
     sudo /usr/sbin/purge
-    tar czf ../../$asset json-responder json-responder.toml tests/home.json
+    tar czf ../../$asset json-responder-main
     ;;
   windows*)
+    cp json-responder.exe json-responder-main/
     asset="json-responder-$os_tag-$TAG.zip"
-    7z a -w ../../$asset json-responder.exe json-responder.toml tests/home.json
+    7z a -w ../../$asset json-responder-main
     ;;
   *)
     echo "OS should be first parameter, was: $1"
