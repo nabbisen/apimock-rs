@@ -10,5 +10,5 @@ home = "home.json"
 # "some/path" = "api.json5"
 [url.errors]
 401 = ["401"]
-403 = ["403"]
+403 = ["api-403"]
 404 = []

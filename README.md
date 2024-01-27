@@ -47,12 +47,12 @@ data_dir = "tests"                            # optional
 
 [url]
 path_prefix = "api/v1" # optional
-# required when `always` is not specified
-[url.paths]
+[url.paths] # required when `always` is not specified
 home = "home.json"
 # "some/path" = "subdir/some_path.json5"
 [url.errors]
-403 = ["403"]
+401 = ["401"]
+403 = ["api-403"]
 404 = []
 ```
 
