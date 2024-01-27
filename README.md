@@ -19,10 +19,6 @@ Designed in mind with:
 - Multiple paths
 - Error responses (HTTP 400 ~ 599)
 
-## Usage
-
-[Releases](../../releases) are available.
-
 ### Screenshots
 
 Server started to listen:
@@ -33,18 +29,13 @@ Server started to listen:
 
 ![server responds](.docs-assets/demo-02.png)
 
-### After server started
+## Usage
 
-What is modifiable:
+[Releases](../../releases) are available. Also able to [build manually](#build-manually).
 
-- content of `.json` / `.json5`
+After downloading it or building, run `json-server` with your configuration file (`./json-server.toml` by default).
 
-What is NOT modifiable:
-
-- `always` config
-- routing on `paths` / `errors`
-
-## Configure
+### Configure
 
 `json-responder.toml`
 
@@ -65,12 +56,23 @@ home = "home.json"
 404 = []
 ```
 
-## Options
+### Options
 
-### `-c` / `--config`
+#### `-c` / `--config`
 
 Config file path.
 default: `json-responder.toml`
+
+### After server started
+
+What is modifiable:
+
+- content of `.json` / `.json5`
+
+What is NOT modifiable:
+
+- `always` config
+- routing on `paths` / `errors`
 
 ## Build manually
 
