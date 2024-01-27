@@ -7,6 +7,8 @@ Aims to help dev to easily get dummy API responses due to several paths.
 
 ## Summary
 
+[hyper](https://hyper.rs/)-based HTTP server.
+
 Designed in mind with:
 
 - Fast performance
@@ -15,9 +17,10 @@ Designed in mind with:
 
 ### Features
 
+- GET / POST methods
 - Multiple .json/.json5 files treated as JSON Response
 - Multiple paths
-- Error responses (HTTP 400 ~ 599)
+- Error responses (HTTP 4xx and 5xx)
 
 ### Screenshots
 
