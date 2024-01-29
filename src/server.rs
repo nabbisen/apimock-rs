@@ -2,7 +2,7 @@ use hyper::header::{
     HeaderValue, ACCESS_CONTROL_ALLOW_HEADERS, ACCESS_CONTROL_ALLOW_METHODS,
     ACCESS_CONTROL_ALLOW_ORIGIN, CONTENT_TYPE,
 };
-use hyper::{Body, Request, Response, StatusCode};
+use hyper::{http::response::Builder, Body, Request, Response, StatusCode};
 use json5;
 use serde_json::Value;
 use std::collections::HashMap;
@@ -27,10 +27,9 @@ pub async fn handle(req: Request<Body>, config: Config) -> Result<Response<Body>
 fn handle_always(always: &Option<String>) -> Option<Result<Response<Body>, Infallible>> {
     match always {
         Some(x) => {
-            let mut response = Response::new(Body::from(x.to_owned()));
-            response
-                .headers_mut()
-                .insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
+            let response = json_response_base()
+                .body(Body::from(x.to_owned()))
+                .expect("Invalid always value");
             Some(Ok(response))
         }
         _ => None,
@@ -52,7 +51,7 @@ fn handle_errors(
     if let Some(errors) = errors {
         for (code, paths) in errors {
             if paths.into_iter().any(|x| x.as_str() == path) {
-                let response = Ok(Response::builder()
+                let response = Ok(response_base()
                     .status(code.to_owned())
                     .body(Body::empty())
                     .unwrap());
@@ -70,37 +69,44 @@ fn handle_paths(path: &str, paths: &HashMap<String, String>) -> Result<Response<
             Ok(content) => match json5::from_str::<Value>(&content) {
                 Ok(json) => json.to_string(),
                 _ => {
-                    return Ok(Response::builder()
+                    return Ok(response_base()
                         .status(StatusCode::BAD_REQUEST)
                         .body(Body::from("Invalid json content"))
                         .unwrap())
                 }
             },
             _ => {
-                return Ok(Response::builder()
+                return Ok(response_base()
                     .status(StatusCode::BAD_REQUEST)
                     .body(Body::from("Missing json file"))
                     .unwrap())
             }
         },
         _ => {
-            return Ok(Response::builder()
+            return Ok(response_base()
                 .status(StatusCode::NOT_FOUND)
                 .body(Body::empty())
                 .unwrap())
         }
     };
 
-    let response = Response::builder()
+    let response = json_response_base()
         .status(StatusCode::OK)
+        .body(Body::from(body))
+        .unwrap();
+    Ok(response)
+}
+
+fn json_response_base() -> Builder {
+    response_base().header(CONTENT_TYPE, HeaderValue::from_static("application/json"))
+}
+
+fn response_base() -> Builder {
+    Response::builder()
         .header(ACCESS_CONTROL_ALLOW_ORIGIN, HeaderValue::from_static("*"))
         .header(ACCESS_CONTROL_ALLOW_HEADERS, HeaderValue::from_static("*"))
         .header(
             ACCESS_CONTROL_ALLOW_METHODS,
             HeaderValue::from_static("GET, POST, OPTIONS"),
         )
-        .header(CONTENT_TYPE, HeaderValue::from_static("application/json"))
-        .body(Body::from(body))
-        .unwrap();
-    Ok(response)
 }
