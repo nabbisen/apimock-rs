@@ -1,32 +1,13 @@
 # json-responder
 
-Server generating JSON responses written in [Rust](https://www.rust-lang.org/).
-Aims to help dev to easily get dummy API responses due to several paths.
+[hyper](https://hyper.rs/)-based HTTP server generating JSON responses. Written in [Rust](https://www.rust-lang.org/).
 
 [![License](https://img.shields.io/github/license/nabbisen/json-responder)](https://github.com/nabbisen/json-responder/blob/main/LICENSE)
 
 ## Summary
 
-[hyper](https://hyper.rs/)-based HTTP server.
-
-### Features
-
-- GET / POST methods
-- Multiple .json/.json5 files treated as JSON Response
-- Multiple paths
-- Error responses (HTTP 4xx and 5xx)
-- Validates configuration: Missing JSON files, duplicate paths etc.
-- Prints out routing at startup
-
-#### Designed in mind with
-
-- Performance
-    - Fast speed
-    - Low memory consumption
-- Easy usage
-    - Built as single (and small) executable
-    - Integrated configuration
-- Cross-platform support
+Aims to help dev to easily get dummy API responses due to several paths.
+Single executables on Win/Mac/Linux are available, thanks to Rust. [Releases](../../releases) are "out-of-the-box" coming with default config `json-responder.toml`.
 
 ### Screenshots
 
@@ -37,6 +18,25 @@ Server started to listen:
 `curl` test result:
 
 ![server responds](.docs-assets/demo-02.png)
+
+### Designed in mind with
+
+- Performance
+    - Fast speed
+    - Low memory consumption
+- Easy usage
+    - Built as single (and small) executable
+    - Integrated configuration
+- Cross-platform support
+
+### Features
+
+- GET / POST methods
+- Multiple .json/.json5 files treated as JSON Response
+- Multiple paths
+- Error responses (HTTP 4xx and 5xx)
+- Validates configuration: Missing JSON files, duplicate paths etc.
+- Prints out routing at startup
 
 ## Usage
 
