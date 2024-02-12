@@ -34,6 +34,7 @@ Server started to listen:
 - GET / POST methods
 - Multiple .json/.json5 files treated as JSON Response
 - Multiple paths
+- Dynamic path resolution with `dyn_data_dir`
 - Error responses (HTTP 4xx and 5xx)
 - Validates configuration: Missing JSON files, duplicate paths etc.
 - Prints out routing at startup
@@ -42,7 +43,7 @@ Server started to listen:
 
 [Releases](../../releases) are available. Also able to [build manually](#build-manually).
 
-After downloading it or building, run `json-server` with your configuration file (`./json-server.toml` by default).
+After downloading it or building, run `json-responder` with your configuration file (`./json-responder.toml` by default).
 
 ### Configure
 
