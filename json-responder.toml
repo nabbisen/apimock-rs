@@ -1,10 +1,11 @@
 [general]
 port = 3001
-data_dir = "tests"
+dyn_data_dir = "json-responder-data"
 # always = "{ greetings: \"Hello, world.\" }"
 
 [url]
 path_prefix = "api/v1"
+data_dir = "tests"
 [url.paths]
 home = "home.json"
 # "some/path" = "api.json5"

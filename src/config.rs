@@ -12,16 +12,16 @@ use crate::LISTEN_PORT;
 #[derive(Clone, Default)]
 pub struct Config {
     pub port: u16,
-    pub data_dir: Option<String>,
+    pub dyn_data_dir: Option<String>,
     pub always: Option<String>,
     pub path_prefix: Option<String>,
+    pub url_data_dir: Option<String>,
     pub paths: Option<HashMap<String, String>>,
     pub errors: Option<HashMap<u16, Vec<String>>>,
 }
 
 const CONFIG_SECTION_GENERAL: &str = "general";
 const CONFIG_SECTION_URL: &str = "url";
-const CONFIG_KEY_PATH_PREFIX: &str = "path_prefix";
 
 pub fn config(path: &str) -> Config {
     let mut config = default_config();
@@ -39,10 +39,10 @@ pub fn config(path: &str) -> Config {
                 Some(port) => config.port = port as u16,
                 _ => (),
             },
-            "data_dir" => match value.as_str() {
-                Some(data_dir) => {
-                    println!("[data_dir] {}", data_dir);
-                    config.data_dir = Some(data_dir.to_owned())
+            "dyn_data_dir" => match value.as_str() {
+                Some(dyn_data_dir) => {
+                    println!("[dyn_data_dir] {}", dyn_data_dir);
+                    config.dyn_data_dir = Some(dyn_data_dir.to_owned())
                 }
                 _ => (),
             },
@@ -64,27 +64,40 @@ pub fn config(path: &str) -> Config {
         .expect(format!("[{}] section missing", CONFIG_SECTION_GENERAL).as_str())
         .as_table()
         .expect(format!("Invalid [{}] section", CONFIG_SECTION_URL).as_str());
-    let path_prefix = match url_config.get(CONFIG_KEY_PATH_PREFIX) {
-        Some(got) => match got.as_str() {
-            Some(s) => {
-                println!("[path_prefix] {}", s);
-                s
-            }
-            _ => "",
-        },
-        _ => "",
-    };
-    config.path_prefix = Some(path_prefix.to_owned());
+    for (key, value) in url_config {
+        match key.as_str() {
+            "path_prefix" => match value.as_str() {
+                Some(path_prefix) => {
+                    println!("[path_prefix] {}", path_prefix);
+                    config.path_prefix = Some(path_prefix.to_owned())
+                }
+                _ => (),
+            },
+            "data_dir" => match value.as_str() {
+                Some(url_data_dir) => {
+                    println!("[url_data_dir] {}", url_data_dir);
+                    config.url_data_dir = Some(url_data_dir.to_owned())
+                }
+                _ => (),
+            },
+            _ => (),
+        }
+    }
     for (key, value) in url_config {
         match key.as_str() {
             "paths" => {
                 config.paths = Some(config_url_paths(
                     value,
-                    config.data_dir.clone().unwrap().as_str(),
-                    path_prefix,
+                    config.url_data_dir.clone().unwrap().as_str(),
+                    config.path_prefix.clone().unwrap().as_str(),
                 ))
             }
-            "errors" => config.errors = Some(config_url_errors(value, path_prefix)),
+            "errors" => {
+                config.errors = Some(config_url_errors(
+                    value,
+                    config.path_prefix.clone().unwrap().as_str(),
+                ))
+            }
             _ => (),
         }
     }

@@ -51,11 +51,12 @@ After downloading it or building, run `json-server` with your configuration file
 ```toml
 [general]
 port = 3001                                   # optional
-data_dir = "tests"                            # optional
+dyn_data_dir = "json-responder-data"          # optional
 # always = "{ greetings: \"Hello, world.\" }" # optional
 
 [url]
 path_prefix = "api/v1" # optional
+data_dir = "tests"                            # optional
 [url.paths] # required when `always` is not specified
 home = "home.json"
 # "some/path" = "subdir/some_path.json5"
