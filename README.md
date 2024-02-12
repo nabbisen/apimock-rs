@@ -84,6 +84,18 @@ What is NOT modifiable:
 - `always` config
 - routing on `paths` / `errors`
 
+### How response works
+
+```mermaid
+graph
+    subgraph Response workflow
+        direction TB
+        A[`always` is activated ?] --> B[`path.errors` have the path ?]
+        B --> C[`path.urls` have the path ?]
+        C --> D[exists in `dyn_data_dir` ?]
+    end
+```
+
 ## Build manually
 
 ```
