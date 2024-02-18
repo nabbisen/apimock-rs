@@ -310,6 +310,7 @@ impl Config {
         }
         if let Some(headers) = &self.headers {
             if 0 < headers.len() {
+                println!("");
                 let mut keys: Vec<_> = headers.keys().collect();
                 keys.sort();
                 for key in keys {
@@ -339,7 +340,11 @@ impl Config {
                         if let Some(data_src) = &paths.get(key).unwrap().data_src {
                             style(format!(" {}", data_src.as_str())).green()
                         } else {
-                            style(String::new()).green()
+                            if let Some(_) = &paths.get(key).unwrap().data_text {
+                                style(" (text)".to_owned()).green()
+                            } else {
+                                style(String::new()).green()
+                            }
                         },
                         if let Some(headers) = &paths.get(key).unwrap().headers {
                             let printed_outs = headers
