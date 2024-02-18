@@ -1,13 +1,13 @@
 # apimock-rs
 
-Microservice APIs mocking helper. [hyper](https://hyper.rs/)-based HTTP server generating REST responses containing JSON ones. Written in [Rust](https://www.rust-lang.org/).
+Mocking helper to develop microservices and APIs. [hyper](https://hyper.rs/)-based HTTP server generating REST responses containing JSON ones. Written in [Rust](https://www.rust-lang.org/).
 
 [![License](https://img.shields.io/github/license/nabbisen/apimock-rs)](https://github.com/nabbisen/apimock-rs/blob/main/LICENSE)
 
 ## Summary
 
-Aims to help dev to easily get dummy API, especially microservice API, responses due to several paths.
-Single executables on Win/Mac/Linux are available, thanks to Rust. [Releases](../../releases) are "out-of-the-box" coming with default config `apimock.toml`.
+Aims to help developers to easily get responses from dummy API, especially microservice API,  according to several paths.
+Single executables on Win/Mac/Linux are available, thanks to Rust and their cross-platform support. [Releases](../../releases) are "out-of-the-box" coming with default config `apimock.toml`.
 
 ### Screenshots
 
@@ -32,10 +32,11 @@ Server started to listen:
 ### Features
 
 - GET / POST methods
-- Multiple .json/.json5 files treated as JSON Response
 - Multiple paths
 - Dynamic path resolution with `dyn_data_dir`
-- Error responses (HTTP 4xx and 5xx)
+- Custom responses codes (Redirects as HTTP 3xx and Errors as 4xx and 5xx)
+- Custom headers and their reusabliblity
+- Multiple .json/.json5 files treated as JSON Response
 - Validates configuration: Missing JSON files, duplicate paths etc.
 - Prints out routing at startup
 
