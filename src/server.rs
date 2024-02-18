@@ -19,10 +19,12 @@ pub async fn handle(req: Request<Body>, config: Config) -> Result<Response<Body>
     }
 
     let path = uri_path(req.uri().path());
-    let url_path = handle_static_path(path, &config.paths.unwrap(), &config.headers);
-    match url_path {
-        Some(x) => return Ok(x.unwrap()),
-        _ => (),
+    if let Some(paths) = &config.paths {
+        let url_path = handle_static_path(path, paths, &config.headers);
+        match url_path {
+            Some(x) => return Ok(x.unwrap()),
+            _ => (),
+        }
     }
     handle_dyn_path(path, &config.dyn_data_dir.clone().unwrap().as_str())
         .expect("Unknown error occurred")

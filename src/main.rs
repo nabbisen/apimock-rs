@@ -16,10 +16,9 @@ const APP_NAME: &str = "API mock";
 
 #[tokio::main]
 async fn main() {
-    println!("Greetings from {APP_NAME} !!");
+    println!("\nGreetings from {APP_NAME} !!\n");
 
     let config_path = config_path();
-    println!("[config] {}\n", config_path);
     let config = Config::new(&config_path);
 
     let make_svc = make_service_fn(|_| {
@@ -33,7 +32,7 @@ async fn main() {
     let addr = ([127, 0, 0, 1], config.port).into();
     let server = Server::bind(&addr).serve(make_svc);
     println!(
-        "\nListening on {} ...",
+        "\nListening on {} ...\n",
         style(format!("http://{}", addr)).cyan()
     );
 

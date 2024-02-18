@@ -35,6 +35,7 @@ pub struct HeaderConfig {
     pub value: Option<String>,
 }
 
+const DEFAULT_DYN_DATA_DIR: &str = "apimock-data";
 const CONFIG_SECTION_GENERAL: &str = "general";
 const CONFIG_SECTION_URL: &str = "url";
 const CONFIG_SECTION_URL_HEADERS: &str = "headers";
@@ -45,8 +46,21 @@ impl Config {
     pub fn new(config_path: &str) -> Config {
         let mut config = Self::default_config();
 
-        let toml_string = fs::read_to_string(config_path)
-            .expect(format!("`{}` is missing: No config file", config_path).as_str());
+        if !Path::new(config_path).exists() {
+            if Path::new(DEFAULT_DYN_DATA_DIR).exists() {
+                config.dyn_data_dir = Some(DEFAULT_DYN_DATA_DIR.to_owned());
+                config.print();
+                return config;
+            } else {
+                panic!(
+                    "Both `{}` and `{}` is missing: No config file and data dir",
+                    config_path, DEFAULT_DYN_DATA_DIR
+                );
+            }
+        }
+        println!("[config] {}\n", config_path);
+
+        let toml_string = fs::read_to_string(config_path).unwrap();
         let toml_content: toml::Value = toml::from_str(&toml_string)
             .expect(format!("{}: Invalid toml content", config_path).as_str());
         let general_config = toml_content
@@ -310,7 +324,7 @@ impl Config {
         }
         if let Some(headers) = &self.headers {
             if 0 < headers.len() {
-                println!("");
+                println!("------");
                 let mut keys: Vec<_> = headers.keys().collect();
                 keys.sort();
                 for key in keys {
