@@ -1,6 +1,6 @@
 [general]
 port = 3001
-dyn_data_dir = "json-responder-data"
+dyn_data_dir = "apimock-data"
 # always = "{ greetings: \"Hello, world.\" }"
 
 [url]

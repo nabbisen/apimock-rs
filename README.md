@@ -1,13 +1,13 @@
-# json-responder
+# apimock-rs
 
-[hyper](https://hyper.rs/)-based HTTP server generating JSON responses. Written in [Rust](https://www.rust-lang.org/).
+Microservice APIs mocking helper. [hyper](https://hyper.rs/)-based HTTP server generating REST responses containing JSON application ones. Written in [Rust](https://www.rust-lang.org/).
 
-[![License](https://img.shields.io/github/license/nabbisen/json-responder)](https://github.com/nabbisen/json-responder/blob/main/LICENSE)
+[![License](https://img.shields.io/github/license/nabbisen/apimock-rs](https://github.com/nabbisen/apimock-rs/blob/main/LICENSE)
 
 ## Summary
 
-Aims to help dev to easily get dummy API responses due to several paths.
-Single executables on Win/Mac/Linux are available, thanks to Rust. [Releases](../../releases) are "out-of-the-box" coming with default config `json-responder.toml`.
+Aims to help dev to easily get dummy API, especially microservice API, responses due to several paths.
+Single executables on Win/Mac/Linux are available, thanks to Rust. [Releases](../../releases) are "out-of-the-box" coming with default config `apimock.toml`.
 
 ### Screenshots
 
@@ -43,28 +43,52 @@ Server started to listen:
 
 [Releases](../../releases) are available. Also able to [build manually](#build-manually).
 
-After downloading it or building, run `json-responder` with your configuration file (`./json-responder.toml` by default).
+After downloading it or building, run `apimock` with your configuration file (`./apimock.toml` by default).
 
 ### Configure
 
-`json-responder.toml`
+`apimock.toml`
 
 ```toml
 [general]
 port = 3001                                   # optional
-dyn_data_dir = "json-responder-data"          # optional
+dyn_data_dir = "apimock-data"                 # optional
 # always = "{ greetings: \"Hello, world.\" }" # optional
 
 [url]
 path_prefix = "api/v1" # optional
 data_dir = "tests"                            # optional
-[url.paths] # required when `always` is not specified
-home = "home.json"
-# "some/path" = "subdir/some_path.json5"
-[url.errors]
-401 = ["api-401"]
-403 = ["some/path/to/fail"]
-404 = []
+
+# required when `always` is not specified
+[url.paths] # `path_prefix` works
+"home" = "home.json"
+# "some/path" = "api.json5"
+# errors / redirects * `code` must be defined as **unsigned integer** (instead of String)
+"error/401" = { code = 401 }
+"error/api-403" = { code = 403 }
+"redirect/302" = { code = 302, headers = ["auth_2"] }
+# custom headers
+"some/path/w/header" = { text = "home.json", headers = ["auth_1"] }
+
+[url.raw_paths] # `path_prefix` doesn't work
+"/" = { src = "home.json", code = 202 }
+
+[url.headers]
+auth_1 = { key = "Authorization", value = "xxx" }
+auth_2 = { key = "Location", value = "xxxxxx" }
+```
+
+### How to embed to development environment
+
+With Node.js project, `scripts` in `package.json` is available.
+For example, run `npm run apimock` with `package.json` written in as below:
+
+```json
+{
+  "scripts": {
+    "apimock": "./apimock"
+  }
+}
 ```
 
 ### Options
@@ -72,18 +96,19 @@ home = "home.json"
 #### `-c` / `--config`
 
 Config file path.
-default: `json-responder.toml`
+default: `apimock.toml`
 
 ### After server started
 
 What is modifiable:
 
-- content of `.json` / `.json5`
+- content of path data src: `.json` / `.json5`
 
 What is NOT modifiable:
 
 - `always` config
-- routing on `paths` / `errors`
+- routing on `paths`
+- `code` / `headers` / data text on each path
 
 ### How response works
 
@@ -91,9 +116,8 @@ What is NOT modifiable:
 graph
     subgraph Response workflow
         direction TB
-        A[`always` is activated ?] --> B[`path.errors` have the path ?]
-        B --> C[`path.urls` have the path ?]
-        C --> D[exists in `dyn_data_dir` ?]
+        A[`always` is activated ?] --> B[`path.urls` have the path ?]
+        B --> C[exists in `dyn_data_dir` ?]
     end
 ```
 
@@ -106,7 +130,7 @@ cargo build --release
 Then run to start the server:
 
 ```
-./target/release/json-responder
+./target/release/apimock
 ```
 
 Alternatively, just running `cargo run` works.

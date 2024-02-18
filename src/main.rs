@@ -10,7 +10,7 @@ use crate::config::Config;
 use crate::server::handle;
 
 pub const LISTEN_PORT: u16 = 3001;
-pub const CONFIG_FILENAME: &str = "json-responder.toml";
+pub const CONFIG_FILENAME: &str = "apimock.toml";
 
 #[tokio::main]
 async fn main() {
