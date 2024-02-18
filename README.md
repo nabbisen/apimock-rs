@@ -7,7 +7,7 @@ Mocking helper to develop microservices and APIs. [hyper](https://hyper.rs/)-bas
 ## Summary
 
 Aims to help developers to easily get responses from dummy API, especially microservice API,  according to several paths.
-Single executables on Win/Mac/Linux are available, thanks to Rust and their cross-platform support. [Releases](../../releases) are "out-of-the-box" coming with default config `apimock.toml`.
+Each single executable on Win/Mac/Linux are available, thanks to Rust and their cross-platform support. [Releases](../../releases) are "out-of-the-box" coming with default config `apimock.toml`.
 
 \* Renamed from `json-responder`. Now more than returning JSON data.
 
@@ -37,10 +37,10 @@ Server started to listen:
 
 - GET / POST methods
 - Multiple paths
-- Dynamic path resolution with `dyn_data_dir`
-- Custom responses codes (Redirects as HTTP 3xx and Errors as 4xx and 5xx)
-- Custom headers and their reusabliblity
 - Multiple .json/.json5 files treated as JSON Response
+- Dynamic path resolution with `dyn_data_dir`
+- Custom responses codes (HTTP 3xx as redirects and 4xx and 5xx as errors)
+- Custom headers and their reusabliblity
 - Validates configuration: Missing JSON files, duplicate paths etc.
 - Prints out routing at startup
 
@@ -97,7 +97,7 @@ It works even without config toml. It is config-less mode.
 Static paths are dealt with as those who have the prefix. Convenient when your service has path prefix.    
 **Default**: empty
 
-#### `url.data_dir`
+##### `url.data_dir`
 
 Data directory used as where to look up files when HTTP response is built.    
 **Default**: executable directory
