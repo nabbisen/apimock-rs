@@ -75,16 +75,19 @@ fn static_path_response(
     if let Some(_) = &path_config.data_src {
         static_path_data_src_reponse(path_config, headers)
     } else {
-        let body = if let Some(data_text) = &path_config.data_text {
-            data_text
+        if let Some(data_text) = &path_config.data_text {
+            Some(
+                json_response_base(&path_config.headers, headers)
+                    .status(path_config.code)
+                    .body(Body::from(data_text.to_owned())),
+            )
         } else {
-            ""
-        };
-        Some(
-            json_response_base(&path_config.headers, headers)
-                .status(path_config.code)
-                .body(Body::from(body.to_owned())),
-        )
+            Some(
+                response_base(&path_config.headers, headers)
+                    .status(path_config.code)
+                    .body(Body::from("")),
+            )
+        }
     }
 }
 
@@ -103,13 +106,13 @@ fn static_path_data_src_reponse(
                 )
             }
             _ => Some(
-                response_base()
+                response_base(&None, &None)
                     .status(StatusCode::BAD_REQUEST)
                     .body(Body::from("Invalid json content")),
             ),
         },
         _ => Some(
-            response_base()
+            response_base(&None, &None)
                 .status(StatusCode::BAD_REQUEST)
                 .body(Body::from("Missing json file")),
         ),
@@ -120,8 +123,21 @@ fn json_response_base(
     path_headers: &Option<Vec<String>>,
     headers: &Option<HashMap<HeaderId, HeaderConfig>>,
 ) -> Builder {
-    let mut ret =
-        response_base().header(CONTENT_TYPE, HeaderValue::from_static("application/json"));
+    response_base(path_headers, headers)
+        .header(CONTENT_TYPE, HeaderValue::from_static("application/json"))
+}
+
+fn response_base(
+    path_headers: &Option<Vec<String>>,
+    headers: &Option<HashMap<HeaderId, HeaderConfig>>,
+) -> Builder {
+    let mut ret = Response::builder()
+        .header(ACCESS_CONTROL_ALLOW_ORIGIN, HeaderValue::from_static("*"))
+        .header(ACCESS_CONTROL_ALLOW_HEADERS, HeaderValue::from_static("*"))
+        .header(
+            ACCESS_CONTROL_ALLOW_METHODS,
+            HeaderValue::from_static("GET, POST, OPTIONS"),
+        );
     if let Some(path_headers) = path_headers {
         let headers = headers.clone().unwrap();
         for path_header in path_headers {
@@ -132,22 +148,12 @@ fn json_response_base(
     ret
 }
 
-fn response_base() -> Builder {
-    Response::builder()
-        .header(ACCESS_CONTROL_ALLOW_ORIGIN, HeaderValue::from_static("*"))
-        .header(ACCESS_CONTROL_ALLOW_HEADERS, HeaderValue::from_static("*"))
-        .header(
-            ACCESS_CONTROL_ALLOW_METHODS,
-            HeaderValue::from_static("GET, POST, OPTIONS"),
-        )
-}
-
 fn handle_dyn_path(path: &str, dyn_data_dir: &str) -> Option<Result<Response<Body>, Error>> {
     let p = Path::new(dyn_data_dir).join(path.strip_prefix("/").unwrap_or_default());
 
     let dir = p.parent().unwrap();
     if !Path::new(dir).exists() {
-        return Some(Ok(response_base()
+        return Some(Ok(response_base(&None, &None)
             .status(StatusCode::NOT_FOUND)
             .body(Body::empty())
             .unwrap()));
@@ -182,15 +188,15 @@ fn handle_dyn_path(path: &str, dyn_data_dir: &str) -> Option<Result<Response<Bod
                         .status(StatusCode::OK)
                         .body(Body::from(body))
                 }
-                _ => response_base()
+                _ => response_base(&None, &None)
                     .status(StatusCode::BAD_REQUEST)
                     .body(Body::from("Invalid json content")),
             },
-            _ => response_base()
+            _ => response_base(&None, &None)
                 .status(StatusCode::NOT_FOUND)
                 .body(Body::empty()),
         },
-        _ => response_base()
+        _ => response_base(&None, &None)
             .status(StatusCode::NOT_FOUND)
             .body(Body::empty()),
     };
