@@ -12,9 +12,11 @@ use crate::server::handle;
 pub const LISTEN_PORT: u16 = 3001;
 pub const CONFIG_FILENAME: &str = "apimock.toml";
 
+const APP_NAME: &str = "API mock";
+
 #[tokio::main]
 async fn main() {
-    println!("Greetings from JSON Responder !!");
+    println!("Greetings from {APP_NAME} !!");
 
     let config_path = config_path();
     println!("[config] {}\n", config_path);
