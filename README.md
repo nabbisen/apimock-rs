@@ -87,20 +87,26 @@ redirect_1 = { key = "Location", value = "xxxxxx" }
 
 ##### `general.dyn_data_dir`
 
-If set, URL path without statically defined path matched is converted to file path in this directory and server try to find it out.
+If set, URL path without statically defined path matched is converted to file path in this directory. Server tries to find it out as either `.json` or `.json5`. When found, server returns the content as JSON response.    
+**Default**: empty
+
+It works even without config toml. It is config-less mode.
 
 ##### `url.path_prefix`
 
-Static paths are dealt with as those who have the prefix. Convenient when your service has path prefix.
+Static paths are dealt with as those who have the prefix. Convenient when your service has path prefix.    
+**Default**: empty
 
 #### `url.data_dir`
 
-Data directory used as where to look up files when HTTP response is built. The default is the executable directory.
+Data directory used as where to look up files when HTTP response is built.    
+**Default**: executable directory
 
 ##### `url.headers`
 
 HTTP headers such as `Authorizaton: xxx` on auth and `Location: xxx` on redirection.
-You can reuse them and easily attach headers in `url.paths` by defining here.
+You can reuse them and easily attach headers in `url.paths` by defining here.    
+**Default**: None
 
 ##### `url.paths`
 
