@@ -1,6 +1,6 @@
 # apimock-rs
 
-Microservice APIs mocking helper. [hyper](https://hyper.rs/)-based HTTP server generating REST responses containing JSON application ones. Written in [Rust](https://www.rust-lang.org/).
+Microservice APIs mocking helper. [hyper](https://hyper.rs/)-based HTTP server generating REST responses containing JSON ones. Written in [Rust](https://www.rust-lang.org/).
 
 [![License](https://img.shields.io/github/license/nabbisen/apimock-rs](https://github.com/nabbisen/apimock-rs/blob/main/LICENSE)
 
