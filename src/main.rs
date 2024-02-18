@@ -6,7 +6,7 @@ use std::env;
 
 mod config;
 mod server;
-use crate::config::config;
+use crate::config::Config;
 use crate::server::handle;
 
 pub const LISTEN_PORT: u16 = 3001;
@@ -17,8 +17,8 @@ async fn main() {
     println!("Greetings from JSON Responder !!");
 
     let config_path = config_path();
-    println!("[config] {}", config_path);
-    let config = config(&config_path);
+    println!("[config] {}\n", config_path);
+    let config = Config::new(&config_path);
 
     let make_svc = make_service_fn(|_| {
         let config = config.clone();
@@ -30,7 +30,10 @@ async fn main() {
 
     let addr = ([127, 0, 0, 1], config.port).into();
     let server = Server::bind(&addr).serve(make_svc);
-    println!("Listening on {}", style(format!("http://{}", addr)).cyan());
+    println!(
+        "\nListening on {} ...",
+        style(format!("http://{}", addr)).cyan()
+    );
 
     server.await.unwrap();
 }

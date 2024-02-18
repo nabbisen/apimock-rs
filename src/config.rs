@@ -1,7 +1,7 @@
 use console::style;
 use hyper::StatusCode;
 use json5;
-use serde_json::Value;
+use serde_json;
 use std::collections::HashMap;
 use std::fs;
 use std::path::Path;
@@ -9,237 +9,327 @@ use toml;
 
 use crate::LISTEN_PORT;
 
+pub type UrlPath = String;
+pub type HeaderId = String;
+
 #[derive(Clone, Default)]
 pub struct Config {
     pub port: u16,
     pub dyn_data_dir: Option<String>,
     pub always: Option<String>,
     pub path_prefix: Option<String>,
-    pub url_data_dir: Option<String>,
-    pub paths: Option<HashMap<String, String>>,
-    pub errors: Option<HashMap<u16, Vec<String>>>,
+    pub path_data_dir: Option<String>,
+    pub headers: Option<HashMap<HeaderId, HeaderConfig>>,
+    pub paths: Option<HashMap<UrlPath, PathConfig>>,
+}
+#[derive(Clone, Default)]
+pub struct PathConfig {
+    pub code: StatusCode,
+    pub headers: Option<Vec<String>>,
+    pub data_src: Option<String>,
+    pub data_text: Option<String>,
+}
+#[derive(Clone, Default)]
+pub struct HeaderConfig {
+    pub key: String,
+    pub value: Option<String>,
 }
 
 const CONFIG_SECTION_GENERAL: &str = "general";
 const CONFIG_SECTION_URL: &str = "url";
+const CONFIG_SECTION_URL_HEADERS: &str = "headers";
+const CONFIG_SECTION_URL_PATHS: &str = "paths";
+const CONFIG_SECTION_URL_RAW_PATH: &str = "raw_paths";
 
-pub fn config(path: &str) -> Config {
-    let mut config = default_config();
+impl Config {
+    pub fn new(path: &str) -> Config {
+        let mut config = Self::default_config();
 
-    let toml_string = fs::read_to_string(path).expect("No toml config file");
-    let toml_content: toml::Value = toml::from_str(&toml_string).expect("Invalid toml file");
-    let general_config = toml_content
-        .get(CONFIG_SECTION_GENERAL)
-        .expect(format!("[{}] section missing", CONFIG_SECTION_GENERAL).as_str())
-        .as_table()
-        .expect(format!("Invalid [{}] section", CONFIG_SECTION_GENERAL).as_str());
-    for (key, value) in general_config {
-        match key.as_str() {
-            "port" => match value.as_integer() {
-                Some(port) => config.port = port as u16,
-                _ => (),
-            },
-            "dyn_data_dir" => match value.as_str() {
-                Some(dyn_data_dir) => {
-                    println!("[dyn_data_dir] {}", dyn_data_dir);
-                    config.dyn_data_dir = Some(dyn_data_dir.to_owned())
-                }
-                _ => (),
-            },
-            "always" => match value.as_str() {
-                Some(always) => {
-                    let _ = json5::from_str::<Value>(&always).expect("Invalid always value");
-                    config.always = Some(always.to_owned());
-                    println!("[always] is specified");
-                    return config;
-                }
-                _ => (),
-            },
-            _ => (),
-        }
-    }
-
-    let url_config = toml_content
-        .get(CONFIG_SECTION_URL)
-        .expect(format!("[{}] section missing", CONFIG_SECTION_GENERAL).as_str())
-        .as_table()
-        .expect(format!("Invalid [{}] section", CONFIG_SECTION_URL).as_str());
-    for (key, value) in url_config {
-        match key.as_str() {
-            "path_prefix" => match value.as_str() {
-                Some(path_prefix) => {
-                    println!("[path_prefix] {}", path_prefix);
-                    config.path_prefix = Some(path_prefix.to_owned())
-                }
-                _ => (),
-            },
-            "data_dir" => match value.as_str() {
-                Some(url_data_dir) => {
-                    println!("[url_data_dir] {}", url_data_dir);
-                    config.url_data_dir = Some(url_data_dir.to_owned())
-                }
-                _ => (),
-            },
-            _ => (),
-        }
-    }
-    for (key, value) in url_config {
-        match key.as_str() {
-            "paths" => {
-                config.paths = Some(config_url_paths(
-                    value,
-                    config.url_data_dir.clone().unwrap().as_str(),
-                    config.path_prefix.clone().unwrap().as_str(),
-                ))
-            }
-            "errors" => {
-                config.errors = Some(config_url_errors(
-                    value,
-                    config.path_prefix.clone().unwrap().as_str(),
-                ))
-            }
-            _ => (),
-        }
-    }
-    let duplicate = validate_paths(&config.paths, &config.errors);
-    if 0 < duplicate.len() {
-        panic!("Invalid path: {} is duplicate", duplicate);
-    }
-
-    config
-}
-
-fn default_config() -> Config {
-    let mut config = Config::default();
-    config.port = LISTEN_PORT;
-    config
-}
-
-fn config_url_paths(
-    value: &toml::Value,
-    data_dir: &str,
-    path_prefix: &str,
-) -> HashMap<String, String> {
-    let p = value.as_table().expect("Invalid paths entries");
-    let paths = p
-        .into_iter()
-        .map(|(path, json_file)| config_url_path(path, json_file, data_dir, path_prefix))
-        .collect::<HashMap<String, String>>();
-    paths
-}
-
-fn config_url_path(
-    path: &str,
-    json_file: &toml::Value,
-    data_dir: &str,
-    path_prefix: &str,
-) -> (String, String) {
-    let json_file = json_file
-        .as_str()
-        .expect(format!("{} is invalid", json_file).as_str());
-    let json_path = Path::new(data_dir).join(json_file).display().to_string();
-    let _ = fs::metadata(&json_path).expect(format!("{} is missing", json_path).as_str());
-
-    let full_path = format!("/{}/{}/", path_prefix, path.to_string()).replace("//", "/");
-    let full_path_wo_trailing_slash = &full_path[..full_path.len() - 1];
-
-    println!(
-        "[path] {} => {}",
-        style(full_path_wo_trailing_slash).yellow(),
-        style(json_path.clone()).green()
-    );
-    (full_path_wo_trailing_slash.to_owned(), json_path.to_owned())
-}
-
-fn config_url_errors(value: &toml::Value, path_prefix: &str) -> HashMap<u16, Vec<String>> {
-    let p = value.as_table().expect("Invalid url errors entries");
-    let errors = p
-        .into_iter()
-        .filter_map(|(code, paths)| {
-            let status_code = if let Ok(x) = code.parse::<u16>() {
-                x
-            } else {
-                panic!("{}: Not numeric error code", code);
-            };
-            let status_code = if let Ok(x) = StatusCode::from_u16(status_code) {
-                x
-            } else {
-                panic!("{}: Invalid error code", status_code);
-            };
-            if !StatusCode::is_client_error(&status_code)
-                && !StatusCode::is_server_error(&status_code)
-            {
-                panic!("{}: Invalid HTTP error code", status_code);
-            }
-
-            let paths = paths.as_array().expect("Invalid error paths type");
-            if paths.len() == 0 {
-                return None;
-            }
-            Some(config_url_error(code, paths, path_prefix))
-        })
-        .collect::<HashMap<u16, Vec<String>>>();
-    errors
-}
-
-fn config_url_error(code: &str, paths: &Vec<toml::Value>, path_prefix: &str) -> (u16, Vec<String>) {
-    let full_paths = paths
-        .into_iter()
-        .map(|path| {
-            let path = match path.as_str() {
-                Some(x) => {
-                    if x.len() == 0 {
-                        panic!("{}: Empty error path", code);
+        let toml_string = fs::read_to_string(path).expect("No toml config file");
+        let toml_content: toml::Value = toml::from_str(&toml_string).expect("Invalid toml file");
+        let general_config = toml_content
+            .get(CONFIG_SECTION_GENERAL)
+            .expect(format!("[{}] section missing", CONFIG_SECTION_GENERAL).as_str())
+            .as_table()
+            .expect(format!("Invalid [{}] section", CONFIG_SECTION_GENERAL).as_str());
+        for (key, value) in general_config {
+            match key.as_str() {
+                "port" => match value.as_integer() {
+                    Some(port) => config.port = port as u16,
+                    _ => (),
+                },
+                "dyn_data_dir" => match value.as_str() {
+                    Some(dyn_data_dir) => config.dyn_data_dir = Some(dyn_data_dir.to_owned()),
+                    _ => (),
+                },
+                "always" => match value.as_str() {
+                    Some(always) => {
+                        let _ = json5::from_str::<serde_json::Value>(&always)
+                            .expect("Invalid always value");
+                        config.always = Some(always.to_owned());
+                        return config;
                     }
-                    x
-                }
-                _ => panic!("{}: Invalid error path", code),
+                    _ => (),
+                },
+                _ => (),
+            }
+        }
+
+        let url_config = toml_content
+            .get(CONFIG_SECTION_URL)
+            .expect(format!("[{}] section missing", CONFIG_SECTION_GENERAL).as_str())
+            .as_table()
+            .expect(format!("Invalid [{}] section", CONFIG_SECTION_URL).as_str());
+        for (key, value) in url_config {
+            match key.as_str() {
+                "path_prefix" => match value.as_str() {
+                    Some(path_prefix) => config.path_prefix = Some(path_prefix.to_owned()),
+                    _ => (),
+                },
+                "data_dir" => match value.as_str() {
+                    Some(path_data_dir) => config.path_data_dir = Some(path_data_dir.to_owned()),
+                    _ => (),
+                },
+                _ => (),
+            }
+        }
+
+        let headers_config_content = url_config.get(CONFIG_SECTION_URL_HEADERS);
+        config.headers = match headers_config_content {
+            Some(x) => {
+                let table = x
+                    .as_table()
+                    .expect(format!("Invalid [{}] section", CONFIG_SECTION_URL_HEADERS).as_str());
+                let ret = table
+                    .iter()
+                    .map(|(id, key_value)| {
+                        let value = if let Some(x) = key_value.get("value") {
+                            Some(x.as_str().unwrap().to_owned())
+                        } else {
+                            None
+                        };
+                        let header_config = HeaderConfig {
+                            key: key_value.get("key").unwrap().as_str().unwrap().to_owned(),
+                            value: value,
+                        };
+                        (id.to_owned(), header_config)
+                    })
+                    .collect::<HashMap<HeaderId, HeaderConfig>>();
+                Some(HashMap::from(ret))
+            }
+            _ => None,
+        };
+
+        let paths_config_content = url_config.get(CONFIG_SECTION_URL_PATHS);
+        config.paths = match paths_config_content {
+            Some(paths_config) => Some(config.config_url_paths(paths_config, false)),
+            _ => None,
+        };
+        let raw_paths_config_content = url_config.get(CONFIG_SECTION_URL_RAW_PATH);
+        if let Some(raw_paths_config) = raw_paths_config_content {
+            let mut merged = if let Some(ref paths) = config.paths {
+                paths.clone()
+            } else {
+                HashMap::new()
             };
-            let full_path = format!("/{}/{}/", path_prefix, path.to_owned()).replace("//", "/");
-            let full_path_wo_trailing_slash = &full_path[..full_path.len() - 1];
-            full_path_wo_trailing_slash.to_string()
-        })
-        .collect::<Vec<String>>();
+            let raw_paths = config.config_url_paths(raw_paths_config, true);
+            merged.extend(raw_paths);
+            config.paths = Some(merged);
+        }
 
-    println!(
-        "[error] {} = {}",
-        style(code).magenta(),
-        style(full_paths.join(", ")).yellow()
-    );
-    (
-        code.parse::<u16>()
-            .expect(&format!("{}: Invalid code", code)),
-        full_paths.to_owned(),
-    )
-}
+        config.validate();
 
-fn validate_paths(
-    paths: &Option<HashMap<String, String>>,
-    errors: &Option<HashMap<u16, Vec<String>>>,
-) -> String {
-    let url_paths = if let Some(x) = paths {
-        x.into_iter()
-            .map(|(y, _)| y.as_str())
-            .collect::<Vec<&str>>()
-    } else {
-        Vec::<&str>::new()
-    };
-    let error_paths = if let Some(x) = errors {
-        x.into_iter()
-            .map(|(_, y)| y.into_iter().map(|z| z.as_str()).collect::<Vec<&str>>())
-            .flatten()
-            .collect::<Vec<&str>>()
-    } else {
-        Vec::<&str>::new()
-    };
-    let concatted = [url_paths, error_paths].concat();
+        config.print();
+        config
+    }
 
-    for i in 0..concatted.len() {
-        for j in (i + 1)..concatted.len() {
-            if concatted[i] == concatted[j] {
-                return concatted[i].to_owned();
+    fn default_config() -> Config {
+        let mut config = Config::default();
+        config.port = LISTEN_PORT;
+        config
+    }
+
+    fn config_url_paths(
+        &self,
+        value: &toml::Value,
+        is_raw_paths: bool,
+    ) -> HashMap<UrlPath, PathConfig> {
+        let mut ret = HashMap::<UrlPath, PathConfig>::new();
+        let p = value.as_table().expect("Invalid paths entries");
+        for (path, path_config_content) in p {
+            let path_config = self.config_url_path(path, path_config_content, is_raw_paths);
+            ret.insert(path_config.0, path_config.1);
+        }
+        ret
+    }
+
+    fn config_url_path(
+        &self,
+        path: &str,
+        path_config_content: &toml::Value,
+        is_raw_paths: bool,
+    ) -> (UrlPath, PathConfig) {
+        let full_path = {
+            let possibly_w_trailing_slash = if is_raw_paths {
+                format!("/{}/", path.to_string())
+            } else {
+                format!(
+                    "/{}/{}/",
+                    self.path_prefix.clone().unwrap_or_default(),
+                    path.to_string()
+                )
+            }
+            .replace("//", "/");
+            (&possibly_w_trailing_slash[..possibly_w_trailing_slash.len() - 1]).to_owned()
+        };
+
+        let path_config = match path_config_content {
+            toml::Value::String(file) => {
+                PathConfig {
+                    code: StatusCode::OK,
+                    headers: None,
+                    data_src: Some(self.data_path(file)),
+                    data_text: None,
+                }
+            }
+            toml::Value::Table(table) => {
+                let mut ret = PathConfig {
+                    code: StatusCode::OK,
+                    headers: None,
+                    data_src: None,
+                    data_text: None,
+                };
+                for (key, value) in table {
+                    match key.as_str() {
+                        "code" => {
+                            ret.code =
+                                StatusCode::from_u16(value.as_integer().unwrap() as u16).unwrap()
+                        }
+                        "headers" => {
+                            let array = value
+                                .as_array()
+                                .expect(format!("{} should be array", value).as_str());
+                            if 0 < array.len() {
+                                ret.headers = Some(
+                                    array
+                                        .iter()
+                                        .map(|x| x.as_str().unwrap().to_string())
+                                        .collect::<Vec<String>>(),
+                                );
+                                for header in ret.headers.clone().unwrap() {
+                                    if self.headers.is_none()
+                                        || !self
+                                            .headers
+                                            .clone()
+                                            .unwrap()
+                                            .keys()
+                                            .any(|x| x == header.as_str())
+                                    {
+                                        panic!("{} is not found", header);
+                                    }
+                                }
+                            }
+                        }
+                        "src" => {
+                            let file = value.as_str().unwrap();
+                            ret.data_src = Some(self.data_path(file))
+                        }
+                        "text" => ret.data_text = Some(value.as_str().unwrap().to_owned()),
+                        _ => panic!("{}", format!("{} is invalid", table).as_str()),
+                    }
+                }
+                ret
+            }
+            _ => panic!("{}", format!("{} is invalid", path_config_content).as_str()),
+        };
+
+        (full_path, path_config)
+    }
+
+    fn data_path(&self, file: &str) -> String {
+        let path = Path::new(&self.path_data_dir.clone().unwrap())
+            .join(file)
+            .display()
+            .to_string();
+        let _ = fs::metadata(&path).expect(format!("{} is missing", path).as_str());
+        path
+    }
+
+    fn validate(&self) {
+        if self.always.is_none() && (self.paths.is_none() || self.paths.clone().unwrap().len() == 0)
+        {
+            panic!("paths not defined");
+        }
+
+        if let Some(paths) = &self.paths {
+            for (path, path_config) in paths {
+                if !path_config.data_src.is_none() && !path_config.data_text.is_none() {
+                    panic!("can't define src and text on path: {}", path);
+                }
             }
         }
     }
-    String::new()
+
+    fn print(&self) {
+        if let Some(always) = &self.always {
+            println!("[always] {}", always);
+        }
+        if let Some(path_data_dir) = &self.path_data_dir {
+            println!("[path_data_dir] {}", path_data_dir);
+        }
+        if let Some(path_prefix) = &self.path_prefix {
+            println!("[path_prefix] {}", path_prefix);
+        }
+        if let Some(headers) = &self.headers {
+            if 0 < headers.len() {
+                let mut keys: Vec<_> = headers.keys().collect();
+                keys.sort();
+                for key in keys {
+                    println!(
+                        "[header] {} = {}{}",
+                        style(headers.get_key_value(key).unwrap().0).magenta(),
+                        headers.get(key).unwrap().key.clone(),
+                        if let Some(value) = headers.get(key).unwrap().value.clone() {
+                            format!(": {}", value)
+                        } else {
+                            String::new()
+                        }
+                    );
+                }
+            }
+        }
+        if let Some(paths) = &self.paths {
+            if 0 < paths.len() {
+                println!("------");
+                let mut keys: Vec<_> = paths.keys().collect();
+                keys.sort();
+                for key in keys {
+                    println!(
+                        "[path] {} => [{}]{}{}",
+                        style(paths.get_key_value(key).unwrap().0).yellow(),
+                        paths.get(key).unwrap().code.as_u16(),
+                        if let Some(data_src) = &paths.get(key).unwrap().data_src {
+                            style(format!(" {}", data_src.as_str())).green()
+                        } else {
+                            style(String::new()).green()
+                        },
+                        if let Some(headers) = &paths.get(key).unwrap().headers {
+                            let printed_outs = headers
+                                .iter()
+                                .map(|x| format!("{}", style(x.to_owned()).magenta()))
+                                .collect::<Vec<String>>()
+                                .join(", ");
+                            format!(" {{{}}}", printed_outs)
+                        } else {
+                            String::new()
+                        },
+                    );
+                }
+                println!("------");
+            }
+        }
+        if let Some(dyn_data_dir) = &self.dyn_data_dir {
+            println!("[dyn_data_dir] {}", style(dyn_data_dir).green());
+        }
+    }
 }
