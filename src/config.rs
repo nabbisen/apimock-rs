@@ -42,16 +42,30 @@ const CONFIG_SECTION_URL_PATHS: &str = "paths";
 const CONFIG_SECTION_URL_RAW_PATH: &str = "raw_paths";
 
 impl Config {
-    pub fn new(path: &str) -> Config {
+    pub fn new(config_path: &str) -> Config {
         let mut config = Self::default_config();
 
-        let toml_string = fs::read_to_string(path).expect("No toml config file");
-        let toml_content: toml::Value = toml::from_str(&toml_string).expect("Invalid toml file");
+        let toml_string = fs::read_to_string(config_path)
+            .expect(format!("`{}` is missing: No config file", config_path).as_str());
+        let toml_content: toml::Value = toml::from_str(&toml_string)
+            .expect(format!("{}: Invalid toml content", config_path).as_str());
         let general_config = toml_content
             .get(CONFIG_SECTION_GENERAL)
-            .expect(format!("[{}] section missing", CONFIG_SECTION_GENERAL).as_str())
+            .expect(
+                format!(
+                    "{}: [{}] section missing",
+                    config_path, CONFIG_SECTION_GENERAL
+                )
+                .as_str(),
+            )
             .as_table()
-            .expect(format!("Invalid [{}] section", CONFIG_SECTION_GENERAL).as_str());
+            .expect(
+                format!(
+                    "{}: Invalid [{}] section",
+                    config_path, CONFIG_SECTION_GENERAL
+                )
+                .as_str(),
+            );
         for (key, value) in general_config {
             match key.as_str() {
                 "port" => match value.as_integer() {
@@ -65,7 +79,7 @@ impl Config {
                 "always" => match value.as_str() {
                     Some(always) => {
                         let _ = json5::from_str::<serde_json::Value>(&always)
-                            .expect("Invalid always value");
+                            .expect(format!("{}: Invalid `always` value", config_path).as_str());
                         config.always = Some(always.to_owned());
                         return config;
                     }
@@ -77,9 +91,15 @@ impl Config {
 
         let url_config = toml_content
             .get(CONFIG_SECTION_URL)
-            .expect(format!("[{}] section missing", CONFIG_SECTION_GENERAL).as_str())
+            .expect(
+                format!(
+                    "{}: [{}] section missing",
+                    config_path, CONFIG_SECTION_GENERAL
+                )
+                .as_str(),
+            )
             .as_table()
-            .expect(format!("Invalid [{}] section", CONFIG_SECTION_URL).as_str());
+            .expect(format!("{}: Invalid [{}] section", config_path, CONFIG_SECTION_URL).as_str());
         for (key, value) in url_config {
             match key.as_str() {
                 "path_prefix" => match value.as_str() {
@@ -97,9 +117,13 @@ impl Config {
         let headers_config_content = url_config.get(CONFIG_SECTION_URL_HEADERS);
         config.headers = match headers_config_content {
             Some(x) => {
-                let table = x
-                    .as_table()
-                    .expect(format!("Invalid [{}] section", CONFIG_SECTION_URL_HEADERS).as_str());
+                let table = x.as_table().expect(
+                    format!(
+                        "{}: Invalid [{}] section",
+                        config_path, CONFIG_SECTION_URL_HEADERS
+                    )
+                    .as_str(),
+                );
                 let ret = table
                     .iter()
                     .map(|(id, key_value)| {
@@ -155,7 +179,13 @@ impl Config {
         is_raw_paths: bool,
     ) -> HashMap<UrlPath, PathConfig> {
         let mut ret = HashMap::<UrlPath, PathConfig>::new();
-        let p = value.as_table().expect("Invalid paths entries");
+        let p = value.as_table().expect(
+            format!(
+                "[{}] Invalid entries",
+                if is_raw_paths { "raw_paths" } else { "paths" }
+            )
+            .as_str(),
+        );
         for (path, path_config_content) in p {
             let path_config = self.config_url_path(path, path_config_content, is_raw_paths);
             ret.insert(path_config.0, path_config.1);
@@ -184,14 +214,12 @@ impl Config {
         };
 
         let path_config = match path_config_content {
-            toml::Value::String(file) => {
-                PathConfig {
-                    code: StatusCode::OK,
-                    headers: None,
-                    data_src: Some(self.data_path(file)),
-                    data_text: None,
-                }
-            }
+            toml::Value::String(file) => PathConfig {
+                code: StatusCode::OK,
+                headers: None,
+                data_src: Some(self.data_path(file)),
+                data_text: None,
+            },
             toml::Value::Table(table) => {
                 let mut ret = PathConfig {
                     code: StatusCode::OK,
@@ -208,7 +236,7 @@ impl Config {
                         "headers" => {
                             let array = value
                                 .as_array()
-                                .expect(format!("{} should be array", value).as_str());
+                                .expect(format!("`{}` should be array", value).as_str());
                             if 0 < array.len() {
                                 ret.headers = Some(
                                     array
@@ -251,7 +279,7 @@ impl Config {
             .join(file)
             .display()
             .to_string();
-        let _ = fs::metadata(&path).expect(format!("{} is missing", path).as_str());
+        let _ = fs::metadata(&path).expect(format!("`{}` is missing", path).as_str());
         path
     }
 
