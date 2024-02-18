@@ -26,9 +26,11 @@ Server started to listen:
 - Performance
     - Fast speed
     - Low memory consumption
-- Easy usage
+- Easy setup/usage
     - Built as single (and small) executable
     - Integrated configuration
+        - No need to write scripts
+        - Config-less mode is also supported
 - Cross-platform support
 
 ### Features
@@ -62,6 +64,10 @@ dyn_data_dir = "apimock-data"                 # optional
 path_prefix = "api/v1" # optional
 data_dir = "tests"                            # optional
 
+[url.headers]
+auth_1 = { key = "Authorization", value = "xxx" }
+redirect_1 = { key = "Location", value = "xxxxxx" }
+
 # required when `always` is not specified
 [url.paths] # `path_prefix` works
 "home" = "home.json"
@@ -75,24 +81,49 @@ data_dir = "tests"                            # optional
 
 [url.raw_paths] # `path_prefix` doesn't work
 "/" = { text = "{ Hello: world }", code = 202, headers = ["auth_1", "redirect_1"] }
-
-[url.headers]
-auth_1 = { key = "Authorization", value = "xxx" }
-redirect_1 = { key = "Location", value = "xxxxxx" }
 ```
 
-### How to embed to development environment
+#### Properties
 
-With Node.js project, `scripts` in `package.json` is available.
-For example, run `npm run apimock` with `package.json` written in as below:
+##### `general.dyn_data_dir`
 
-```json
-{
-  "scripts": {
-    "apimock": "./apimock"
-  }
-}
+If set, URL path without statically defined path matched is converted to file path in this directory and server try to find it out.
+
+##### `url.path_prefix`
+
+Static paths are dealt with as those who have the prefix. Convenient when your service has path prefix.
+
+#### `url.data_dir`
+
+Data directory used as where to look up files when HTTP response is built. The default is the executable directory.
+
+##### `url.headers`
+
+HTTP headers such as `Authorizaton: xxx` on auth and `Location: xxx` on redirection.
+You can reuse them and easily attach headers in `url.paths` by defining here.
+
+##### `url.paths`
+
+The key, the left-hand side, is URL path. The right-hand one is response definition.
+Response definition consists of four optional parts: `code` as HTTP code, `headers` as HTTP headers keys defined in `url.headers`, `src` as data source file relative path in `url.data_dir` and `text` as direct body text instead of `src`. For example:
+
+```toml
+"url_path" = { code = 200, headers = ["header_key_1"], src = "response_1.json" }
 ```
+
+It is able to omit code and headers. For example:
+
+```toml
+"url_path" = "response_1.json"
+```
+
+It means `src` and it's far simpler. `code` and `headers` are dealt with as their default: 200 as OK and no custom headers.
+
+Only when either `src` or `text` is defined, the response `Content-Type` is set as `application/json`.
+
+##### `url.raw_paths`
+
+Not affected by `url.path_prefix`. Everything else is the same to `url.paths`.
 
 ### Options
 
@@ -122,6 +153,19 @@ graph
         A[`always` is activated ?] --> B[`path.urls` have the path ?]
         B --> C[exists in `dyn_data_dir` ?]
     end
+```
+
+## How to embed to development environment
+
+With Node.js project, `scripts` in `package.json` is available.
+For example, run `npm run apimock` with `package.json` written in as below:
+
+```json
+{
+  "scripts": {
+    "apimock": "./apimock"
+  }
+}
 ```
 
 ## Build manually

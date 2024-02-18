@@ -6,6 +6,11 @@ dyn_data_dir = "apimock-data"
 [url]
 data_dir = "tests"
 path_prefix = "api/v1"
+
+[url.headers]
+auth_1 = { key = "Authorization", value = "xxx" }
+redirect_1 = { key = "Location", value = "xxxxxx" }
+
 [url.paths]
 "home" = "home.json"
 # "some/path" = "api.json5"
@@ -17,6 +22,3 @@ path_prefix = "api/v1"
 "redirect/302" = { code = 302, headers = ["redirect_1"] }
 [url.raw_paths]
 "/" = { text = "{ Hello: world }", code = 202, headers = ["auth_1", "redirect_1"] }
-[url.headers]
-auth_1 = { key = "Authorization", value = "xxx" }
-redirect_1 = { key = "Location", value = "xxxxxx" }
