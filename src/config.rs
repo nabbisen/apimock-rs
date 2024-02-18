@@ -49,6 +49,7 @@ impl Config {
         if !Path::new(config_path).exists() {
             if Path::new(DEFAULT_DYN_DATA_DIR).exists() {
                 config.dyn_data_dir = Some(DEFAULT_DYN_DATA_DIR.to_owned());
+                println!("{}: config file is missing (config-less mode)", config_path);
                 config.print();
                 return config;
             } else {
