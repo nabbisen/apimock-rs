@@ -63,19 +63,19 @@ data_dir = "tests"                            # optional
 [url.paths] # `path_prefix` works
 "home" = "home.json"
 # "some/path" = "api.json5"
+# custom headers
+"some/path/w/header" = { text = "home.json", headers = ["auth_1"] }
 # errors / redirects * `code` must be defined as **unsigned integer** (instead of String)
 "error/401" = { code = 401 }
 "error/api-403" = { code = 403 }
-"redirect/302" = { code = 302, headers = ["auth_2"] }
-# custom headers
-"some/path/w/header" = { text = "home.json", headers = ["auth_1"] }
+"redirect/302" = { code = 302, headers = ["redirect_1"] }
 
 [url.raw_paths] # `path_prefix` doesn't work
-"/" = { src = "home.json", code = 202 }
+"/" = { src = "home.json", code = 202, headers = ["auth_1", "redirect_1"] }
 
 [url.headers]
 auth_1 = { key = "Authorization", value = "xxx" }
-auth_2 = { key = "Location", value = "xxxxxx" }
+redirect_1 = { key = "Location", value = "xxxxxx" }
 ```
 
 ### How to embed to development environment
