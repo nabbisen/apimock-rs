@@ -8,15 +8,15 @@ data_dir = "tests"
 path_prefix = "api/v1"
 [url.paths]
 "home" = "home.json"
-"some/path" = "api.json5"
+# "some/path" = "api.json5"
 # custom header
-"some/path/w/header" = { text = "api.json5", headers = ["auth_1"] }
+"some/path/w/header" = { src = "home.json", headers = ["auth_1"] }
 # errors / redirects * code must be unsigned integer
 "error/401" = { code = 401 }
 "error/api-403" = { code = 403 }
 "redirect/302" = { code = 302, headers = ["redirect_1"] }
 [url.raw_paths]
-"/" = { src = "home.json", code = 202, headers = ["auth_1", "redirect_1"] }
+"/" = { text = "{ Hello: world }", code = 202, headers = ["auth_1", "redirect_1"] }
 [url.headers]
 auth_1 = { key = "Authorization", value = "xxx" }
 redirect_1 = { key = "Location", value = "xxxxxx" }
