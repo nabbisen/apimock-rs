@@ -9,6 +9,8 @@ Mocking helper to develop microservices and APIs. [hyper](https://hyper.rs/)-bas
 Aims to help developers to easily get responses from dummy API, especially microservice API,  according to several paths.
 Single executables on Win/Mac/Linux are available, thanks to Rust and their cross-platform support. [Releases](../../releases) are "out-of-the-box" coming with default config `apimock.toml`.
 
+\* Renamed from `json-responder`. Now more than returning JSON data.
+
 ### Screenshots
 
 Server started to listen:
