@@ -72,14 +72,19 @@ fn static_path_response(
     path_config: &PathConfig,
     headers: &Option<HashMap<HeaderId, HeaderConfig>>,
 ) -> Option<Result<Response<Body>, Error>> {
-    if let Some(data_text) = &path_config.data_text {
+    if let Some(_) = &path_config.data_src {
+        static_path_data_src_reponse(path_config, headers)
+    } else {
+        let body = if let Some(data_text) = &path_config.data_text {
+            data_text
+        } else {
+            ""
+        };
         Some(
             json_response_base(&path_config.headers, headers)
                 .status(path_config.code)
-                .body(Body::from(data_text.to_owned())),
+                .body(Body::from(body.to_owned())),
         )
-    } else {
-        static_path_data_src_reponse(path_config, headers)
     }
 }
 
