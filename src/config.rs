@@ -290,7 +290,12 @@ impl Config {
     }
 
     fn data_path(&self, file: &str) -> String {
-        let path = Path::new(&self.path_data_dir.clone().unwrap())
+        let data_dir = if let Some(x) = &self.path_data_dir.clone() {
+            x.to_owned()
+        } else {
+            String::new()
+        };
+        let path = Path::new(data_dir.as_str())
             .join(file)
             .display()
             .to_string();
