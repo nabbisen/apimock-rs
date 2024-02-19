@@ -64,116 +64,12 @@ impl Config {
         let toml_string = fs::read_to_string(config_path).unwrap();
         let toml_content: toml::Value = toml::from_str(&toml_string)
             .expect(format!("{}: Invalid toml content", config_path).as_str());
-        let general_config = toml_content
-            .get(CONFIG_SECTION_GENERAL)
-            .expect(
-                format!(
-                    "{}: [{}] section missing",
-                    config_path, CONFIG_SECTION_GENERAL
-                )
-                .as_str(),
-            )
-            .as_table()
-            .expect(
-                format!(
-                    "{}: Invalid [{}] section",
-                    config_path, CONFIG_SECTION_GENERAL
-                )
-                .as_str(),
-            );
-        for (key, value) in general_config {
-            match key.as_str() {
-                "port" => match value.as_integer() {
-                    Some(port) => config.port = port as u16,
-                    _ => (),
-                },
-                "dyn_data_dir" => match value.as_str() {
-                    Some(dyn_data_dir) => config.dyn_data_dir = Some(dyn_data_dir.to_owned()),
-                    _ => (),
-                },
-                "always" => match value.as_str() {
-                    Some(always) => {
-                        let _ = json5::from_str::<serde_json::Value>(&always)
-                            .expect(format!("{}: Invalid `always` value", config_path).as_str());
-                        config.always = Some(always.to_owned());
-                        return config;
-                    }
-                    _ => (),
-                },
-                _ => (),
-            }
+
+        if let Some(general_config_content) = toml_content.get(CONFIG_SECTION_GENERAL) {
+            config.general_config(&general_config_content, config_path);
         }
-
-        let url_config = toml_content
-            .get(CONFIG_SECTION_URL)
-            .expect(
-                format!(
-                    "{}: [{}] section missing",
-                    config_path, CONFIG_SECTION_GENERAL
-                )
-                .as_str(),
-            )
-            .as_table()
-            .expect(format!("{}: Invalid [{}] section", config_path, CONFIG_SECTION_URL).as_str());
-        for (key, value) in url_config {
-            match key.as_str() {
-                "path_prefix" => match value.as_str() {
-                    Some(path_prefix) => config.path_prefix = Some(path_prefix.to_owned()),
-                    _ => (),
-                },
-                "data_dir" => match value.as_str() {
-                    Some(path_data_dir) => config.path_data_dir = Some(path_data_dir.to_owned()),
-                    _ => (),
-                },
-                _ => (),
-            }
-        }
-
-        let headers_config_content = url_config.get(CONFIG_SECTION_URL_HEADERS);
-        config.headers = match headers_config_content {
-            Some(x) => {
-                let table = x.as_table().expect(
-                    format!(
-                        "{}: Invalid [{}] section",
-                        config_path, CONFIG_SECTION_URL_HEADERS
-                    )
-                    .as_str(),
-                );
-                let ret = table
-                    .iter()
-                    .map(|(id, key_value)| {
-                        let value = if let Some(x) = key_value.get("value") {
-                            Some(x.as_str().unwrap().to_owned())
-                        } else {
-                            None
-                        };
-                        let header_config = HeaderConfig {
-                            key: key_value.get("key").unwrap().as_str().unwrap().to_owned(),
-                            value: value,
-                        };
-                        (id.to_owned(), header_config)
-                    })
-                    .collect::<HashMap<HeaderId, HeaderConfig>>();
-                Some(HashMap::from(ret))
-            }
-            _ => None,
-        };
-
-        let paths_config_content = url_config.get(CONFIG_SECTION_URL_PATHS);
-        config.paths = match paths_config_content {
-            Some(paths_config) => Some(config.config_url_paths(paths_config, false)),
-            _ => None,
-        };
-        let raw_paths_config_content = url_config.get(CONFIG_SECTION_URL_RAW_PATH);
-        if let Some(raw_paths_config) = raw_paths_config_content {
-            let mut merged = if let Some(ref paths) = config.paths {
-                paths.clone()
-            } else {
-                HashMap::new()
-            };
-            let raw_paths = config.config_url_paths(raw_paths_config, true);
-            merged.extend(raw_paths);
-            config.paths = Some(merged);
+        if let Some(url_config_content) = toml_content.get(CONFIG_SECTION_URL) {
+            config.url_config(&url_config_content, config_path);
         }
 
         config.validate();
@@ -188,13 +84,115 @@ impl Config {
         config
     }
 
-    fn config_url_paths(
+    fn general_config(&mut self, general_config_content: &toml::Value, config_path: &str) {
+        let general_config = general_config_content.as_table().expect(
+            format!(
+                "{}: Invalid [{}] section",
+                config_path, CONFIG_SECTION_GENERAL
+            )
+            .as_str(),
+        );
+        for (key, value) in general_config {
+            match key.as_str() {
+                "port" => match value.as_integer() {
+                    Some(port) => self.port = port as u16,
+                    _ => (),
+                },
+                "dyn_data_dir" => match value.as_str() {
+                    Some(dyn_data_dir) => self.dyn_data_dir = Some(dyn_data_dir.to_owned()),
+                    _ => (),
+                },
+                "always" => match value.as_str() {
+                    Some(always) => {
+                        let _ = json5::from_str::<serde_json::Value>(&always)
+                            .expect(format!("{}: Invalid `always` value", config_path).as_str());
+                        self.always = Some(always.to_owned());
+                        return;
+                    }
+                    _ => (),
+                },
+                _ => (),
+            }
+        }
+    }
+
+    fn url_config(&mut self, url_config_content: &toml::Value, config_path: &str) {
+        let url_config = url_config_content
+            .as_table()
+            .expect(format!("{}: Invalid [{}] section", config_path, CONFIG_SECTION_URL).as_str());
+        for (key, value) in url_config {
+            match key.as_str() {
+                "path_prefix" => match value.as_str() {
+                    Some(path_prefix) => self.path_prefix = Some(path_prefix.to_owned()),
+                    _ => (),
+                },
+                "data_dir" => match value.as_str() {
+                    Some(path_data_dir) => self.path_data_dir = Some(path_data_dir.to_owned()),
+                    _ => (),
+                },
+                _ => (),
+            }
+        }
+
+        if let Some(headers_config_content) = url_config.get(CONFIG_SECTION_URL_HEADERS) {
+            self.config_url_headers(&headers_config_content, config_path);
+        }
+        if let Some(paths_config_content) = url_config.get(CONFIG_SECTION_URL_PATHS) {
+            self.config_url_paths(&paths_config_content);
+        }
+        if let Some(raw_paths_config_content) = url_config.get(CONFIG_SECTION_URL_RAW_PATH) {
+            self.config_url_raw_paths(&raw_paths_config_content);
+        }
+    }
+
+    fn config_url_headers(&mut self, headers_config_content: &toml::Value, config_path: &str) {
+        let table = headers_config_content.as_table().expect(
+            format!(
+                "{}: Invalid [{}] section",
+                config_path, CONFIG_SECTION_URL_HEADERS
+            )
+            .as_str(),
+        );
+        let ret = table
+            .iter()
+            .map(|(id, key_value)| {
+                let value = if let Some(x) = key_value.get("value") {
+                    Some(x.as_str().unwrap().to_owned())
+                } else {
+                    None
+                };
+                let header_config = HeaderConfig {
+                    key: key_value.get("key").unwrap().as_str().unwrap().to_owned(),
+                    value: value,
+                };
+                (id.to_owned(), header_config)
+            })
+            .collect::<HashMap<HeaderId, HeaderConfig>>();
+        self.headers = Some(HashMap::from(ret));
+    }
+
+    fn config_url_paths(&mut self, paths_config_content: &toml::Value) {
+        self.paths = Some(self.url_paths(paths_config_content, false));
+    }
+
+    fn config_url_raw_paths(&mut self, raw_paths_config_content: &toml::Value) {
+        let mut merged = if let Some(ref paths) = self.paths {
+            paths.clone()
+        } else {
+            HashMap::new()
+        };
+        let raw_paths = self.url_paths(raw_paths_config_content, true);
+        merged.extend(raw_paths);
+        self.paths = Some(merged);
+    }
+
+    fn url_paths(
         &self,
-        value: &toml::Value,
+        paths_config_content: &toml::Value,
         is_raw_paths: bool,
     ) -> HashMap<UrlPath, PathConfig> {
         let mut ret = HashMap::<UrlPath, PathConfig>::new();
-        let p = value.as_table().expect(
+        let p = paths_config_content.as_table().expect(
             format!(
                 "[{}] Invalid entries",
                 if is_raw_paths { "raw_paths" } else { "paths" }
@@ -202,13 +200,13 @@ impl Config {
             .as_str(),
         );
         for (path, path_config_content) in p {
-            let path_config = self.config_url_path(path, path_config_content, is_raw_paths);
+            let path_config = self.url_path(path, path_config_content, is_raw_paths);
             ret.insert(path_config.0, path_config.1);
         }
         ret
     }
 
-    fn config_url_path(
+    fn url_path(
         &self,
         path: &str,
         path_config_content: &toml::Value,
