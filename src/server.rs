@@ -6,37 +6,35 @@ use hyper::{http::response::Builder, http::Error, Body, Request, Response, Statu
 use json5;
 use serde_json::Value;
 use std::collections::HashMap;
-use std::convert::Infallible;
 use std::fs;
 use std::path::Path;
 
 use crate::config::{Config, HeaderConfig, HeaderId, PathConfig, UrlPath};
 
 pub async fn handle(req: Request<Body>, config: Config) -> Result<Response<Body>, Error> {
-    match handle_always(&config.always) {
-        Some(x) => return Ok(x.unwrap()),
-        _ => (),
+    if let Some(x) = handle_always(&config.always) {
+        return Ok(x.unwrap());
     }
 
     let path = uri_path(req.uri().path());
+
     if let Some(paths) = &config.paths {
-        let url_path = handle_static_path(path, paths, &config.headers);
-        match url_path {
-            Some(x) => return Ok(x.unwrap()),
-            _ => (),
+        if let Some(x) = handle_static_path(path, paths, &config.headers) {
+            return x;
         }
     }
-    handle_dyn_path(path, &config.dyn_data_dir.clone().unwrap().as_str())
-        .expect("Unknown error occurred")
+    if let Some(dyn_data_dir) = &config.dyn_data_dir.clone() {
+        handle_dyn_path(path, dyn_data_dir.as_str())
+    } else {
+        not_found_response()
+    }
 }
 
-fn handle_always(always: &Option<String>) -> Option<Result<Response<Body>, Infallible>> {
+fn handle_always(always: &Option<String>) -> Option<Result<Response<Body>, Error>> {
     match always {
         Some(x) => {
-            let response = json_response_base(&None, &None)
-                .body(Body::from(x.to_owned()))
-                .expect("Invalid always value");
-            Some(Ok(response))
+            let response = json_response_base(&None, &None).body(Body::from(x.to_owned()));
+            Some(response)
         }
         _ => None,
     }
@@ -54,111 +52,60 @@ fn handle_static_path(
     path: &str,
     path_configs: &HashMap<UrlPath, PathConfig>,
     headers: &Option<HashMap<HeaderId, HeaderConfig>>,
-) -> Option<Result<Response<Body>, Infallible>> {
+) -> Option<Result<Response<Body>, Error>> {
     let path_config_hashmap = path_configs.iter().find(|(key, _)| key.as_str() == path);
-    let response = match path_config_hashmap {
-        Some(path_config_hashmap) => {
-            let path_config = path_config_hashmap.1;
-            static_path_response(&path_config, headers)
-        }
-        _ => None,
+    let response = if let Some(path_config_hashmap) = path_config_hashmap {
+        let path_config = path_config_hashmap.1;
+        Some(static_path_response(&path_config, headers))
+    } else {
+        None
     };
-
-    match response {
-        Some(Ok(response)) => Some(Ok(response)),
-        _ => None,
-    }
+    response
 }
 
 fn static_path_response(
     path_config: &PathConfig,
     headers: &Option<HashMap<HeaderId, HeaderConfig>>,
-) -> Option<Result<Response<Body>, Error>> {
+) -> Result<Response<Body>, Error> {
     if let Some(_) = &path_config.data_src {
-        static_path_data_src_reponse(path_config, headers)
-    } else {
-        if let Some(data_text) = &path_config.data_text {
-            Some(
-                json_response_base(&path_config.headers, headers)
-                    .status(path_config.code)
-                    .body(Body::from(data_text.to_owned())),
-            )
-        } else {
-            Some(
-                response_base(&path_config.headers, headers)
-                    .status(path_config.code)
-                    .body(Body::from("")),
-            )
-        }
+        return static_path_data_src_reponse(path_config, headers);
     }
+
+    if let Some(data_text) = &path_config.data_text {
+        return json_response_base(&path_config.headers, headers)
+            .status(path_config.code)
+            .body(Body::from(data_text.to_owned()));
+    }
+
+    response_base(&path_config.headers, headers)
+        .status(path_config.code)
+        .body(Body::from(""))
 }
 
 fn static_path_data_src_reponse(
     path_config: &PathConfig,
     headers: &Option<HashMap<HeaderId, HeaderConfig>>,
-) -> Option<Result<Response<Body>, Error>> {
+) -> Result<Response<Body>, Error> {
     match std::fs::read_to_string(path_config.data_src.as_ref().unwrap()) {
         Ok(content) => match json5::from_str::<Value>(&content) {
             Ok(json) => {
                 let json_text = json.to_string();
-                Some(
-                    json_response_base(&path_config.headers, headers)
-                        .status(path_config.code)
-                        .body(Body::from(json_text)),
-                )
+                json_response_base(&path_config.headers, headers)
+                    .status(path_config.code)
+                    .body(Body::from(json_text))
             }
-            _ => Some(
-                response_base(&None, &None)
-                    .status(StatusCode::BAD_REQUEST)
-                    .body(Body::from("Invalid json content")),
-            ),
+            _ => bad_request_response("Invalid json content"),
         },
-        _ => Some(
-            response_base(&None, &None)
-                .status(StatusCode::BAD_REQUEST)
-                .body(Body::from("Missing json file")),
-        ),
+        _ => bad_request_response("Missing json file"),
     }
 }
 
-fn json_response_base(
-    path_headers: &Option<Vec<String>>,
-    headers: &Option<HashMap<HeaderId, HeaderConfig>>,
-) -> Builder {
-    response_base(path_headers, headers)
-        .header(CONTENT_TYPE, HeaderValue::from_static("application/json"))
-}
-
-fn response_base(
-    path_headers: &Option<Vec<String>>,
-    headers: &Option<HashMap<HeaderId, HeaderConfig>>,
-) -> Builder {
-    let mut ret = Response::builder()
-        .header(ACCESS_CONTROL_ALLOW_ORIGIN, HeaderValue::from_static("*"))
-        .header(ACCESS_CONTROL_ALLOW_HEADERS, HeaderValue::from_static("*"))
-        .header(
-            ACCESS_CONTROL_ALLOW_METHODS,
-            HeaderValue::from_static("GET, POST, OPTIONS"),
-        );
-    if let Some(path_headers) = path_headers {
-        let headers = headers.clone().unwrap();
-        for path_header in path_headers {
-            let header = headers.get(path_header).unwrap();
-            ret = ret.header(header.key.as_str(), header.value.clone().unwrap().as_str());
-        }
-    }
-    ret
-}
-
-fn handle_dyn_path(path: &str, dyn_data_dir: &str) -> Option<Result<Response<Body>, Error>> {
+fn handle_dyn_path(path: &str, dyn_data_dir: &str) -> Result<Response<Body>, Error> {
     let p = Path::new(dyn_data_dir).join(path.strip_prefix("/").unwrap_or_default());
 
     let dir = p.parent().unwrap();
     if !Path::new(dir).exists() {
-        return Some(Ok(response_base(&None, &None)
-            .status(StatusCode::NOT_FOUND)
-            .body(Body::empty())
-            .unwrap()));
+        return not_found_response();
     }
 
     let file_name = p.file_stem().unwrap();
@@ -190,18 +137,52 @@ fn handle_dyn_path(path: &str, dyn_data_dir: &str) -> Option<Result<Response<Bod
                         .status(StatusCode::OK)
                         .body(Body::from(body))
                 }
-                _ => response_base(&None, &None)
-                    .status(StatusCode::BAD_REQUEST)
-                    .body(Body::from("Invalid json content")),
+                _ => bad_request_response("Invalid json content"),
             },
-            _ => response_base(&None, &None)
-                .status(StatusCode::NOT_FOUND)
-                .body(Body::empty()),
+            _ => not_found_response(),
         },
-        _ => response_base(&None, &None)
-            .status(StatusCode::NOT_FOUND)
-            .body(Body::empty()),
+        _ => not_found_response(),
     };
+    response
+}
 
-    Some(Ok(response.unwrap()))
+fn not_found_response() -> Result<Response<Body>, Error> {
+    response_base(&None, &None)
+        .status(StatusCode::NOT_FOUND)
+        .body(Body::empty())
+}
+
+fn bad_request_response(msg: &str) -> Result<Response<Body>, Error> {
+    response_base(&None, &None)
+        .status(StatusCode::BAD_REQUEST)
+        .body(Body::from(msg.to_owned()))
+}
+
+fn response_base(
+    path_headers: &Option<Vec<String>>,
+    headers: &Option<HashMap<HeaderId, HeaderConfig>>,
+) -> Builder {
+    let mut ret = Response::builder()
+        .header(ACCESS_CONTROL_ALLOW_ORIGIN, HeaderValue::from_static("*"))
+        .header(ACCESS_CONTROL_ALLOW_HEADERS, HeaderValue::from_static("*"))
+        .header(
+            ACCESS_CONTROL_ALLOW_METHODS,
+            HeaderValue::from_static("GET, POST, OPTIONS"),
+        );
+    if let Some(path_headers) = path_headers {
+        let headers = headers.clone().unwrap();
+        for path_header in path_headers {
+            let header = headers.get(path_header).unwrap();
+            ret = ret.header(header.key.as_str(), header.value.clone().unwrap().as_str());
+        }
+    }
+    ret
+}
+
+fn json_response_base(
+    path_headers: &Option<Vec<String>>,
+    headers: &Option<HashMap<HeaderId, HeaderConfig>>,
+) -> Builder {
+    response_base(path_headers, headers)
+        .header(CONTENT_TYPE, HeaderValue::from_static("application/json"))
 }
