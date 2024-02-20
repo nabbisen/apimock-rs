@@ -65,22 +65,22 @@ path_prefix = "api/v1" # optional
 data_dir = "tests"                            # optional
 
 [url.headers]
-auth_1 = { key = "Authorization", value = "xxx" }
-redirect_1 = { key = "Location", value = "xxxxxx" }
+cookie_1 = { key = "Set-Cookie", value = "a=b; c=d" }
+redirect_1 = { key = "Location", value = "/api/v1/home" }
 
 # required when `always` is not specified
 [url.paths] # `path_prefix` works
 "home" = "home.json"
 # "some/path" = "api.json5"
 # custom headers
-"some/path/w/header" = { src = "home.json", headers = ["auth_1"] }
+"some/path/w/header" = { src = "home.json", headers = ["cookie_1"] }
 # errors / redirects * `code` must be defined as **unsigned integer** (instead of String)
 "error/401" = { code = 401 }
 "error/api-403" = { code = 403 }
 "redirect/302" = { code = 302, headers = ["redirect_1"] }
 
 [url.raw_paths] # `path_prefix` doesn't work
-"/" = { text = "{ Hello: world }", code = 202, headers = ["auth_1", "redirect_1"] }
+"/" = { text = "{ Hello: world }", code = 301, headers = ["cookie_1", "redirect_1"] }
 ```
 
 #### Properties
