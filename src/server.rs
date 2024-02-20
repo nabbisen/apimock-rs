@@ -18,6 +18,8 @@ pub async fn handle(req: Request<Body>, config: Config) -> Result<Response<Body>
 
     let path = uri_path(req.uri().path());
 
+    log(path);
+
     if let Some(paths) = &config.paths {
         if let Some(x) = handle_static_path(path, paths, &config.headers) {
             return x;
@@ -28,6 +30,10 @@ pub async fn handle(req: Request<Body>, config: Config) -> Result<Response<Body>
     } else {
         not_found_response()
     }
+}
+
+fn log(path: &str) {
+    println!("- request got: path = {path} (path)");
 }
 
 fn handle_always(always: &Option<String>) -> Option<Result<Response<Body>, Error>> {
