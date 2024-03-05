@@ -44,11 +44,18 @@ Server started to listen:
 - Validates configuration: Missing JSON files, duplicate paths etc.
 - Prints out routing at startup
 
+## Installation
+
+- [Releases](../../releases) are available.
+  - Create your configuration file (`./apimock.toml` by default) and run `apimock` with it.
+- Via cargo: `cargo install apimock`
+- Also able to [build manually](#build-manually).
+  - Run `cargo build --release`. Then run to start the server: `./target/release/apimock`.
+  - Alternatively, just running `cargo run` works.
+
+Running `apimock` without either `apimock.toml` or `apimock-data/` directory results in `always` option activated.
+
 ## Usage
-
-[Releases](../../releases) are available. Also able to [build manually](#build-manually).
-
-After downloading it or building, run `apimock` with your configuration file (`./apimock.toml` by default).
 
 ### Configure
 
@@ -173,20 +180,6 @@ For example, run `npm run apimock` with `package.json` written in as below:
   }
 }
 ```
-
-## Build manually
-
-```
-cargo build --release
-```
-
-Then run to start the server:
-
-```
-./target/release/apimock
-```
-
-Alternatively, just running `cargo run` works.
 
 ## Acknowledgements
 

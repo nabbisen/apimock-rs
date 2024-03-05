@@ -41,22 +41,26 @@ const CONFIG_SECTION_URL: &str = "url";
 const CONFIG_SECTION_URL_HEADERS: &str = "headers";
 const CONFIG_SECTION_URL_PATHS: &str = "paths";
 const CONFIG_SECTION_URL_RAW_PATH: &str = "raw_paths";
+const ALWAYS_DEFAULT_MESSAGES: &str = "Hello, world from API Mock.\n(Responses can be modified with either config toml file or dynamic data directory.)";
 
 impl Config {
     pub fn new(config_path: &str) -> Config {
         let mut config = Self::default_config();
 
         if !Path::new(config_path).exists() {
-            if Path::new(DEFAULT_DYN_DATA_DIR).exists() {
-                config.dyn_data_dir = Some(DEFAULT_DYN_DATA_DIR.to_owned());
-                println!("{}: config file is missing (config-less mode)", config_path);
+            if !Path::new(DEFAULT_DYN_DATA_DIR).exists() {
+                config.always = Some(ALWAYS_DEFAULT_MESSAGES.to_owned());
+                println!(
+                    "Both `{}` file and `{}/` directory are missing\n`always` option is activated\n",
+                    config_path, DEFAULT_DYN_DATA_DIR
+                );
                 config.print();
                 return config;
             } else {
-                panic!(
-                    "Both `{}` and `{}` is missing: No config file and data dir",
-                    config_path, DEFAULT_DYN_DATA_DIR
-                );
+                config.dyn_data_dir = Some(DEFAULT_DYN_DATA_DIR.to_owned());
+                println!("{}: config file is missing (config-less mode)\n", config_path);
+                config.print();
+                return config;
             }
         }
         println!("[config] {}\n", config_path);
