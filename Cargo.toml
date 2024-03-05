@@ -1,8 +1,15 @@
 [package]
 name = "apimock"
-version = "2.0.0"
+version = "2.0.3"
 edition = "2021"
-description = "Server generating JSON responses written in Rust"
+authors = ["nabbisen <nabbisen@scqr.net>"]
+license = "ISC"
+description = "API mock Server generating HTTP/JSON responses written in Rust"
+repository = "https://github.com/nabbisen/apimock-rs"
+readme = "README.md"
+categories = ["web-programming", "development-tools", "command-line-utilities"]
+keywords = ["https", "api", "mock", "testing"]
+rust-version = "1.74.0"
 
 # shrink executable
 [profile.release]
