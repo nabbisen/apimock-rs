@@ -24,13 +24,9 @@ Server started to listen:
 ### Designed in mind with
 
 - Performance
-    - Fast speed
-    - Low memory consumption
+    - Fast speed, low memory consumption.
 - Easy setup/usage
-    - Built as single (and small) executable
-    - Integrated configuration
-        - No need to write scripts
-        - Config-less mode is also supported
+    - Built as single (and small) executable, integrated configuration. (No need to write scripts, config-less mode is also supported.)
 - Cross-platform support
 
 ### Features
@@ -49,11 +45,22 @@ Server started to listen:
 - [Releases](../../releases) are available.
   - Create your configuration file (`./apimock.toml` by default) and run `apimock` with it.
 - Via cargo: `cargo install apimock`
-- Also able to [build manually](#build-manually).
+- Also able to build manually.
   - Run `cargo build --release`. Then run to start the server: `./target/release/apimock`.
   - Alternatively, just running `cargo run` works.
 
-Running `apimock` without either `apimock.toml` or `apimock-data/` directory results in `always` option activated.
+Running `apimock` without both `apimock.toml` and `apimock-data/` directory results in `always` option activated.
+
+### How startup works
+
+```mermaid
+graph
+    subgraph Startup workflow
+        direction TB
+        A[config mode if apimock.toml exists] --> B[config-less mode if apimock-data dir exists]
+        B --> C[`always` mode (fixed response)]
+    end
+```
 
 ## Usage
 
