@@ -5,6 +5,7 @@ dyn_data_dir = "apimock-data"
 
 [url]
 data_dir = "tests"
+data_dir_query_path = "@@"
 path_prefix = "api/v1"
 
 [url.headers]

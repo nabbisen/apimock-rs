@@ -8,15 +8,26 @@ use serde_json::Value;
 use std::collections::HashMap;
 use std::fs;
 use std::path::Path;
+use std::sync::Arc;
+use tokio::sync::{Mutex, MutexGuard};
 
 use crate::config::{Config, HeaderConfig, HeaderId, PathConfig, UrlPath};
 
-pub async fn handle(req: Request<Body>, config: Config) -> Result<Response<Body>, Error> {
+pub async fn handle(
+    req: Request<Body>,
+    app_state: Arc<Mutex<Config>>,
+) -> Result<Response<Body>, Error> {
+    let mut config = app_state.lock().await;
+
     if let Some(x) = handle_always(&config.always) {
         return Ok(x.unwrap());
     }
 
     let path = uri_path(req.uri().path());
+
+    if let Some(x) = handle_data_dir_query_path(&mut config, path) {
+        return x;
+    }
 
     log(path);
 
@@ -43,6 +54,38 @@ fn handle_always(always: &Option<String>) -> Option<Result<Response<Body>, Error
             Some(response)
         }
         _ => None,
+    }
+}
+
+fn handle_data_dir_query_path(
+    config: &mut MutexGuard<Config>,
+    path: &str,
+) -> Option<Result<Response<Body>, Error>> {
+    if path == "" || config.data_dir_query_path.is_none() {
+        return None;
+    }
+
+    let data_dir_query_path = config.data_dir_query_path.clone().unwrap();
+
+    let stripped = path
+        .strip_prefix("/")
+        .unwrap()
+        .strip_prefix(data_dir_query_path.as_str());
+    match stripped {
+        Some("") => {
+            return Some(plain_text_response(
+                config.data_dir.clone().unwrap().as_str(),
+            ))
+        }
+        Some(stripped) => {
+            let old_data_dir = config.data_dir.clone().unwrap();
+            let data_dir = stripped.strip_prefix("/").unwrap();
+            config.data_dir = Some(data_dir.to_owned());
+            config.update_paths(data_dir, old_data_dir.as_str());
+            config.print_paths();
+            return Some(plain_text_response(data_dir));
+        }
+        None => return None,
     }
 }
 
@@ -161,6 +204,12 @@ fn not_found_response() -> Result<Response<Body>, Error> {
 fn bad_request_response(msg: &str) -> Result<Response<Body>, Error> {
     response_base(&None, &None)
         .status(StatusCode::BAD_REQUEST)
+        .body(Body::from(msg.to_owned()))
+}
+
+fn plain_text_response(msg: &str) -> Result<Response<Body>, Error> {
+    response_base(&None, &None)
+        .status(StatusCode::OK)
         .body(Body::from(msg.to_owned()))
 }
 

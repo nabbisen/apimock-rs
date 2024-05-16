@@ -3,13 +3,14 @@ use hyper::service::{make_service_fn, service_fn};
 use hyper::Server;
 use std::convert::Infallible;
 use std::env;
+use std::sync::Arc;
+use tokio::sync::Mutex;
 
 mod config;
 mod server;
 use crate::config::Config;
 use crate::server::handle;
 
-pub const LISTEN_PORT: u16 = 3001;
 pub const CONFIG_FILENAME: &str = "apimock.toml";
 
 const APP_NAME: &str = "API mock";
@@ -21,19 +22,20 @@ async fn main() {
     let config_path = config_path();
     let config = Config::new(&config_path);
 
+    let app_state = Arc::new(Mutex::new(config.clone()));
     let make_svc = make_service_fn(|_| {
-        let config = config.clone();
+        let app_state = Arc::clone(&app_state);
         async move {
-            let service = service_fn(move |req| handle(req, config.clone()));
+            let service = service_fn(move |req| handle(req, Arc::clone(&app_state)));
             Ok::<_, Infallible>(service)
         }
     });
 
-    let addr = ([127, 0, 0, 1], config.port).into();
+    let addr = config.addr.unwrap();
     let server = Server::bind(&addr).serve(make_svc);
     println!(
         "\nListening on {} ...\n",
-        style(format!("http://{}", addr)).cyan()
+        style(format!("http://{}", &addr)).cyan()
     );
 
     server.await.unwrap();

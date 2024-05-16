@@ -34,6 +34,7 @@ Server started to listen:
 - GET / POST methods
 - Multiple paths
 - Multiple .json/.json5 files treated as JSON Response
+- Can switch data directory paths manually in testing via specific HTTP request to make json responses flexible
 - Dynamic path resolution with `dyn_data_dir`
 - Custom responses codes (HTTP 3xx as redirects and 4xx and 5xx as errors)
 - Custom headers and their reusabliblity
@@ -58,7 +59,7 @@ graph
     subgraph Startup workflow
         direction TB
         A[config mode if apimock.toml exists] --> B[config-less mode if apimock-data dir exists]
-        B --> C[`always` mode (fixed response)]
+        B --> C[`always` mode : fixed response]
     end
 ```
 
@@ -70,13 +71,14 @@ graph
 
 ```toml
 [general]
-port = 3001                                   # optional
-dyn_data_dir = "apimock-data"                 # optional
-# always = "{ greetings: \"Hello, world.\" }" # optional
+port = 3001
+dyn_data_dir = "apimock-data"
+# always = "{ greetings: \"Hello, world.\" }"
 
 [url]
-path_prefix = "api/v1" # optional
-data_dir = "tests"                            # optional
+data_dir = "tests"
+data_dir_query_path = "@@"
+path_prefix = "api/v1"
 
 [url.headers]
 cookie_1 = { key = "Set-Cookie", value = "a=b; c=d" }
@@ -106,15 +108,20 @@ If set, URL path without statically defined path matched is converted to file pa
 
 It works even without config toml. It is config-less mode.
 
-##### `url.path_prefix`
-
-Static paths are dealt with as those who have the prefix. Convenient when your service has path prefix.    
-**Default**: empty
-
 ##### `url.data_dir`
 
 Data directory used as where to look up files when HTTP response is built.    
 **Default**: executable directory
+
+##### `url.data_dir_query_path`
+
+Data directory can be switched manually via HTTP request. Access to http://127.0.0.1/(`url.data_dir_query_path`) to get the current value. Access to http://127.0.0.1/(`url.data_dir_query_path`)/some/path to change it.
+**Default**: "@@"
+
+##### `url.path_prefix`
+
+Static paths are dealt with as those who have the prefix. Convenient when your service has path prefix.    
+**Default**: empty
 
 ##### `url.headers`
 
@@ -170,8 +177,9 @@ What is NOT modifiable:
 graph
     subgraph Response workflow
         direction TB
-        A[`always` is activated ?] --> B[`path.urls` have the path ?]
-        B --> C[exists in `dyn_data_dir` ?]
+        A[`always` is activated ?] --> B[`data_dir_query_path` accessed ?]
+        B --> C[`path.urls` have the path ?]
+        C --> D[exists in `dyn_data_dir` ?]
     end
 ```
 
