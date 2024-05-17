@@ -11,6 +11,7 @@ use toml;
 pub type UrlPath = String;
 pub type HeaderId = String;
 
+/// app config
 #[derive(Clone, Default)]
 pub struct Config {
     pub port: u16,
@@ -24,6 +25,8 @@ pub struct Config {
     pub paths: Option<HashMap<UrlPath, PathConfig>>,
     config_path: Option<String>,
 }
+
+/// response content related to api uri path
 #[derive(Clone, Default)]
 pub struct PathConfig {
     pub code: StatusCode,
@@ -31,6 +34,8 @@ pub struct PathConfig {
     pub data_src: Option<String>,
     pub data_text: Option<String>,
 }
+
+/// http headers on responses
 #[derive(Clone, Default)]
 pub struct HeaderConfig {
     pub key: String,
@@ -46,7 +51,9 @@ const CONFIG_SECTION_URL_PATHS: &str = "paths";
 const CONFIG_SECTION_URL_RAW_PATH: &str = "raw_paths";
 const ALWAYS_DEFAULT_MESSAGES: &str = "Hello, world from API Mock.\n(Responses can be modified with either config toml file or dynamic data directory.)";
 
+/// app config
 impl Config {
+    /// new
     pub fn new(config_path: &str) -> Config {
         let mut config = Self::default_config();
 
@@ -90,6 +97,7 @@ impl Config {
         config
     }
 
+    /// update `data_src` on static json responses when `data_dir` is updated
     pub fn update_paths(&mut self, data_dir: &str, old_data_dir: &str) {
         self.paths = Some(
             self.paths
@@ -115,6 +123,7 @@ impl Config {
         )
     }
 
+    /// print out paths on `data_dir` (static json responses)
     pub fn print_paths(&self) {
         let paths = &self.paths.clone().unwrap();
         let mut keys: Vec<_> = paths.keys().collect();
@@ -147,6 +156,7 @@ impl Config {
         }
     }
 
+    /// wholly print out config
     fn print(&self) {
         if let Some(always) = &self.always {
             println!("[always] {}", always);
@@ -195,6 +205,7 @@ impl Config {
         }
     }
 
+    /// app config default
     fn default_config() -> Config {
         let mut config = Config::default();
         config.port = DEFAULT_LISTEN_PORT;
@@ -202,6 +213,7 @@ impl Config {
         config
     }
 
+    /// [general] section
     fn general_config(&mut self, general_config_content: &toml::Value) {
         let general_config = general_config_content.as_table().expect(
             format!(
@@ -243,6 +255,7 @@ impl Config {
         }
     }
 
+    /// [url] section
     fn url_config(&mut self, url_config_content: &toml::Value) {
         let url_config = url_config_content.as_table().expect(
             format!(
@@ -283,6 +296,7 @@ impl Config {
         }
     }
 
+    /// [url.headers] section
     fn config_url_headers(&mut self, headers_config_content: &toml::Value) {
         let table = headers_config_content.as_table().expect(
             format!(
@@ -310,10 +324,12 @@ impl Config {
         self.headers = Some(HashMap::from(ret));
     }
 
+    /// [url.paths] section
     fn config_url_paths(&mut self, paths_config_content: &toml::Value) {
         self.paths = Some(self.url_paths(paths_config_content, false));
     }
 
+    /// [url.raw_paths] section
     fn config_url_raw_paths(&mut self, raw_paths_config_content: &toml::Value) {
         let mut merged = if let Some(ref paths) = self.paths {
             paths.clone()
@@ -325,6 +341,7 @@ impl Config {
         self.paths = Some(merged);
     }
 
+    /// response defs related to api uri paths on static / dynamic json responses
     fn url_paths(
         &self,
         paths_config_content: &toml::Value,
@@ -345,6 +362,7 @@ impl Config {
         ret
     }
 
+    /// response def related to api uri path
     fn url_path(
         &self,
         path: &str,
@@ -369,7 +387,7 @@ impl Config {
             toml::Value::String(file) => PathConfig {
                 code: StatusCode::OK,
                 headers: None,
-                data_src: Some(self.data_path(file)),
+                data_src: Some(self.data_src_path(file)),
                 data_text: None,
             },
             toml::Value::Table(table) => {
@@ -412,7 +430,7 @@ impl Config {
                         }
                         "src" => {
                             let file = value.as_str().unwrap();
-                            ret.data_src = Some(self.data_path(file))
+                            ret.data_src = Some(self.data_src_path(file))
                         }
                         "text" => ret.data_text = Some(value.as_str().unwrap().to_owned()),
                         _ => panic!("{}", format!("{} is invalid", table).as_str()),
@@ -426,7 +444,8 @@ impl Config {
         (full_path, path_config)
     }
 
-    fn data_path(&self, file: &str) -> String {
+    /// `data_src` path on static json responses
+    fn data_src_path(&self, file: &str) -> String {
         let data_dir = if let Some(x) = &self.data_dir.clone() {
             x.to_owned()
         } else {
@@ -440,6 +459,7 @@ impl Config {
         path
     }
 
+    /// validate user settings in app config
     fn validate(&self) {
         if self.always.is_none() && (self.paths.is_none() || self.paths.clone().unwrap().len() == 0)
         {

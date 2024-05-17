@@ -13,6 +13,7 @@ use tokio::sync::{Mutex, MutexGuard};
 
 use crate::config::{Config, HeaderConfig, HeaderId, PathConfig, UrlPath};
 
+/// entry point of http requests handler service
 pub async fn handle(
     req: Request<Body>,
     app_state: Arc<Mutex<Config>>,
@@ -43,10 +44,12 @@ pub async fn handle(
     }
 }
 
+/// print out logs
 fn log(path: &str) {
     println!("- request got: path = {path} (path)");
 }
 
+/// handle on `always` config
 fn handle_always(always: &Option<String>) -> Option<Result<Response<Body>, Error>> {
     match always {
         Some(x) => {
@@ -57,6 +60,7 @@ fn handle_always(always: &Option<String>) -> Option<Result<Response<Body>, Error
     }
 }
 
+/// handle on `data_dir_query_path` config
 fn handle_data_dir_query_path(
     config: &mut MutexGuard<Config>,
     path: &str,
@@ -89,6 +93,9 @@ fn handle_data_dir_query_path(
     }
 }
 
+/// format uri path
+/// 
+/// omit leading slash
 fn uri_path(uri_path: &str) -> &str {
     if uri_path.ends_with("/") {
         &uri_path[..uri_path.len() - 1]
@@ -97,6 +104,7 @@ fn uri_path(uri_path: &str) -> &str {
     }
 }
 
+/// handle on `data_dir` paths (static json responses)
 fn handle_static_path(
     path: &str,
     path_configs: &HashMap<UrlPath, PathConfig>,
@@ -112,6 +120,7 @@ fn handle_static_path(
     response
 }
 
+/// response on `data_dir` paths
 fn static_path_response(
     path_config: &PathConfig,
     headers: &Option<HashMap<HeaderId, HeaderConfig>>,
@@ -131,6 +140,7 @@ fn static_path_response(
         .body(Body::from(""))
 }
 
+/// json file on `data_src` response on `data_dir` paths
 fn static_path_data_src_reponse(
     path_config: &PathConfig,
     headers: &Option<HashMap<HeaderId, HeaderConfig>>,
@@ -149,6 +159,7 @@ fn static_path_data_src_reponse(
     }
 }
 
+/// handle on `dyn_data_dir` (dynamic json responses)
 fn handle_dyn_path(path: &str, dyn_data_dir: &str) -> Result<Response<Body>, Error> {
     let p = Path::new(dyn_data_dir).join(path.strip_prefix("/").unwrap_or_default());
 
@@ -195,24 +206,7 @@ fn handle_dyn_path(path: &str, dyn_data_dir: &str) -> Result<Response<Body>, Err
     response
 }
 
-fn not_found_response() -> Result<Response<Body>, Error> {
-    response_base(&None, &None)
-        .status(StatusCode::NOT_FOUND)
-        .body(Body::empty())
-}
-
-fn bad_request_response(msg: &str) -> Result<Response<Body>, Error> {
-    response_base(&None, &None)
-        .status(StatusCode::BAD_REQUEST)
-        .body(Body::from(msg.to_owned()))
-}
-
-fn plain_text_response(msg: &str) -> Result<Response<Body>, Error> {
-    response_base(&None, &None)
-        .status(StatusCode::OK)
-        .body(Body::from(msg.to_owned()))
-}
-
+/// response base on any
 fn response_base(
     path_headers: &Option<Vec<String>>,
     headers: &Option<HashMap<HeaderId, HeaderConfig>>,
@@ -234,10 +228,32 @@ fn response_base(
     ret
 }
 
+/// response base on json response
 fn json_response_base(
     path_headers: &Option<Vec<String>>,
     headers: &Option<HashMap<HeaderId, HeaderConfig>>,
 ) -> Builder {
     response_base(path_headers, headers)
         .header(CONTENT_TYPE, HeaderValue::from_static("application/json"))
+}
+
+/// plain text response
+fn plain_text_response(msg: &str) -> Result<Response<Body>, Error> {
+    response_base(&None, &None)
+        .status(StatusCode::OK)
+        .body(Body::from(msg.to_owned()))
+}
+
+/// error response on http NOT_FOUND
+fn not_found_response() -> Result<Response<Body>, Error> {
+    response_base(&None, &None)
+        .status(StatusCode::NOT_FOUND)
+        .body(Body::empty())
+}
+
+/// error response on http BAD_REQUEST
+fn bad_request_response(msg: &str) -> Result<Response<Body>, Error> {
+    response_base(&None, &None)
+        .status(StatusCode::BAD_REQUEST)
+        .body(Body::from(msg.to_owned()))
 }

@@ -15,6 +15,7 @@ pub const CONFIG_FILENAME: &str = "apimock.toml";
 
 const APP_NAME: &str = "API mock";
 
+/// main - app entry point
 #[tokio::main]
 async fn main() {
     println!("\nGreetings from {APP_NAME} !!\n");
@@ -41,6 +42,10 @@ async fn main() {
     server.await.unwrap();
 }
 
+/// app config path
+/// 
+/// - if specified with command-line option, use it
+/// - else use the default
 fn config_path() -> String {
     let args: Vec<String> = env::args().collect();
 
