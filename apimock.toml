@@ -23,10 +23,13 @@ redirect_1 = { key = "Location", value = "/api/v1/home" }
 "error/api-403" = { code = 403 }
 "redirect/302" = { code = 302, headers = ["redirect_1"] }
 
-[url.paths_request_matchers."some/path/w/matcher"]
-"a.b.c=1"  = "api.json5"
-"d.1.e=x=" = "api.json5"
-"f="       = "api.json5"
+[url.paths_jsonpath_patterns."some/path/w/matcher"."a.b.c"]
+"=a" = "api.json5"
+"=1" = "home.json"
+[url.paths_jsonpath_patterns."some/path/w/matcher"."d.1.e"]
+"=x=" = "api.json5"
+[url.paths_jsonpath_patterns."some/path/w/matcher"."f"]
+"=" = "api.json5"
 
 [url.raw_paths]
 "/" = { text = "{ Hello: world }", code = 301, headers = ["cookie_1", "redirect_1"] }

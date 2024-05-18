@@ -11,7 +11,7 @@ use std::path::Path;
 use std::sync::Arc;
 use tokio::sync::{Mutex, MutexGuard};
 
-use crate::config::{Config, HeaderConfig, HeaderId, PathConfig, RequestMatcher, UrlPath};
+use crate::config::{Config, HeaderConfig, HeaderId, JsonpathMatchingPattern, PathConfig, UrlPath};
 use crate::util::jsonpath_value;
 
 /// entry point of http requests handler service
@@ -40,7 +40,7 @@ pub async fn handle(
             path,
             body,
             paths,
-            &config.paths_request_matchers,
+            &config.paths_jsonpath_patterns,
             &config.headers,
         )
         .await
@@ -120,13 +120,13 @@ async fn handle_static_path(
     path: &str,
     request_body: hyper::Body,
     path_configs: &HashMap<UrlPath, PathConfig>,
-    paths_request_matchers: &Option<HashMap<String, Vec<RequestMatcher>>>,
+    paths_jsonpath_patterns: &Option<HashMap<String, HashMap<String, Vec<JsonpathMatchingPattern>>>>,
     headers: &Option<HashMap<HeaderId, HeaderConfig>>,
 ) -> Option<Result<Response<Body>, Error>> {
     let path_config_hashmap = path_configs.iter().find(|(key, _)| key.as_str() == path);
     if let Some(path_config_hashmap) = path_config_hashmap {
         let mut path_config = path_config_hashmap.1.clone();
-        matcher_updated_path_config(&mut path_config, path, request_body, paths_request_matchers).await;
+        match_jsonpath_patterns(&mut path_config, path, request_body, paths_jsonpath_patterns).await;
         let response = Some(static_path_response(&path_config, headers));
         return response;
     }
@@ -135,33 +135,34 @@ async fn handle_static_path(
 }
 
 /// update path config if matcher finds pair
-async fn matcher_updated_path_config(
+async fn match_jsonpath_patterns(
     path_config: &mut PathConfig,
     path: &str,
     request_body: hyper::Body,
-    paths_request_matchers: &Option<HashMap<String, Vec<RequestMatcher>>>,
+    paths_jsonpath_patterns: &Option<HashMap<String, HashMap<String, Vec<JsonpathMatchingPattern>>>>,
 ) {
-    if let Some(paths_request_matchers) = paths_request_matchers {
-        if let Some(key) = paths_request_matchers.keys().find(|x| x.as_str() == path) {
+    if let Some(paths_jsonpath_patterns) = paths_jsonpath_patterns {
+        if let Some(key) = paths_jsonpath_patterns.keys().find(|x| x.as_str() == path) {
             let body_bytes = hyper::body::to_bytes(request_body).await.unwrap();
             if 0 < body_bytes.len() {
                 let json_value: Value = serde_json::from_slice(&body_bytes)
                     .expect("failed to get json value from request body");
 
-                let request_matchers = paths_request_matchers.get(key).unwrap();
-                let request_matcher = request_matchers.iter().find(|x| {
-                    if let Some(value) = jsonpath_value(&json_value, x.jsonpath.as_str()) {
-                        if let Value::String(value) = value {
-                            x.value.as_str() == value.as_str()
-                        } else {
-                            x.value.as_str() == value.to_string().as_str()
+                let jsonpath_patterns = paths_jsonpath_patterns.get(key).unwrap();
+                for jsonpath in jsonpath_patterns.keys() {
+                    if let Some(value) = jsonpath_value(&json_value, jsonpath) {
+                        let request_json_value = match value {
+                            Value::String(x) => { x },
+                            Value::Number(x) => { x.to_string() },
+                            _ => { continue; }
+                        };
+                        let patterns = jsonpath_patterns.get(jsonpath).unwrap();
+                        if let Some(matched) = patterns.iter().find(|x| { x.value.as_str() == request_json_value.as_str() }) {
+                            // first matched only
+                            path_config.data_src = Some(matched.data_src.to_owned());
+                            break;
                         }
-                    } else {
-                        false
                     }
-                });
-                if let Some(request_matcher) = request_matcher {
-                    path_config.data_src = Some(request_matcher.clone().src);
                 }
             }
         }

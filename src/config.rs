@@ -23,7 +23,7 @@ pub struct Config {
     pub data_dir_query_path: Option<String>,
     pub headers: Option<HashMap<HeaderId, HeaderConfig>>,
     pub paths: Option<HashMap<UrlPath, PathConfig>>,
-    pub paths_request_matchers: Option<HashMap<String, Vec<RequestMatcher>>>,
+    pub paths_jsonpath_patterns: Option<HashMap<String, HashMap<String, Vec<JsonpathMatchingPattern>>>>,
     config_path: Option<String>,
 }
 
@@ -44,10 +44,9 @@ pub struct HeaderConfig {
 }
 
 #[derive(Clone)]
-pub struct RequestMatcher {
-    pub jsonpath: String,
+pub struct JsonpathMatchingPattern {
     pub value: String,
-    pub src: String,
+    pub data_src: String,
 }
 
 const DEFAULT_LISTEN_PORT: u16 = 3001;
@@ -56,7 +55,7 @@ const CONFIG_SECTION_GENERAL: &str = "general";
 const CONFIG_SECTION_URL: &str = "url";
 const CONFIG_SECTION_URL_HEADERS: &str = "headers";
 const CONFIG_SECTION_URL_PATHS: &str = "paths";
-const CONFIG_SECTION_URL_PATHS_REQUEST_MATCHERS: &str = "paths_request_matchers";
+const CONFIG_SECTION_URL_PATHS_JSONPATH_PATTERNS: &str = "paths_jsonpath_patterns";
 const CONFIG_SECTION_URL_RAW_PATH: &str = "raw_paths";
 const ALWAYS_DEFAULT_MESSAGES: &str = "Hello, world from API Mock.\n(Responses can be modified with either config toml file or dynamic data directory.)";
 
@@ -164,22 +163,25 @@ impl Config {
                 },
             );
 
-            if let Some(paths_request_matchers) = &self.paths_request_matchers {
-                if let Some(value) = paths_request_matchers.get(key) {
+            if let Some(path_jsonpath_patterns) = &self.paths_jsonpath_patterns {
+                if let Some(jsonpath_patterns) = path_jsonpath_patterns.get(key) {
+                    let mut keys: Vec<_> = jsonpath_patterns.keys().collect();
+                    keys.sort();
                     println!(
-                        " request {}",
-                        value
-                            .iter()
-                            .map(|x| {
-                                format!(
-                                    "case {} = \"{}\"\n           => {}",
-                                    style(x.jsonpath.to_owned()).yellow(),
-                                    style(x.value.to_owned()).magenta(),
-                                    style(x.src.to_owned()).green()
-                                )
+                        " jsonpath {}",
+                        keys.iter()
+                            .map(|&jsonpath| {
+                                jsonpath_patterns.get(jsonpath).unwrap().iter().map(|pattern| {
+                                    format!(
+                                        "case {} = \"{}\"\n            => {}",
+                                        style(jsonpath).yellow(),
+                                        style(pattern.value.to_owned()).magenta(),
+                                        style(pattern.data_src.to_owned()).green()
+                                    )
+                                }).collect::<Vec<String>>().join("\n          ")
                             })
                             .collect::<Vec<String>>()
-                            .join("\n         ")
+                            .join("\n          ")
                     );
                 }
             }
@@ -321,10 +323,10 @@ impl Config {
         if let Some(paths_config_content) = url_config.get(CONFIG_SECTION_URL_PATHS) {
             self.config_url_paths(&paths_config_content);
         }
-        if let Some(paths_matchers_config_content) =
-            url_config.get(CONFIG_SECTION_URL_PATHS_REQUEST_MATCHERS)
+        if let Some(paths_jsonpath_patterns) =
+            url_config.get(CONFIG_SECTION_URL_PATHS_JSONPATH_PATTERNS)
         {
-            self.config_url_paths_request_matchers(&paths_matchers_config_content);
+            self.config_url_paths_jsonpath_patterns(&paths_jsonpath_patterns);
         }
         if let Some(raw_paths_config_content) = url_config.get(CONFIG_SECTION_URL_RAW_PATH) {
             self.config_url_raw_paths(&raw_paths_config_content);
@@ -364,75 +366,60 @@ impl Config {
         self.paths = Some(self.url_paths(paths_config_content, false));
     }
 
-    /// [url.paths_request_matchers] section
-    fn config_url_paths_request_matchers(
+    /// [url.paths_jsonpath_patterns] section
+    fn config_url_paths_jsonpath_patterns(
         &mut self,
-        paths_request_matchers_config_content: &toml::Value,
+        paths_jsonpath_patterns_json: &toml::Value,
     ) {
-        let paths_request_matchers_by_path = paths_request_matchers_config_content
+        let table = paths_jsonpath_patterns_json
             .as_table()
-            .expect("`path_matchers` should be table");
+            .expect("`paths_jsonpath_patterns` should be table");
 
-        let mut paths_request_matchers: HashMap<String, Vec<RequestMatcher>> = HashMap::new();
-        for key in paths_request_matchers_by_path.keys() {
-            let value = paths_request_matchers_by_path.get(key).expect(
-                format!("empty value is not allowed in path_matchers: key = {}", key).as_str(),
+        let mut paths_jsonpath_patterns: HashMap<String, HashMap<String, Vec<JsonpathMatchingPattern>>> = HashMap::new();
+        for path in table.keys() {
+            let value = table.get(path).expect(
+                format!("paths_jsonpath_patterns: empty value is not allowed. key = {}", path).as_str(),
             );
             let table = value
                 .as_table()
-                .expect(format!("must be table value in path_matchers: key = {}", key).as_str());
+                .expect(format!("paths_jsonpath_patterns: must be table. key = {}", path).as_str());
 
-            let request_matchers: Vec<RequestMatcher> = table
+            let mut jsonpath_patterns: HashMap<String, Vec<JsonpathMatchingPattern>> = HashMap::new();
+            table
                 .keys()
-                .map(|jsonpath_value| {
-                    let split: Vec<&str> = jsonpath_value.split('=').collect();
-                    if split.len() < 2 {
-                        panic!(
-                            "must be table value in path_matchers: key = {}.{}",
-                            key, jsonpath_value
-                        );
-                    }
+                .for_each(|jsonpath| {
+                    let json = table.get(jsonpath).unwrap();
+                    let patterns_config = json.as_table().expect(format!("paths_jsonpath_patterns: must be table as value to data_src. key = {}.{}", path, jsonpath).as_str());
+                    let patterns = patterns_config.keys().map(|x| {
+                        let mut chars = x.chars();
+                        let first_char_in_value = chars.next().unwrap_or_default();
+                        if first_char_in_value != '=' {
+                            panic!("paths_jsonpath_patterns: must start with '='. key = {}.{}.{}", path, jsonpath, x);
+                        }
+                        
+                        let value: String = chars.collect();
 
-                    let file = table
-                        .get(jsonpath_value)
-                        .expect(
-                            format!(
-                                "must have value in path_matchers: key = {}.{}",
-                                key, jsonpath_value
-                            )
-                            .as_str(),
-                        )
-                        .as_str()
-                        .expect(
-                            format!(
-                                "must have string value in path_matchers: key = {}.{}",
-                                key, jsonpath_value
-                            )
-                            .as_str(),
-                        );
-                    let src = data_src_path(file, &self.data_dir);
-                    RequestMatcher {
-                        jsonpath: split.get(0).unwrap().to_string().trim_end().to_owned(),
-                        value: split
-                            .iter()
-                            .skip(1)
-                            .map(|&x| x)
-                            .collect::<Vec<&str>>()
-                            .join("="),
-                        src: src,
-                    }
-                })
-                .collect();
+                        let file = patterns_config.get(x).unwrap().as_str().expect(format!("paths_jsonpath_patterns: data_src must be string. key = {}.{}.{}", path, jsonpath, value).as_str());
+                        let data_src = data_src_path(file, &self.data_dir);
 
-            if request_matchers.len() == 0 {
+                        JsonpathMatchingPattern {
+                            value: value,
+                            data_src: data_src,
+                        }
+                    }).collect();
+
+                    jsonpath_patterns.insert(jsonpath.to_owned(),patterns);
+                });
+
+            if jsonpath_patterns.len() == 0 {
                 continue;
             }
 
-            let path = fullpath(key, &self.path_prefix, false);
-            paths_request_matchers.insert(path, request_matchers);
+            let fullpath = fullpath(path, &self.path_prefix, false);
+            paths_jsonpath_patterns.insert(fullpath, jsonpath_patterns);
         }
 
-        self.paths_request_matchers = Some(paths_request_matchers);
+        self.paths_jsonpath_patterns = Some(paths_jsonpath_patterns);
     }
 
     /// [url.raw_paths] section
