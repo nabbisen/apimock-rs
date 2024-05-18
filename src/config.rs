@@ -23,6 +23,7 @@ pub struct Config {
     pub data_dir_query_path: Option<String>,
     pub headers: Option<HashMap<HeaderId, HeaderConfig>>,
     pub paths: Option<HashMap<UrlPath, PathConfig>>,
+    pub paths_request_matchers: Option<HashMap<String, Vec<RequestMatcher>>>,
     config_path: Option<String>,
 }
 
@@ -42,12 +43,20 @@ pub struct HeaderConfig {
     pub value: Option<String>,
 }
 
+#[derive(Clone)]
+pub struct RequestMatcher {
+    pub jsonpath: String,
+    pub value: String,
+    pub src: String,
+}
+
 const DEFAULT_LISTEN_PORT: u16 = 3001;
 const DEFAULT_DYN_DATA_DIR: &str = "apimock-data";
 const CONFIG_SECTION_GENERAL: &str = "general";
 const CONFIG_SECTION_URL: &str = "url";
 const CONFIG_SECTION_URL_HEADERS: &str = "headers";
 const CONFIG_SECTION_URL_PATHS: &str = "paths";
+const CONFIG_SECTION_URL_PATHS_REQUEST_MATCHERS: &str = "paths_request_matchers";
 const CONFIG_SECTION_URL_RAW_PATH: &str = "raw_paths";
 const ALWAYS_DEFAULT_MESSAGES: &str = "Hello, world from API Mock.\n(Responses can be modified with either config toml file or dynamic data directory.)";
 
@@ -98,6 +107,7 @@ impl Config {
     }
 
     /// update `data_src` on static json responses when `data_dir` is updated
+    // todo: matcher
     pub fn update_paths(&mut self, data_dir: &str, old_data_dir: &str) {
         self.paths = Some(
             self.paths
@@ -153,6 +163,26 @@ impl Config {
                     String::new()
                 },
             );
+
+            if let Some(paths_request_matchers) = &self.paths_request_matchers {
+                if let Some(value) = paths_request_matchers.get(key) {
+                    println!(
+                        " request {}",
+                        value
+                            .iter()
+                            .map(|x| {
+                                format!(
+                                    "case {} = \"{}\"\n           => {}",
+                                    style(x.jsonpath.to_owned()).yellow(),
+                                    style(x.value.to_owned()).magenta(),
+                                    style(x.src.to_owned()).green()
+                                )
+                            })
+                            .collect::<Vec<String>>()
+                            .join("\n         ")
+                    );
+                }
+            }
         }
     }
 
@@ -291,6 +321,11 @@ impl Config {
         if let Some(paths_config_content) = url_config.get(CONFIG_SECTION_URL_PATHS) {
             self.config_url_paths(&paths_config_content);
         }
+        if let Some(paths_matchers_config_content) =
+            url_config.get(CONFIG_SECTION_URL_PATHS_REQUEST_MATCHERS)
+        {
+            self.config_url_paths_request_matchers(&paths_matchers_config_content);
+        }
         if let Some(raw_paths_config_content) = url_config.get(CONFIG_SECTION_URL_RAW_PATH) {
             self.config_url_raw_paths(&raw_paths_config_content);
         }
@@ -327,6 +362,77 @@ impl Config {
     /// [url.paths] section
     fn config_url_paths(&mut self, paths_config_content: &toml::Value) {
         self.paths = Some(self.url_paths(paths_config_content, false));
+    }
+
+    /// [url.paths_request_matchers] section
+    fn config_url_paths_request_matchers(
+        &mut self,
+        paths_request_matchers_config_content: &toml::Value,
+    ) {
+        let paths_request_matchers_by_path = paths_request_matchers_config_content
+            .as_table()
+            .expect("`path_matchers` should be table");
+
+        let mut paths_request_matchers: HashMap<String, Vec<RequestMatcher>> = HashMap::new();
+        for key in paths_request_matchers_by_path.keys() {
+            let value = paths_request_matchers_by_path.get(key).expect(
+                format!("empty value is not allowed in path_matchers: key = {}", key).as_str(),
+            );
+            let table = value
+                .as_table()
+                .expect(format!("must be table value in path_matchers: key = {}", key).as_str());
+
+            let request_matchers: Vec<RequestMatcher> = table
+                .keys()
+                .map(|jsonpath_value| {
+                    let split: Vec<&str> = jsonpath_value.split('=').collect();
+                    if split.len() < 2 {
+                        panic!(
+                            "must be table value in path_matchers: key = {}.{}",
+                            key, jsonpath_value
+                        );
+                    }
+
+                    let file = table
+                        .get(jsonpath_value)
+                        .expect(
+                            format!(
+                                "must have value in path_matchers: key = {}.{}",
+                                key, jsonpath_value
+                            )
+                            .as_str(),
+                        )
+                        .as_str()
+                        .expect(
+                            format!(
+                                "must have string value in path_matchers: key = {}.{}",
+                                key, jsonpath_value
+                            )
+                            .as_str(),
+                        );
+                    let src = data_src_path(file, &self.data_dir);
+                    RequestMatcher {
+                        jsonpath: split.get(0).unwrap().to_string().trim_end().to_owned(),
+                        value: split
+                            .iter()
+                            .skip(1)
+                            .map(|&x| x)
+                            .collect::<Vec<&str>>()
+                            .join("="),
+                        src: src,
+                    }
+                })
+                .collect();
+
+            if request_matchers.len() == 0 {
+                continue;
+            }
+
+            let path = fullpath(key, &self.path_prefix, false);
+            paths_request_matchers.insert(path, request_matchers);
+        }
+
+        self.paths_request_matchers = Some(paths_request_matchers);
     }
 
     /// [url.raw_paths] section
@@ -369,25 +475,13 @@ impl Config {
         path_config_content: &toml::Value,
         is_raw_paths: bool,
     ) -> (UrlPath, PathConfig) {
-        let full_path = {
-            let possibly_w_trailing_slash = if is_raw_paths {
-                format!("/{}/", path.to_string())
-            } else {
-                format!(
-                    "/{}/{}/",
-                    self.path_prefix.clone().unwrap_or_default(),
-                    path.to_string()
-                )
-            }
-            .replace("//", "/");
-            (&possibly_w_trailing_slash[..possibly_w_trailing_slash.len() - 1]).to_owned()
-        };
+        let full_path = fullpath(path, &self.path_prefix, is_raw_paths);
 
         let path_config = match path_config_content {
             toml::Value::String(file) => PathConfig {
                 code: StatusCode::OK,
                 headers: None,
-                data_src: Some(self.data_src_path(file)),
+                data_src: Some(data_src_path(file, &self.data_dir)),
                 data_text: None,
             },
             toml::Value::Table(table) => {
@@ -430,7 +524,7 @@ impl Config {
                         }
                         "src" => {
                             let file = value.as_str().unwrap();
-                            ret.data_src = Some(self.data_src_path(file))
+                            ret.data_src = Some(data_src_path(file, &self.data_dir))
                         }
                         "text" => ret.data_text = Some(value.as_str().unwrap().to_owned()),
                         _ => panic!("{}", format!("{} is invalid", table).as_str()),
@@ -444,22 +538,8 @@ impl Config {
         (full_path, path_config)
     }
 
-    /// `data_src` path on static json responses
-    fn data_src_path(&self, file: &str) -> String {
-        let data_dir = if let Some(x) = &self.data_dir.clone() {
-            x.to_owned()
-        } else {
-            String::new()
-        };
-        let path = Path::new(data_dir.as_str())
-            .join(file)
-            .display()
-            .to_string();
-        let _ = fs::metadata(&path).expect(format!("`{}` is missing", path).as_str());
-        path
-    }
-
     /// validate user settings in app config
+    // todo: matcher
     fn validate(&self) {
         if self.always.is_none() && (self.paths.is_none() || self.paths.clone().unwrap().len() == 0)
         {
@@ -480,4 +560,35 @@ impl Config {
             }
         }
     }
+}
+
+/// api url full path
+fn fullpath(path: &str, path_prefix: &Option<String>, is_raw_paths: bool) -> String {
+    let possibly_w_trailing_slash = if is_raw_paths {
+        format!("/{}/", path.to_string())
+    } else {
+        if let Some(path_prefix) = path_prefix {
+            format!("/{}/{}/", path_prefix, path.to_string())
+        } else {
+            format!("/{}/", path.to_string())
+        }
+    }
+    .replace("//", "/");
+
+    (&possibly_w_trailing_slash[..possibly_w_trailing_slash.len() - 1]).to_owned()
+}
+
+/// `data_src` path on static json responses
+fn data_src_path(file: &str, data_dir: &Option<String>) -> String {
+    let data_dir = if let Some(x) = data_dir.clone() {
+        x.to_owned()
+    } else {
+        String::new()
+    };
+    let path = Path::new(data_dir.as_str())
+        .join(file)
+        .display()
+        .to_string();
+    let _ = fs::metadata(&path).expect(format!("`{}` is missing", path).as_str());
+    path
 }

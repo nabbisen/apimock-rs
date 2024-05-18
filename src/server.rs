@@ -11,7 +11,8 @@ use std::path::Path;
 use std::sync::Arc;
 use tokio::sync::{Mutex, MutexGuard};
 
-use crate::config::{Config, HeaderConfig, HeaderId, PathConfig, UrlPath};
+use crate::config::{Config, HeaderConfig, HeaderId, PathConfig, RequestMatcher, UrlPath};
+use crate::util::jsonpath_value;
 
 /// entry point of http requests handler service
 pub async fn handle(
@@ -24,7 +25,9 @@ pub async fn handle(
         return Ok(x.unwrap());
     }
 
-    let path = uri_path(req.uri().path());
+    let (parts, body) = req.into_parts();
+
+    let path = uri_path(parts.uri.path());
 
     if let Some(x) = handle_data_dir_query_path(&mut config, path) {
         return x;
@@ -33,7 +36,15 @@ pub async fn handle(
     log(path);
 
     if let Some(paths) = &config.paths {
-        if let Some(x) = handle_static_path(path, paths, &config.headers) {
+        if let Some(x) = handle_static_path(
+            path,
+            body,
+            paths,
+            &config.paths_request_matchers,
+            &config.headers,
+        )
+        .await
+        {
             return x;
         }
     }
@@ -94,7 +105,7 @@ fn handle_data_dir_query_path(
 }
 
 /// format uri path
-/// 
+///
 /// omit leading slash
 fn uri_path(uri_path: &str) -> &str {
     if uri_path.ends_with("/") {
@@ -105,19 +116,56 @@ fn uri_path(uri_path: &str) -> &str {
 }
 
 /// handle on `data_dir` paths (static json responses)
-fn handle_static_path(
+async fn handle_static_path(
     path: &str,
+    request_body: hyper::Body,
     path_configs: &HashMap<UrlPath, PathConfig>,
+    paths_request_matchers: &Option<HashMap<String, Vec<RequestMatcher>>>,
     headers: &Option<HashMap<HeaderId, HeaderConfig>>,
 ) -> Option<Result<Response<Body>, Error>> {
     let path_config_hashmap = path_configs.iter().find(|(key, _)| key.as_str() == path);
-    let response = if let Some(path_config_hashmap) = path_config_hashmap {
-        let path_config = path_config_hashmap.1;
-        Some(static_path_response(&path_config, headers))
-    } else {
-        None
-    };
-    response
+    if let Some(path_config_hashmap) = path_config_hashmap {
+        let mut path_config = path_config_hashmap.1.clone();
+        matcher_updated_path_config(&mut path_config, path, request_body, paths_request_matchers).await;
+        let response = Some(static_path_response(&path_config, headers));
+        return response;
+    }
+
+    None
+}
+
+/// update path config if matcher finds pair
+async fn matcher_updated_path_config(
+    path_config: &mut PathConfig,
+    path: &str,
+    request_body: hyper::Body,
+    paths_request_matchers: &Option<HashMap<String, Vec<RequestMatcher>>>,
+) {
+    if let Some(paths_request_matchers) = paths_request_matchers {
+        if let Some(key) = paths_request_matchers.keys().find(|x| x.as_str() == path) {
+            let body_bytes = hyper::body::to_bytes(request_body).await.unwrap();
+            if 0 < body_bytes.len() {
+                let json_value: Value = serde_json::from_slice(&body_bytes)
+                    .expect("failed to get json value from request body");
+
+                let request_matchers = paths_request_matchers.get(key).unwrap();
+                let request_matcher = request_matchers.iter().find(|x| {
+                    if let Some(value) = jsonpath_value(&json_value, x.jsonpath.as_str()) {
+                        if let Value::String(value) = value {
+                            x.value.as_str() == value.as_str()
+                        } else {
+                            x.value.as_str() == value.to_string().as_str()
+                        }
+                    } else {
+                        false
+                    }
+                });
+                if let Some(request_matcher) = request_matcher {
+                    path_config.data_src = Some(request_matcher.clone().src);
+                }
+            }
+        }
+    }
 }
 
 /// response on `data_dir` paths

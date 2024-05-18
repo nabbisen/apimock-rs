@@ -8,6 +8,7 @@ use tokio::sync::Mutex;
 
 mod config;
 mod server;
+mod util;
 use crate::config::Config;
 use crate::server::handle;
 
@@ -43,7 +44,7 @@ async fn main() {
 }
 
 /// app config path
-/// 
+///
 /// - if specified with command-line option, use it
 /// - else use the default
 fn config_path() -> String {
