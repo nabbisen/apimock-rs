@@ -42,7 +42,8 @@ pub struct HeaderConfig {
     pub value: Option<String>,
 }
 
-const DEFAULT_LISTEN_PORT: u16 = 3001;
+pub const DEFAULT_LISTEN_PORT: u16 = 3001;
+
 const DEFAULT_DYN_DATA_DIR: &str = "apimock-data";
 const CONFIG_SECTION_GENERAL: &str = "general";
 const CONFIG_SECTION_URL: &str = "url";
