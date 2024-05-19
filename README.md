@@ -220,7 +220,8 @@ graph
         direction TB
         A[`always` is activated ?] --> B[`data_dir_query_path` accessed ?]
         B --> C[`path.urls` have the path ?]
-        C --> D[exists in `dyn_data_dir` ?]
+        C --> D[matcher exists in jsonpath patterns ?]
+        D --> E[exists in `dyn_data_dir` ?]
     end
 ```
 
