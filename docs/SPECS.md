@@ -1,4 +1,4 @@
-# apimock-rs specs
+# Specs
 
 ## Designed in mind with
 

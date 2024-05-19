@@ -1,4 +1,4 @@
-# apimock-rs install
+# Install
 
 ## Introduction
 

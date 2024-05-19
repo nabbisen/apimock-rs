@@ -1,4 +1,4 @@
-# apimock-rs configuration and options
+# Configuration and options
 
 ## Configuration
 
