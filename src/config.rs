@@ -49,7 +49,8 @@ pub struct JsonpathMatchingPattern {
     pub data_src: String,
 }
 
-const DEFAULT_LISTEN_PORT: u16 = 3001;
+pub const DEFAULT_LISTEN_PORT: u16 = 3001;
+
 const DEFAULT_DYN_DATA_DIR: &str = "apimock-data";
 const CONFIG_SECTION_GENERAL: &str = "general";
 const CONFIG_SECTION_URL: &str = "url";
@@ -63,9 +64,13 @@ const ALWAYS_DEFAULT_MESSAGES: &str = "Hello, world from API Mock.\n(Responses c
 impl Config {
     /// new
     pub fn new(config_path: &str) -> Config {
+        if !config_path.is_empty() && !Path::new(config_path).exists() {
+            panic!("config file was specified but didn't exist: {}", config_path);
+        }
+
         let mut config = Self::default_config();
 
-        if !Path::new(config_path).exists() {
+        if config_path.is_empty() {
             if !Path::new(DEFAULT_DYN_DATA_DIR).exists() {
                 config.always = Some(ALWAYS_DEFAULT_MESSAGES.to_owned());
                 println!(
