@@ -8,6 +8,7 @@ use tokio::sync::Mutex;
 
 pub mod config;
 mod server;
+mod util;
 use crate::config::Config;
 use crate::server::handle;
 

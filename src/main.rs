@@ -5,4 +5,3 @@ use apimock::{config_path, start_server};
 async fn main() {
     start_server(config_path()).await.unwrap();
 }
-
