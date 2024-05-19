@@ -16,10 +16,9 @@ pub const CONFIG_FILENAME: &str = "apimock.toml";
 const APP_NAME: &str = "API mock";
 
 /// start hyper http server
-pub async fn start_server() -> Result<(), hyper::Error> {
+pub async fn start_server(config_path: String) -> Result<(), hyper::Error> {
     println!("\nGreetings from {APP_NAME} !!\n");
 
-    let config_path = config_path();
     let config = Config::new(&config_path);
 
     let app_state = Arc::new(Mutex::new(config.clone()));
@@ -45,7 +44,7 @@ pub async fn start_server() -> Result<(), hyper::Error> {
 /// 
 /// - if specified with command-line option, use it
 /// - else use the default
-fn config_path() -> String {
+pub fn config_path() -> String {
     let args: Vec<String> = env::args().collect();
 
     let config_option_entry = args

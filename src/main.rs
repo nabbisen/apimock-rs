@@ -1,8 +1,8 @@
-use apimock::start_server;
+use apimock::{config_path, start_server};
 
 /// main - app entry point
 #[tokio::main]
 async fn main() {
-    start_server().await.unwrap();
+    start_server(config_path()).await.unwrap();
 }
 
