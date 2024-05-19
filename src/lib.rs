@@ -3,6 +3,7 @@ use hyper::service::{make_service_fn, service_fn};
 use hyper::Server;
 use std::convert::Infallible;
 use std::env;
+use std::net::ToSocketAddrs;
 use std::sync::Arc;
 use tokio::sync::Mutex;
 
@@ -31,7 +32,12 @@ pub async fn start_server(config_path: String) -> Result<(), hyper::Error> {
         }
     });
 
-    let addr = config.addr.unwrap();
+    let addr = config
+        .listen_address()
+        .to_socket_addrs()
+        .expect("invalid listend address or port")
+        .next()
+        .expect("failed to resolve address");
     let server = Server::bind(&addr).serve(make_svc);
     println!(
         "\nListening on {} ...\n",
@@ -42,7 +48,7 @@ pub async fn start_server(config_path: String) -> Result<(), hyper::Error> {
 }
 
 /// app config path
-/// 
+///
 /// - if specified with command-line option, use it
 /// - else use the default
 pub fn config_path() -> String {

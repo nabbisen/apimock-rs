@@ -6,6 +6,7 @@
 
 ```toml
 [general]
+address = "127.0.0.1"
 port = 3001
 dyn_data_dir = "apimock-data"
 # always = "{ greetings: \"Hello, world.\" }"
@@ -44,32 +45,49 @@ redirect_1 = { key = "Location", value = "/api/v1/home" }
 
 ### Properties
 
+#### `general.address`
+
+IP Address listened to by server.
+
+**Default**: "127.0.0.1"
+
+#### `general.port`
+
+Port listened to by server.
+
+**Default**: 3001
+
 #### `general.dyn_data_dir`
 
-If set, URL path without statically defined path matched is converted to file path in this directory. Server tries to find it out as either `.json` or `.json5`. When found, server returns the content as JSON response.    
+If set, URL path without statically defined path matched is converted to file path in this directory. Server tries to find it out as either `.json` or `.json5`. When found, server returns the content as JSON response.
+
 **Default**: empty
 
 It works even without config toml. It is config-less mode.
 
 #### `url.data_dir`
 
-Data directory used as where to look up files when HTTP response is built.    
+Data directory used as where to look up files when HTTP response is built.
+
 **Default**: executable directory
 
 #### `url.data_dir_query_path`
 
 Data directory can be switched manually via HTTP request. Access to http://127.0.0.1/(`url.data_dir_query_path`) to get the current value. Access to http://127.0.0.1/(`url.data_dir_query_path`)/some/path to change it.
+
 **Default**: "@@"
 
 #### `url.path_prefix`
 
-Static paths are dealt with as those who have the prefix. Convenient when your service has path prefix.    
+Static paths are dealt with as those who have the prefix. Convenient when your service has path prefix.
+
 **Default**: empty
 
 #### `url.headers`
 
 HTTP headers such as `Authorizaton: xxx` on auth and `Location: xxx` on redirection.
-You can reuse them and easily attach headers in `url.paths` by defining here.    
+You can reuse them and easily attach headers in `url.paths` by defining here.
+
 **Default**: None
 
 #### `url.paths`
@@ -90,6 +108,8 @@ It is able to omit code and headers. For example:
 It means `src` and it's far simpler. `code` and `headers` are dealt with as their default: 200 as OK and no custom headers.
 
 Only when either `src` or `text` is defined, the response `Content-Type` is set as `application/json`.
+
+**Default**: None
 
 #### `url.paths_patterns`
 
@@ -123,9 +143,13 @@ Array is also available with index number specified. For example, when the reque
 
 `2` in "key_d.**2**.key_e" is the index.
 
+**Default**: None
+
 #### `url.raw_paths`
 
 Not affected by `url.path_prefix`. Everything else is the same to `url.paths`.
+
+**Default**: None
 
 ## Options
 

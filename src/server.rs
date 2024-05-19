@@ -57,7 +57,7 @@ pub async fn handle(
 
 /// print out logs
 fn log(path: &str) {
-    println!("- request got: path = {path} (path)");
+    println!("- request got: path = {path}");
 }
 
 /// handle on `always` config
@@ -120,13 +120,21 @@ async fn handle_static_path(
     path: &str,
     request_body: hyper::Body,
     path_configs: &HashMap<UrlPath, PathConfig>,
-    paths_jsonpath_patterns: &Option<HashMap<String, HashMap<String, Vec<JsonpathMatchingPattern>>>>,
+    paths_jsonpath_patterns: &Option<
+        HashMap<String, HashMap<String, Vec<JsonpathMatchingPattern>>>,
+    >,
     headers: &Option<HashMap<HeaderId, HeaderConfig>>,
 ) -> Option<Result<Response<Body>, Error>> {
     let path_config_hashmap = path_configs.iter().find(|(key, _)| key.as_str() == path);
     if let Some(path_config_hashmap) = path_config_hashmap {
         let mut path_config = path_config_hashmap.1.clone();
-        match_jsonpath_patterns(&mut path_config, path, request_body, paths_jsonpath_patterns).await;
+        match_jsonpath_patterns(
+            &mut path_config,
+            path,
+            request_body,
+            paths_jsonpath_patterns,
+        )
+        .await;
         let response = Some(static_path_response(&path_config, headers));
         return response;
     }
@@ -139,7 +147,9 @@ async fn match_jsonpath_patterns(
     path_config: &mut PathConfig,
     path: &str,
     request_body: hyper::Body,
-    paths_jsonpath_patterns: &Option<HashMap<String, HashMap<String, Vec<JsonpathMatchingPattern>>>>,
+    paths_jsonpath_patterns: &Option<
+        HashMap<String, HashMap<String, Vec<JsonpathMatchingPattern>>>,
+    >,
 ) {
     if let Some(paths_jsonpath_patterns) = paths_jsonpath_patterns {
         if let Some(key) = paths_jsonpath_patterns.keys().find(|x| x.as_str() == path) {
@@ -152,12 +162,17 @@ async fn match_jsonpath_patterns(
                 for jsonpath in jsonpath_patterns.keys() {
                     if let Some(value) = jsonpath_value(&json_value, jsonpath) {
                         let request_json_value = match value {
-                            Value::String(x) => { x },
-                            Value::Number(x) => { x.to_string() },
-                            _ => { continue; }
+                            Value::String(x) => x,
+                            Value::Number(x) => x.to_string(),
+                            _ => {
+                                continue;
+                            }
                         };
                         let patterns = jsonpath_patterns.get(jsonpath).unwrap();
-                        if let Some(matched) = patterns.iter().find(|x| { x.value.as_str() == request_json_value.as_str() }) {
+                        if let Some(matched) = patterns
+                            .iter()
+                            .find(|x| x.value.as_str() == request_json_value.as_str())
+                        {
                             // first matched only
                             path_config.data_src = Some(matched.data_src.to_owned());
                             break;

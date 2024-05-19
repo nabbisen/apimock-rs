@@ -4,7 +4,6 @@ use json5;
 use serde_json;
 use std::collections::HashMap;
 use std::fs;
-use std::net::SocketAddr;
 use std::path::Path;
 use toml;
 
@@ -14,8 +13,8 @@ pub type HeaderId = String;
 /// app config
 #[derive(Clone, Default)]
 pub struct Config {
+    pub ip_address: String,
     pub port: u16,
-    pub addr: Option<SocketAddr>,
     pub dyn_data_dir: Option<String>,
     pub always: Option<String>,
     pub path_prefix: Option<String>,
@@ -23,7 +22,8 @@ pub struct Config {
     pub data_dir_query_path: Option<String>,
     pub headers: Option<HashMap<HeaderId, HeaderConfig>>,
     pub paths: Option<HashMap<UrlPath, PathConfig>>,
-    pub paths_jsonpath_patterns: Option<HashMap<String, HashMap<String, Vec<JsonpathMatchingPattern>>>>,
+    pub paths_jsonpath_patterns:
+        Option<HashMap<String, HashMap<String, Vec<JsonpathMatchingPattern>>>>,
     config_path: Option<String>,
 }
 
@@ -51,6 +51,7 @@ pub struct JsonpathMatchingPattern {
 
 pub const DEFAULT_LISTEN_PORT: u16 = 3001;
 
+const DEFAULT_LISTEN_IP_ADDRESS: &str = "127.0.0.1";
 const DEFAULT_DYN_DATA_DIR: &str = "apimock-data";
 const CONFIG_SECTION_GENERAL: &str = "general";
 const CONFIG_SECTION_URL: &str = "url";
@@ -65,7 +66,10 @@ impl Config {
     /// new
     pub fn new(config_path: &str) -> Config {
         if !config_path.is_empty() && !Path::new(config_path).exists() {
-            panic!("config file was specified but didn't exist: {}", config_path);
+            panic!(
+                "config file was specified but didn't exist: {}",
+                config_path
+            );
         }
 
         let mut config = Self::default_config();
@@ -110,18 +114,22 @@ impl Config {
         config
     }
 
+    /// address listened to
+    pub fn listen_address(&self) -> String {
+        format!("{}:{}", self.ip_address, self.port)
+    }
+
     /// update `data_src` on static json responses when `data_dir` is updated
     pub fn update_paths(&mut self, data_dir: &str, old_data_dir: &str) {
         // fn: get data_src with updated data_dir
         let updated_data_src = |data_src: &str, data_dir: &str| -> String {
             let data_dir_wo_trailing_slash = data_dir.trim_end_matches('/');
-            let data_src_body =
-                if let Some(stripped) = data_src.strip_prefix(old_data_dir) {
-                    stripped
-                } else {
-                    data_src
-                }
-                .trim_start_matches('/');
+            let data_src_body = if let Some(stripped) = data_src.strip_prefix(old_data_dir) {
+                stripped
+            } else {
+                data_src
+            }
+            .trim_start_matches('/');
             format!("{}/{}", data_dir_wo_trailing_slash, data_src_body)
         };
 
@@ -143,17 +151,25 @@ impl Config {
 
         // [url.paths_patterns] data_src
         if let Some(paths_jsonpath_patterns) = self.paths_jsonpath_patterns.clone() {
-            let mut updated_paths_jsonpath_patterns: HashMap<String, HashMap<String, Vec<JsonpathMatchingPattern>>> = HashMap::new();
+            let mut updated_paths_jsonpath_patterns: HashMap<
+                String,
+                HashMap<String, Vec<JsonpathMatchingPattern>>,
+            > = HashMap::new();
             paths_jsonpath_patterns.keys().for_each(|path| {
-                let mut updated_jsonpath_patterns: HashMap<String, Vec<JsonpathMatchingPattern>> = HashMap::new();
+                let mut updated_jsonpath_patterns: HashMap<String, Vec<JsonpathMatchingPattern>> =
+                    HashMap::new();
                 let jsonpath_patterns = paths_jsonpath_patterns.get(path).unwrap();
                 jsonpath_patterns.keys().for_each(|jsonpath| {
                     let patterns = jsonpath_patterns.get(jsonpath).unwrap();
-                    let updated_patterns = patterns.iter().map(|pattern| {
-                        let mut updated_pattern = pattern.clone();
-                        updated_pattern.data_src = updated_data_src(pattern.data_src.as_str(), data_dir);
-                        updated_pattern
-                    }).collect();
+                    let updated_patterns = patterns
+                        .iter()
+                        .map(|pattern| {
+                            let mut updated_pattern = pattern.clone();
+                            updated_pattern.data_src =
+                                updated_data_src(pattern.data_src.as_str(), data_dir);
+                            updated_pattern
+                        })
+                        .collect();
                     updated_jsonpath_patterns.insert(jsonpath.to_owned(), updated_patterns);
                 });
                 updated_paths_jsonpath_patterns.insert(path.to_owned(), updated_jsonpath_patterns);
@@ -201,14 +217,20 @@ impl Config {
                         " jsonpath {}",
                         keys.iter()
                             .map(|&jsonpath| {
-                                jsonpath_patterns.get(jsonpath).unwrap().iter().map(|pattern| {
-                                    format!(
-                                        "case {} = \"{}\"\n            => {}",
-                                        style(jsonpath).yellow(),
-                                        style(pattern.value.to_owned()).magenta(),
-                                        style(pattern.data_src.to_owned()).green()
-                                    )
-                                }).collect::<Vec<String>>().join("\n          ")
+                                jsonpath_patterns
+                                    .get(jsonpath)
+                                    .unwrap()
+                                    .iter()
+                                    .map(|pattern| {
+                                        format!(
+                                            "case {} = \"{}\"\n            => {}",
+                                            style(jsonpath).yellow(),
+                                            style(pattern.value.to_owned()).magenta(),
+                                            style(pattern.data_src.to_owned()).green()
+                                        )
+                                    })
+                                    .collect::<Vec<String>>()
+                                    .join("\n          ")
                             })
                             .collect::<Vec<String>>()
                             .join("\n          ")
@@ -229,7 +251,7 @@ impl Config {
         if let Some(data_dir_query_path) = &self.data_dir_query_path {
             println!(
                 "[data_dir_query_url] http://{}/{}",
-                &self.addr.unwrap().to_string(),
+                &self.listen_address(),
                 data_dir_query_path
             );
         }
@@ -271,7 +293,7 @@ impl Config {
     fn default_config() -> Config {
         let mut config = Config::default();
         config.port = DEFAULT_LISTEN_PORT;
-        config.addr = Some(([127, 0, 0, 1], config.port).into());
+        config.ip_address = DEFAULT_LISTEN_IP_ADDRESS.to_owned();
         config
     }
 
@@ -287,10 +309,13 @@ impl Config {
         );
         for (key, value) in general_config {
             match key.as_str() {
+                "ip_address" => match value.as_str() {
+                    Some(ip_address) => self.ip_address = ip_address.to_owned(),
+                    _ => (),
+                },
                 "port" => match value.as_integer() {
                     Some(port) => {
                         self.port = port as u16;
-                        self.addr = Some(([127, 0, 0, 1], self.port).into());
                     }
                     _ => (),
                 },
@@ -397,49 +422,70 @@ impl Config {
     }
 
     /// [url.paths_patterns] section
-    fn config_url_paths_jsonpath_patterns(
-        &mut self,
-        paths_jsonpath_patterns_json: &toml::Value,
-    ) {
+    fn config_url_paths_jsonpath_patterns(&mut self, paths_jsonpath_patterns_json: &toml::Value) {
         let table = paths_jsonpath_patterns_json
             .as_table()
             .expect("`paths_jsonpath_patterns` should be table");
 
-        let mut paths_jsonpath_patterns: HashMap<String, HashMap<String, Vec<JsonpathMatchingPattern>>> = HashMap::new();
+        let mut paths_jsonpath_patterns: HashMap<
+            String,
+            HashMap<String, Vec<JsonpathMatchingPattern>>,
+        > = HashMap::new();
         for path in table.keys() {
             let value = table.get(path).expect(
-                format!("paths_jsonpath_patterns: empty value is not allowed. key = {}", path).as_str(),
+                format!(
+                    "paths_jsonpath_patterns: empty value is not allowed. key = {}",
+                    path
+                )
+                .as_str(),
             );
             let table = value
                 .as_table()
                 .expect(format!("paths_jsonpath_patterns: must be table. key = {}", path).as_str());
 
-            let mut jsonpath_patterns: HashMap<String, Vec<JsonpathMatchingPattern>> = HashMap::new();
-            table
-                .keys()
-                .for_each(|jsonpath| {
-                    let json = table.get(jsonpath).unwrap();
-                    let patterns_config = json.as_table().expect(format!("paths_jsonpath_patterns: must be table as value to data_src. key = {}.{}", path, jsonpath).as_str());
-                    let patterns = patterns_config.keys().map(|x| {
+            let mut jsonpath_patterns: HashMap<String, Vec<JsonpathMatchingPattern>> =
+                HashMap::new();
+            table.keys().for_each(|jsonpath| {
+                let json = table.get(jsonpath).unwrap();
+                let patterns_config = json.as_table().expect(
+                    format!(
+                        "paths_jsonpath_patterns: must be table as value to data_src. key = {}.{}",
+                        path, jsonpath
+                    )
+                    .as_str(),
+                );
+                let patterns = patterns_config
+                    .keys()
+                    .map(|x| {
                         let mut chars = x.chars();
                         let first_char_in_value = chars.next().unwrap_or_default();
                         if first_char_in_value != '=' {
-                            panic!("paths_jsonpath_patterns: must start with '='. key = {}.{}.{}", path, jsonpath, x);
+                            panic!(
+                                "paths_jsonpath_patterns: must start with '='. key = {}.{}.{}",
+                                path, jsonpath, x
+                            );
                         }
-                        
+
                         let value: String = chars.collect();
 
-                        let file = patterns_config.get(x).unwrap().as_str().expect(format!("paths_jsonpath_patterns: data_src must be string. key = {}.{}.{}", path, jsonpath, value).as_str());
+                        let file = patterns_config.get(x).unwrap().as_str().expect(
+                            format!(
+                                "paths_jsonpath_patterns: data_src must be string. key = {}.{}.{}",
+                                path, jsonpath, value
+                            )
+                            .as_str(),
+                        );
                         let data_src = data_src_path(file, &self.data_dir);
 
                         JsonpathMatchingPattern {
                             value: value,
                             data_src: data_src,
                         }
-                    }).collect();
+                    })
+                    .collect();
 
-                    jsonpath_patterns.insert(jsonpath.to_owned(),patterns);
-                });
+                jsonpath_patterns.insert(jsonpath.to_owned(), patterns);
+            });
 
             if jsonpath_patterns.len() == 0 {
                 continue;
