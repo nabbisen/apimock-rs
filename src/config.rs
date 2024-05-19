@@ -56,7 +56,7 @@ const CONFIG_SECTION_GENERAL: &str = "general";
 const CONFIG_SECTION_URL: &str = "url";
 const CONFIG_SECTION_URL_HEADERS: &str = "headers";
 const CONFIG_SECTION_URL_PATHS: &str = "paths";
-const CONFIG_SECTION_URL_PATHS_JSONPATH_PATTERNS: &str = "paths_jsonpath_patterns";
+const CONFIG_SECTION_URL_PATHS_JSONPATH_PATTERNS: &str = "paths_patterns";
 const CONFIG_SECTION_URL_RAW_PATH: &str = "raw_paths";
 const ALWAYS_DEFAULT_MESSAGES: &str = "Hello, world from API Mock.\n(Responses can be modified with either config toml file or dynamic data directory.)";
 
@@ -111,30 +111,55 @@ impl Config {
     }
 
     /// update `data_src` on static json responses when `data_dir` is updated
-    // todo: matcher
     pub fn update_paths(&mut self, data_dir: &str, old_data_dir: &str) {
-        self.paths = Some(
+        // fn: get data_src with updated data_dir
+        let updated_data_src = |data_src: &str, data_dir: &str| -> String {
+            let data_dir_wo_trailing_slash = data_dir.trim_end_matches('/');
+            let data_src_body =
+                if let Some(stripped) = data_src.strip_prefix(old_data_dir) {
+                    stripped
+                } else {
+                    data_src
+                }
+                .trim_start_matches('/');
+            format!("{}/{}", data_dir_wo_trailing_slash, data_src_body)
+        };
+
+        // [url.paths] data_src
+        let paths = Some(
             self.paths
                 .clone()
                 .unwrap()
                 .into_iter()
                 .map(|mut x| {
                     if let Some(data_src) = x.1.data_src {
-                        let data_dir_wo_trailing_slash = data_dir.trim_end_matches('/');
-                        let data_src_body =
-                            if let Some(stripped) = data_src.strip_prefix(old_data_dir) {
-                                stripped
-                            } else {
-                                data_src.as_str()
-                            }
-                            .trim_start_matches('/');
-                        x.1.data_src =
-                            Some(format!("{}/{}", data_dir_wo_trailing_slash, data_src_body));
+                        x.1.data_src = Some(updated_data_src(data_src.as_str(), data_dir));
                     }
                     x
                 })
                 .collect::<HashMap<String, PathConfig>>(),
-        )
+        );
+        self.paths = paths;
+
+        // [url.paths_patterns] data_src
+        if let Some(paths_jsonpath_patterns) = self.paths_jsonpath_patterns.clone() {
+            let mut updated_paths_jsonpath_patterns: HashMap<String, HashMap<String, Vec<JsonpathMatchingPattern>>> = HashMap::new();
+            paths_jsonpath_patterns.keys().for_each(|path| {
+                let mut updated_jsonpath_patterns: HashMap<String, Vec<JsonpathMatchingPattern>> = HashMap::new();
+                let jsonpath_patterns = paths_jsonpath_patterns.get(path).unwrap();
+                jsonpath_patterns.keys().for_each(|jsonpath| {
+                    let patterns = jsonpath_patterns.get(jsonpath).unwrap();
+                    let updated_patterns = patterns.iter().map(|pattern| {
+                        let mut updated_pattern = pattern.clone();
+                        updated_pattern.data_src = updated_data_src(pattern.data_src.as_str(), data_dir);
+                        updated_pattern
+                    }).collect();
+                    updated_jsonpath_patterns.insert(jsonpath.to_owned(), updated_patterns);
+                });
+                updated_paths_jsonpath_patterns.insert(path.to_owned(), updated_jsonpath_patterns);
+            });
+            self.paths_jsonpath_patterns = Some(updated_paths_jsonpath_patterns);
+        }
     }
 
     /// print out paths on `data_dir` (static json responses)
@@ -371,7 +396,7 @@ impl Config {
         self.paths = Some(self.url_paths(paths_config_content, false));
     }
 
-    /// [url.paths_jsonpath_patterns] section
+    /// [url.paths_patterns] section
     fn config_url_paths_jsonpath_patterns(
         &mut self,
         paths_jsonpath_patterns_json: &toml::Value,

@@ -40,29 +40,3 @@ fn jsonpath_value_recursive<'a>(
         Some(value.clone())
     }
 }
-
-// /// get value from json value with jsonpath
-// use serde_json::Value;
-
-// pub fn jsonpath_value(json: &Value, path: &str) -> Option<Value> {
-//     let mut current: Option<&Value> = Some(json);
-
-//     for key in path.split('.') {
-//         current = match current {
-//             Some(Value::Object(obj)) => obj.get(key),
-//             Some(Value::Array(arr)) => {
-//                 if let Ok(idx) = key.parse::<usize>() {
-//                     arr.get(idx)
-//                 } else {
-//                     None
-//                 }
-//             }
-//             _ => None,
-//         };
-//         if current.is_none() {
-//             break;
-//         }
-//     }
-
-//     current.cloned()
-// }

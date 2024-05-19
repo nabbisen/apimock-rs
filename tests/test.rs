@@ -97,7 +97,7 @@ async fn matcher_object_missing() {
 #[tokio::test]
 async fn matcher_array() {
     setup("apimock.toml").await;
-    let body = "{\"d\":[{},{\"e\":\"x=\"}]}";
+    let body = "{\"d\":[{},{},{\"e\":\"x=\"}]}";
     let response = http_response("/api/v1/some/path/w/matcher", Some(body)).await;
     
     assert_eq!(response.status(), StatusCode::OK);

@@ -34,6 +34,7 @@ Server started to listen:
 - GET / POST methods
 - Multiple paths
 - Multiple .json/.json5 files treated as JSON Response
+- Flexible responses with patterns and jsonpath queries. Even with the same api uri path, multiple responses can be returned. See [\[`url.paths_patterns`\]](#urlpaths_patterns).
 - Can switch data directory paths manually in testing via specific HTTP request to make json responses flexible
 - Dynamic path resolution with `dyn_data_dir`
 - Custom responses codes (HTTP 3xx as redirects and 4xx and 5xx as errors)
@@ -95,6 +96,14 @@ redirect_1 = { key = "Location", value = "/api/v1/home" }
 "error/api-403" = { code = 403 }
 "redirect/302" = { code = 302, headers = ["redirect_1"] }
 
+[url.paths_patterns."some/path/w/matcher"."a.b.c"]
+"=1" = "api.json5"
+"=0" = "home.json"
+[url.paths_patterns."some/path/w/matcher"."d.2.e"]
+"=x=" = "api.json5"
+[url.paths_patterns."some/path/w/matcher"."f"]
+"=" = "api.json5"
+
 [url.raw_paths] # `path_prefix` doesn't work
 "/" = { text = "{ Hello: world }", code = 301, headers = ["cookie_1", "redirect_1"] }
 ```
@@ -147,6 +156,38 @@ It is able to omit code and headers. For example:
 It means `src` and it's far simpler. `code` and `headers` are dealt with as their default: 200 as OK and no custom headers.
 
 Only when either `src` or `text` is defined, the response `Content-Type` is set as `application/json`.
+
+##### `url.paths_patterns`
+
+You can define patterns with which response JSON file is dynamically decided due to request body parameter.
+
+The format is:
+
+```toml
+[url.paths_patterns."{API_PATH}"."{JSONPATH}"]
+"={CASE_VALUE}" = "{DATA_SRC}"
+```
+
+For example, with the definition below, you can return "special.json" when "/some/matcher/path" is accessed to and the request body is "{\"key_a\": {\"key_b\": {\"key_c\": 1}}}":
+
+```toml
+[url.paths_patterns."/some/matcher/path"."key_a.Key_b.key_c"]
+"=1" = "special.json"
+```
+
+Remember:
+
+- Enclose API path and JSONPath with `"`
+- Start with `=` in writing pattern value
+
+Array is also available with index number specified. For example, when the request body is "{\"key_d\": [{}, {}, {\"key_e\": \"x=\"}]}", how to point to it is: 
+
+```toml
+[url.paths_patterns."/some/matcher/path"."key_d.2.key_e"]
+"=x=" = "special.json"
+```
+
+`2` in "key_d.**2**.key_e" is the index.
 
 ##### `url.raw_paths`
 
