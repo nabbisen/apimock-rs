@@ -24,8 +24,8 @@ redirect_1 = { key = "Location", value = "/api/v1/home" }
 "redirect/302" = { code = 302, headers = ["redirect_1"] }
 
 [url.paths_jsonpath_patterns."some/path/w/matcher"."a.b.c"]
-"=a" = "api.json5"
-"=1" = "home.json"
+"=1" = "api.json5"
+"=0" = "home.json"
 [url.paths_jsonpath_patterns."some/path/w/matcher"."d.1.e"]
 "=x=" = "api.json5"
 [url.paths_jsonpath_patterns."some/path/w/matcher"."f"]
