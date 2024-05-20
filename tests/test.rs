@@ -80,6 +80,19 @@ async fn matcher_object_2() {
 }
 
 #[tokio::test]
+async fn matcher_object_3() {
+    setup("apimock.toml").await;
+    let body = "{\"a\":{\"b\":{\"c\":\"1\", \"d\": 0}}}";
+    let response = http_response("/api/v1/some/path/w/matcher", Some(body)).await;
+
+    assert_eq!(response.status(), StatusCode::OK);
+
+    let body_str =
+        String::from_utf8(to_bytes(response.into_body()).await.unwrap().to_vec()).unwrap();
+    assert_eq!(body_str.as_str(), "{\"apikey\":\"apivalue\"}");
+}
+
+#[tokio::test]
 async fn matcher_data_type_insensitiveness() {
     setup("apimock.toml").await;
     let body = "{\"a\":{\"b\":{\"c\":1}}}";
