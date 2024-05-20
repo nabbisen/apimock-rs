@@ -35,6 +35,7 @@ pub struct PathConfig {
     pub headers: Option<Vec<String>>,
     pub data_src: Option<String>,
     pub data_text: Option<String>,
+    pub response_wait_more_millis: u64,
 }
 
 /// http headers on responses
@@ -64,7 +65,7 @@ const ALWAYS_DEFAULT_MESSAGES: &str = "Hello, world from API Mock.\n(Responses c
 
 /// app config
 impl Config {
-    /// new
+    /// create new instance
     pub fn new(config_path: &str) -> Config {
         if !config_path.is_empty() && !Path::new(config_path).exists() {
             panic!(
@@ -561,6 +562,7 @@ impl Config {
                 headers: None,
                 data_src: Some(data_src_path(file, &self.data_dir)),
                 data_text: None,
+                response_wait_more_millis: 0,
             },
             toml::Value::Table(table) => {
                 let mut ret = PathConfig {
@@ -568,6 +570,7 @@ impl Config {
                     headers: None,
                     data_src: None,
                     data_text: None,
+                    response_wait_more_millis: 0,
                 };
                 for (key, value) in table {
                     match key.as_str() {
@@ -605,6 +608,13 @@ impl Config {
                             ret.data_src = Some(data_src_path(file, &self.data_dir))
                         }
                         "text" => ret.data_text = Some(value.as_str().unwrap().to_owned()),
+                        "wait_more" => {
+                            let response_wait_more_millis = value.as_integer().expect(format!("{}: wait_more must be integer", value).as_str());
+                            if response_wait_more_millis.is_negative() {
+                                panic!("{}: wait_more must be positive", value);
+                            }
+                            ret.response_wait_more_millis = response_wait_more_millis.unsigned_abs();
+                        },
                         _ => panic!("{}", format!("{} is invalid", table).as_str()),
                     }
                 }

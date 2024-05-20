@@ -22,7 +22,7 @@ Running `apimock` without both `apimock.toml` and `apimock-data/` directory resu
 
 There are some modifiable settings on running server:
 
-- `.json` / `.json5` content of `data_src` in `paths`, `raw_paths`, and those in `dyn_data_dir`
+- `.json` / `.json5` content of `src` in `paths`, `raw_paths`, and those in `dyn_data_dir`
 - `data_dir` in `paths` and `paths_patterns`
 
 ## How to embed to development environment

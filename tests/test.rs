@@ -8,7 +8,10 @@ async fn uri_root_as_empty() {
     setup("apimock.toml").await;
     let response = http_response("", None).await;
 
-    assert_eq!(response.status(), StatusCode::NOT_FOUND);
+    assert_eq!(response.status(), StatusCode::OK);
+    let body_str =
+        String::from_utf8(to_bytes(response.into_body()).await.unwrap().to_vec()).unwrap();
+    assert_eq!(body_str.as_str(), "{\"hello\":\"world\"}");
 }
 
 #[tokio::test]
@@ -16,7 +19,10 @@ async fn uri_root() {
     setup("apimock.toml").await;
     let response = http_response("/", None).await;
 
-    assert_eq!(response.status(), StatusCode::NOT_FOUND);
+    assert_eq!(response.status(), StatusCode::OK);
+    let body_str =
+        String::from_utf8(to_bytes(response.into_body()).await.unwrap().to_vec()).unwrap();
+    assert_eq!(body_str.as_str(), "{\"hello\":\"world\"}");
 }
 
 #[tokio::test]
