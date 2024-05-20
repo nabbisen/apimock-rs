@@ -17,6 +17,7 @@ pub struct Config {
     pub port: u16,
     pub dyn_data_dir: Option<String>,
     pub always: Option<String>,
+    pub response_wait_millis: u64,
     pub path_prefix: Option<String>,
     pub data_dir: Option<String>,
     pub data_dir_query_path: Option<String>,
@@ -294,6 +295,7 @@ impl Config {
         let mut config = Config::default();
         config.port = DEFAULT_LISTEN_PORT;
         config.ip_address = DEFAULT_LISTEN_IP_ADDRESS.to_owned();
+        config.response_wait_millis = 0;
         config
     }
 
@@ -335,6 +337,15 @@ impl Config {
                         self.always = Some(always.to_owned());
                         return;
                     }
+                    _ => (),
+                },
+                "response_wait" => match value.as_integer() {
+                    Some(response_wait_millis) => {
+                        if response_wait_millis.is_negative() {
+                            panic!("response_wait must be positive");
+                        }
+                        self.response_wait_millis = response_wait_millis.unsigned_abs();
+                    },
                     _ => (),
                 },
                 _ => (),

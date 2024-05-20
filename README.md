@@ -20,18 +20,29 @@ Server started to listen:
 
 ## Features
 
+### 1. Basic
+
 - GET / POST methods
 - Multiple [`paths`](docs/CONFIGURE.md#urlpaths)
 - Multiple .json/.json5 files treated as JSON Response
-- Flexible responses with patterns and jsonpath queries. Even with the same api uri path, multiple responses can be returned. See [`url.paths_patterns`](docs/CONFIGURE.md#urlpaths_patterns).
+
+### 2. Customization
+
+- Custom response HTTP codes: 3xx as redirects, and 4xx and 5xx as errors
+- Custom response [headers](docs/CONFIGURE.md#urlheaders) which are reusable
+- Flexible responses with patterns and jsonpath queries. Even with the same API URL path, multiple responses can be returned. See [`url.paths_patterns`](docs/CONFIGURE.md#urlpaths_patterns).
+
+### 3. Dynamic processing
+
 - Can [switch data directory paths](docs/CONFIGURE.md#urldata_dir_query_path) manually in testing via specific HTTP request to make json responses flexible
 - Dynamic path resolution with [`dyn_data_dir`](docs/CONFIGURE.md#generaldyn_data_dir)
-- Custom responses codes (HTTP 3xx as redirects and 4xx and 5xx as errors)
-- Custom [headers](docs/CONFIGURE.md#urlheaders) and their reusabliblity
+
+### 4. Usability
+
 - Validates configuration: Missing JSON files, duplicate paths etc.
 - Prints out routing at startup
 
-### Description
+### Reference
 
 - [Configuration and options](docs/CONFIGURE.md)
 - [Design and specification](docs/SPECS.md)

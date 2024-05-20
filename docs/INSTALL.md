@@ -20,15 +20,10 @@ Running `apimock` without both `apimock.toml` and `apimock-data/` directory resu
 
 ### After server started
 
-What is modifiable:
+There are some modifiable settings on running server:
 
-- content of path data src: `.json` / `.json5`
-
-What is NOT modifiable:
-
-- `always` config
-- routing on `paths`
-- `code` / `headers` / data text on each path
+- `.json` / `.json5` content of `data_src` in `paths`, `raw_paths`, and those in `dyn_data_dir`
+- `data_dir` in `paths` and `paths_patterns`
 
 ## How to embed to development environment
 
