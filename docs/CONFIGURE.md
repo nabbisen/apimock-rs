@@ -128,7 +128,7 @@ Only when either `src` or `text` is defined, the response `Content-Type` is set 
 
 #### `url.paths_patterns`
 
-You can define patterns with which response JSON file is dynamically decided due to request body parameter.
+Pattern-matching-like options are available, which enable to dynamically specify response JSON file due to request body parameter.
 
 The format is:
 
@@ -137,12 +137,14 @@ The format is:
 "={CASE_VALUE}" = "{DATA_SRC}"
 ```
 
-For example, with the definition below, you can return "special.json" when "/some/matcher/path" is accessed to and the request body is "{\"key_a\": {\"key_b\": {\"key_c\": 1}}}":
+For example, with the definition below, you can return "special.json" when "/some/matcher/path" is accessed to and the request body is like "{\"key_a\": {\"key_b\": {\"key_c\": 1}}, ...}":
 
 ```toml
-[url.paths_patterns."/some/matcher/path"."key_a.Key_b.key_c"]
+[url.paths_patterns."/some/matcher/path"."key_a.key_b.key_c"]
 "=1" = "special.json"
 ```
+
+Of course, the body may include another parameter unrelated to the query.
 
 Remember:
 
