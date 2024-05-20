@@ -3,6 +3,7 @@ ip_address = "127.0.0.1"
 port = 3001
 dyn_data_dir = "apimock-data"
 # always = "{ greetings: \"Hello, world.\" }"
+response_wait = 100
 
 [url]
 data_dir = "tests"

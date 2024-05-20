@@ -1,3 +1,8 @@
+use std::collections::HashMap;
+use std::time::Duration;
+use std::fs;
+use std::path::Path;
+use std::sync::Arc;
 use hyper::header::{
     HeaderValue, ACCESS_CONTROL_ALLOW_HEADERS, ACCESS_CONTROL_ALLOW_METHODS,
     ACCESS_CONTROL_ALLOW_ORIGIN, CONTENT_TYPE,
@@ -5,10 +10,7 @@ use hyper::header::{
 use hyper::{http::response::Builder, http::Error, Body, Request, Response, StatusCode};
 use json5;
 use serde_json::Value;
-use std::collections::HashMap;
-use std::fs;
-use std::path::Path;
-use std::sync::Arc;
+use tokio::time;
 use tokio::sync::{Mutex, MutexGuard};
 
 use crate::config::{Config, HeaderConfig, HeaderId, JsonpathMatchingPattern, PathConfig, UrlPath};
@@ -19,7 +21,11 @@ pub async fn handle(
     req: Request<Body>,
     app_state: Arc<Mutex<Config>>,
 ) -> Result<Response<Body>, Error> {
-    let mut config = app_state.lock().await;
+    let config = {
+        app_state.lock().await.clone()
+    };
+
+    time::sleep(Duration::from_millis(config.response_wait_millis)).await;
 
     if let Some(x) = handle_always(&config.always) {
         return Ok(x.unwrap());
@@ -29,8 +35,13 @@ pub async fn handle(
 
     let path = uri_path(parts.uri.path());
 
-    if let Some(x) = handle_data_dir_query_path(&mut config, path) {
-        return x;
+    {
+        let mut config = {
+            app_state.lock().await
+        };
+        if let Some(x) = handle_data_dir_query_path(&mut config, path) {
+            return x;
+        }
     }
 
     log(path);

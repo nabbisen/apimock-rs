@@ -10,6 +10,7 @@ address = "127.0.0.1"
 port = 3001
 dyn_data_dir = "apimock-data"
 # always = "{ greetings: \"Hello, world.\" }"
+response_wait = 100
 
 [url]
 data_dir = "tests"
@@ -64,6 +65,12 @@ If set, URL path without statically defined path matched is converted to file pa
 **Default**: empty
 
 It works even without config toml. It is config-less mode.
+
+#### `general.response_wait`
+
+Specify in milliseconds. If specified, server waits for the time before returning response on each request.
+
+**Default**: 0
 
 #### `url.data_dir`
 
