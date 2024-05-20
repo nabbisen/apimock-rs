@@ -25,9 +25,8 @@ pub async fn handle(
         app_state.lock().await.clone()
     };
 
-    time::sleep(Duration::from_millis(config.response_wait_millis)).await;
-
     if let Some(x) = handle_always(&config.always) {
+        response_wait(config.response_wait_millis).await;
         return Ok(x.unwrap());
     }
 
@@ -45,6 +44,8 @@ pub async fn handle(
     }
 
     log(path);
+
+    response_wait(config.response_wait_millis).await;
 
     if let Some(paths) = &config.paths {
         if let Some(x) = handle_static_path(
@@ -69,6 +70,11 @@ pub async fn handle(
 /// print out logs
 fn log(path: &str) {
     println!("- request got: path = {path}");
+}
+
+/// sleep
+async fn response_wait(millis: u64) {
+    time::sleep(Duration::from_millis(millis)).await
 }
 
 /// handle on `always` config
@@ -119,7 +125,9 @@ fn handle_data_dir_query_path(
 ///
 /// omit leading slash
 fn uri_path(uri_path: &str) -> &str {
-    if uri_path.ends_with("/") {
+    if uri_path.chars().filter(|&c| c == '/').count() == 1 {
+        uri_path
+    } else if uri_path.ends_with("/") {
         &uri_path[..uri_path.len() - 1]
     } else {
         uri_path
@@ -136,7 +144,9 @@ async fn handle_static_path(
     >,
     headers: &Option<HashMap<HeaderId, HeaderConfig>>,
 ) -> Option<Result<Response<Body>, Error>> {
-    let path_config_hashmap = path_configs.iter().find(|(key, _)| key.as_str() == path);
+    let path_config_hashmap = path_configs.iter().find(|(key, _)| {
+        key.as_str() == path
+    });
     if let Some(path_config_hashmap) = path_config_hashmap {
         let mut path_config = path_config_hashmap.1.clone();
         match_jsonpath_patterns(
@@ -146,6 +156,9 @@ async fn handle_static_path(
             paths_jsonpath_patterns,
         )
         .await;
+
+        response_wait(path_config.response_wait_more_millis).await;
+
         let response = Some(static_path_response(&path_config, headers));
         return response;
     }

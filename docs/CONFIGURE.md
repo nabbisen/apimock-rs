@@ -41,7 +41,7 @@ redirect_1 = { key = "Location", value = "/api/v1/home" }
 "=" = "api.json5"
 
 [url.raw_paths] # `path_prefix` doesn't work
-"/" = { text = "{ Hello: world }", code = 301, headers = ["cookie_1", "redirect_1"] }
+"/" = { code = 200, text = "{\"hello\":\"world\"}" }
 ```
 
 ### Properties
@@ -100,19 +100,27 @@ You can reuse them and easily attach headers in `url.paths` by defining here.
 #### `url.paths`
 
 The key, the left-hand side, is URL path. The right-hand one is response definition.
-Response definition consists of four optional parts: `code` as HTTP code, `headers` as HTTP headers keys defined in `url.headers`, `src` as data source file relative path in `url.data_dir` and `text` as direct body text instead of `src`. For example:
+Response definition consists of five optional parts:
+
+- `code` as HTTP responses code
+- `headers` as HTTP headers keys defined in `url.headers`
+- **`src`** as data source file relative path in `url.data_dir`
+- `text` as direct body text instead of `src`
+- `wait_more` as additional milliseconds to [`general.response_wait`](#generalresponse_wait)
+
+For example:
 
 ```toml
-"url_path" = { code = 200, headers = ["header_key_1"], src = "response_1.json" }
+"url_path" = { code = 200, headers = ["header_key_1"], src = "response_1.json", wait_more = 700 }
 ```
 
-It is able to omit code and headers. For example:
+It is able to omit code and headers:
 
 ```toml
 "url_path" = "response_1.json"
 ```
 
-It means `src` and it's far simpler. `code` and `headers` are dealt with as their default: 200 as OK and no custom headers.
+It means **`src`** only, and is far simpler. `code` and `headers` are dealt with as their default: 200 as OK and no custom headers.
 
 Only when either `src` or `text` is defined, the response `Content-Type` is set as `application/json`.
 

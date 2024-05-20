@@ -34,4 +34,4 @@ redirect_1 = { key = "Location", value = "/api/v1/home" }
 "=" = "api.json5"
 
 [url.raw_paths]
-"/" = { text = "{ Hello: world }", code = 301, headers = ["cookie_1", "redirect_1"] }
+"/" = { code = 200, text = "{\"hello\":\"world\"}" }
