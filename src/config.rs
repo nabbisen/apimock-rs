@@ -350,7 +350,7 @@ impl Config {
                             panic!("response_wait must be positive");
                         }
                         self.response_wait_millis = response_wait_millis.unsigned_abs();
-                    },
+                    }
                     _ => (),
                 },
                 _ => (),
@@ -609,12 +609,15 @@ impl Config {
                         }
                         "text" => ret.data_text = Some(value.as_str().unwrap().to_owned()),
                         "wait_more" => {
-                            let response_wait_more_millis = value.as_integer().expect(format!("{}: wait_more must be integer", value).as_str());
+                            let response_wait_more_millis = value
+                                .as_integer()
+                                .expect(format!("{}: wait_more must be integer", value).as_str());
                             if response_wait_more_millis.is_negative() {
                                 panic!("{}: wait_more must be positive", value);
                             }
-                            ret.response_wait_more_millis = response_wait_more_millis.unsigned_abs();
-                        },
+                            ret.response_wait_more_millis =
+                                response_wait_more_millis.unsigned_abs();
+                        }
                         _ => panic!("{}", format!("{} is invalid", table).as_str()),
                     }
                 }
