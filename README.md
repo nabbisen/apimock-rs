@@ -30,7 +30,8 @@ Server started to listen:
 
 - Custom HTTP response codes: 3xx as redirects, and 4xx and 5xx as errors
 - Custom response [headers](docs/CONFIGURE.md#urlheaders) which are reusable
-- Flexible responses with patterns and jsonpath queries. Even with the same API URL path, multiple responses can be returned. See [`url.paths_patterns`](docs/CONFIGURE.md#urlpaths_patterns).
+- Flexible responses with patterns and jsonpath queries. Even with the same API URL path, multiple responses can be returned. See [`url.paths_patterns`](docs/CONFIGURE.md#urlpaths_patterns)
+- Can specify response time on all or each API path
 
 ### 3. Dynamic processing
 
