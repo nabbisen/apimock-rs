@@ -246,6 +246,10 @@ impl Config {
         if let Some(always) = &self.always {
             println!("[always] {}", always);
         }
+        if 0 < self.response_wait_millis {
+            println!("[response wait] {} milliseconds", self.response_wait_millis);
+            println!("------");
+        }
         if let Some(data_dir) = &self.data_dir {
             println!("[data_dir] {}", data_dir);
         }
