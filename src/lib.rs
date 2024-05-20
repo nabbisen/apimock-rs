@@ -13,8 +13,6 @@ mod util;
 use crate::config::Config;
 use crate::server::handle;
 
-pub const CONFIG_FILENAME: &str = "apimock.toml";
-
 const APP_NAME: &str = "API mock";
 
 /// start hyper http server
@@ -60,9 +58,9 @@ pub fn config_path() -> String {
     let config_path = match config_option_entry {
         Some(config_option_entry) => match args.get(config_option_entry + 1) {
             Some(config_option) => config_option,
-            _ => CONFIG_FILENAME,
+            _ => "",
         },
-        _ => CONFIG_FILENAME,
+        _ => "",
     };
     config_path.to_owned()
 }
