@@ -1,7 +1,15 @@
 use apimock::{config::DEFAULT_LISTEN_PORT, start_server};
 
-use hyper::{body::to_bytes, Body, Client, Request, Response, StatusCode, Uri};
+use http_body_util::{BodyExt, Full};
+use hyper::{
+    body::{Bytes, Incoming},
+    Request, Response, StatusCode, Uri,
+};
+use hyper_util::rt::TokioIo;
 use std::path::Path;
+use tokio::net::TcpStream;
+
+type BoxBody = http_body_util::combinators::BoxBody<Bytes, hyper::Error>;
 
 #[tokio::test]
 async fn uri_root_as_empty() {
@@ -9,8 +17,7 @@ async fn uri_root_as_empty() {
     let response = http_response("", None).await;
 
     assert_eq!(response.status(), StatusCode::OK);
-    let body_str =
-        String::from_utf8(to_bytes(response.into_body()).await.unwrap().to_vec()).unwrap();
+    let body_str = response_body_str(response).await;
     assert_eq!(body_str.as_str(), "{\"hello\":\"world\"}");
 }
 
@@ -20,8 +27,7 @@ async fn uri_root() {
     let response = http_response("/", None).await;
 
     assert_eq!(response.status(), StatusCode::OK);
-    let body_str =
-        String::from_utf8(to_bytes(response.into_body()).await.unwrap().to_vec()).unwrap();
+    let body_str = response_body_str(response).await;
     assert_eq!(body_str.as_str(), "{\"hello\":\"world\"}");
 }
 
@@ -48,8 +54,7 @@ async fn api_home() {
 
     assert_eq!(response.status(), StatusCode::OK);
 
-    let body_str =
-        String::from_utf8(to_bytes(response.into_body()).await.unwrap().to_vec()).unwrap();
+    let body_str = response_body_str(response).await;
     assert_eq!(body_str.as_str(), "{\"key\":\"value\"}");
 }
 
@@ -61,8 +66,7 @@ async fn matcher_object_1() {
 
     assert_eq!(response.status(), StatusCode::OK);
 
-    let body_str =
-        String::from_utf8(to_bytes(response.into_body()).await.unwrap().to_vec()).unwrap();
+    let body_str = response_body_str(response).await;
     assert_eq!(body_str.as_str(), "{\"apikey\":\"apivalue\"}");
 }
 
@@ -74,8 +78,7 @@ async fn matcher_object_2() {
 
     assert_eq!(response.status(), StatusCode::OK);
 
-    let body_str =
-        String::from_utf8(to_bytes(response.into_body()).await.unwrap().to_vec()).unwrap();
+    let body_str = response_body_str(response).await;
     assert_eq!(body_str.as_str(), "{\"key\":\"value\"}");
 }
 
@@ -87,8 +90,7 @@ async fn matcher_object_3() {
 
     assert_eq!(response.status(), StatusCode::OK);
 
-    let body_str =
-        String::from_utf8(to_bytes(response.into_body()).await.unwrap().to_vec()).unwrap();
+    let body_str = response_body_str(response).await;
     assert_eq!(body_str.as_str(), "{\"apikey\":\"apivalue\"}");
 }
 
@@ -100,8 +102,7 @@ async fn matcher_data_type_insensitiveness() {
 
     assert_eq!(response.status(), StatusCode::OK);
 
-    let body_str =
-        String::from_utf8(to_bytes(response.into_body()).await.unwrap().to_vec()).unwrap();
+    let body_str = response_body_str(response).await;
     assert_eq!(body_str.as_str(), "{\"apikey\":\"apivalue\"}");
 }
 
@@ -113,8 +114,7 @@ async fn matcher_object_missing() {
 
     assert_eq!(response.status(), StatusCode::OK);
 
-    let body_str =
-        String::from_utf8(to_bytes(response.into_body()).await.unwrap().to_vec()).unwrap();
+    let body_str = response_body_str(response).await;
     assert_eq!(body_str.as_str(), "{\"key\":\"value\"}");
 }
 
@@ -126,8 +126,7 @@ async fn matcher_array() {
 
     assert_eq!(response.status(), StatusCode::OK);
 
-    let body_str =
-        String::from_utf8(to_bytes(response.into_body()).await.unwrap().to_vec()).unwrap();
+    let body_str = response_body_str(response).await;
     assert_eq!(body_str.as_str(), "{\"apikey\":\"apivalue\"}");
 }
 
@@ -139,8 +138,7 @@ async fn matcher_array_missing() {
 
     assert_eq!(response.status(), StatusCode::OK);
 
-    let body_str =
-        String::from_utf8(to_bytes(response.into_body()).await.unwrap().to_vec()).unwrap();
+    let body_str = response_body_str(response).await;
     assert_eq!(body_str.as_str(), "{\"key\":\"value\"}");
 }
 
@@ -152,8 +150,7 @@ async fn matcher_empty_value() {
 
     assert_eq!(response.status(), StatusCode::OK);
 
-    let body_str =
-        String::from_utf8(to_bytes(response.into_body()).await.unwrap().to_vec()).unwrap();
+    let body_str = response_body_str(response).await;
     assert_eq!(body_str.as_str(), "{\"apikey\":\"apivalue\"}");
 }
 
@@ -186,27 +183,47 @@ async fn setup(config_file: &str) {
 }
 
 /// get http response from mock server
-async fn http_response(uri_path: &str, body: Option<&str>) -> Response<Body> {
-    let request = http_request(uri_path, body);
-    let client = Client::new();
-    let response = client.request(request).await.unwrap();
-    response
-}
-
-/// generate http request
-fn http_request(uri_path: &str, body: Option<&str>) -> Request<Body> {
-    let uri = Uri::builder()
+async fn http_response(uri_path: &str, body: Option<&str>) -> Response<Incoming> {
+    let uri: Uri = Uri::builder()
         .scheme("http")
         .authority("127.0.0.1".to_string() + ":" + &DEFAULT_LISTEN_PORT.to_string())
         .path_and_query(uri_path)
         .build()
         .unwrap();
-    let body = if let Some(body) = body { body } else { "" };
-    let request = Request::builder()
-        .uri(uri)
-        .method("POST")
-        .header("Content-Type", "text/plain")
-        .body(Body::from(body.to_owned()))
+
+    let host = uri.host().expect("uri has no host");
+    let port = uri.port_u16().unwrap_or(80);
+    let addr = format!("{}:{}", host, port);
+    let stream = TcpStream::connect(addr).await.unwrap();
+    let io = TokioIo::new(stream);
+
+    let (mut sender, conn) = hyper::client::conn::http1::handshake(io).await.unwrap();
+    tokio::task::spawn(async move {
+        if let Err(err) = conn.await {
+            println!("Connection failed: {:?}", err);
+        }
+    });
+
+    let authority = uri.authority().unwrap().clone();
+
+    let path = uri.path();
+    let req = Request::builder()
+        .uri(path)
+        .header(hyper::header::HOST, authority.as_str())
+        .body(Full::new(Bytes::from(body.unwrap().to_owned())))
         .unwrap();
-    request
+
+    sender.send_request(req).await.unwrap()
+}
+
+async fn response_body_str(response: Response<Incoming>) -> String {
+    let body_bytes = response
+        .into_body()
+        .boxed()
+        .collect()
+        .await
+        .unwrap()
+        .to_bytes();
+    let body_str = String::from_utf8(body_bytes.into()).unwrap();
+    body_str
 }

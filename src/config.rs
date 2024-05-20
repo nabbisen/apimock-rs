@@ -1,5 +1,5 @@
 use console::style;
-use hyper::StatusCode;
+use hyper::http::StatusCode;
 use json5;
 use serde_json;
 use std::collections::HashMap;
@@ -81,7 +81,7 @@ impl Config {
         } else {
             config_path
         };
-        
+
         let mut config = Self::default_config();
 
         if config_path.is_empty() && !exists_default_config {

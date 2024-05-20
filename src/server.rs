@@ -1,8 +1,13 @@
-use hyper::header::{
-    HeaderValue, ACCESS_CONTROL_ALLOW_HEADERS, ACCESS_CONTROL_ALLOW_METHODS,
-    ACCESS_CONTROL_ALLOW_ORIGIN, CONTENT_TYPE,
+use http_body_util::{BodyExt, Full};
+use hyper::{
+    body::{Bytes, Incoming},
+    header::{
+        HeaderValue, ACCESS_CONTROL_ALLOW_HEADERS, ACCESS_CONTROL_ALLOW_METHODS,
+        ACCESS_CONTROL_ALLOW_ORIGIN, CONTENT_TYPE,
+    },
+    http::{response::Builder, Error},
+    Request, Response, StatusCode,
 };
-use hyper::{http::response::Builder, http::Error, Body, Request, Response, StatusCode};
 use json5;
 use serde_json::Value;
 use std::collections::HashMap;
@@ -16,11 +21,13 @@ use tokio::time;
 use crate::config::{Config, HeaderConfig, HeaderId, JsonpathMatchingPattern, PathConfig, UrlPath};
 use crate::util::jsonpath_value;
 
+type BoxBody = http_body_util::combinators::BoxBody<Bytes, hyper::Error>;
+
 /// entry point of http requests handler service
 pub async fn handle(
-    req: Request<Body>,
+    req: Request<Incoming>,
     app_state: Arc<Mutex<Config>>,
-) -> Result<Response<Body>, Error> {
+) -> Result<Response<Full<Bytes>>, Error> {
     let config = { app_state.lock().await.clone() };
 
     if let Some(x) = handle_always(&config.always) {
@@ -74,10 +81,11 @@ async fn response_wait(millis: u64) {
 }
 
 /// handle on `always` config
-fn handle_always(always: &Option<String>) -> Option<Result<Response<Body>, Error>> {
+fn handle_always(always: &Option<String>) -> Option<Result<Response<Full<Bytes>>, Error>> {
     match always {
         Some(x) => {
-            let response = json_response_base(&None, &None).body(Body::from(x.to_owned()));
+            let response =
+                json_response_base(&None, &None).body(Full::new(Bytes::from(x.to_owned())));
             Some(response)
         }
         _ => None,
@@ -88,7 +96,7 @@ fn handle_always(always: &Option<String>) -> Option<Result<Response<Body>, Error
 fn handle_data_dir_query_path(
     config: &mut MutexGuard<Config>,
     path: &str,
-) -> Option<Result<Response<Body>, Error>> {
+) -> Option<Result<Response<Full<Bytes>>, Error>> {
     if path == "" || config.data_dir_query_path.is_none() {
         return None;
     }
@@ -133,13 +141,13 @@ fn uri_path(uri_path: &str) -> &str {
 /// handle on `data_dir` paths (static json responses)
 async fn handle_static_path(
     path: &str,
-    request_body: hyper::Body,
+    request_body: Incoming,
     path_configs: &HashMap<UrlPath, PathConfig>,
     paths_jsonpath_patterns: &Option<
         HashMap<String, HashMap<String, Vec<JsonpathMatchingPattern>>>,
     >,
     headers: &Option<HashMap<HeaderId, HeaderConfig>>,
-) -> Option<Result<Response<Body>, Error>> {
+) -> Option<Result<Response<Full<Bytes>>, Error>> {
     let path_config_hashmap = path_configs.iter().find(|(key, _)| key.as_str() == path);
     if let Some(path_config_hashmap) = path_config_hashmap {
         let mut path_config = path_config_hashmap.1.clone();
@@ -164,14 +172,21 @@ async fn handle_static_path(
 async fn match_jsonpath_patterns(
     path_config: &mut PathConfig,
     path: &str,
-    request_body: hyper::Body,
+    request_body: Incoming,
     paths_jsonpath_patterns: &Option<
         HashMap<String, HashMap<String, Vec<JsonpathMatchingPattern>>>,
     >,
 ) {
     if let Some(paths_jsonpath_patterns) = paths_jsonpath_patterns {
         if let Some(key) = paths_jsonpath_patterns.keys().find(|x| x.as_str() == path) {
-            let body_bytes = hyper::body::to_bytes(request_body).await.unwrap();
+            // let body_bytes = hyper::body::to_bytes(request_body).await.unwrap();
+            // Bytes::copy_to_bytes(request_body).await.unwrap();
+            let body_bytes = request_body
+                .boxed()
+                .collect()
+                .await
+                .expect("failed to collect request incoming body")
+                .to_bytes();
             if 0 < body_bytes.len() {
                 let json_value: Value = serde_json::from_slice(&body_bytes)
                     .expect("failed to get json value from request body");
@@ -206,7 +221,7 @@ async fn match_jsonpath_patterns(
 fn static_path_response(
     path_config: &PathConfig,
     headers: &Option<HashMap<HeaderId, HeaderConfig>>,
-) -> Result<Response<Body>, Error> {
+) -> Result<Response<Full<Bytes>>, Error> {
     if let Some(_) = &path_config.data_src {
         return static_path_data_src_reponse(path_config, headers);
     }
@@ -214,26 +229,26 @@ fn static_path_response(
     if let Some(data_text) = &path_config.data_text {
         return json_response_base(&path_config.headers, headers)
             .status(path_config.code)
-            .body(Body::from(data_text.to_owned()));
+            .body(Full::new(Bytes::from(data_text.to_owned())));
     }
 
     response_base(&path_config.headers, headers)
         .status(path_config.code)
-        .body(Body::from(""))
+        .body(Full::new(Bytes::from("")))
 }
 
 /// json file on `data_src` response on `data_dir` paths
 fn static_path_data_src_reponse(
     path_config: &PathConfig,
     headers: &Option<HashMap<HeaderId, HeaderConfig>>,
-) -> Result<Response<Body>, Error> {
+) -> Result<Response<Full<Bytes>>, Error> {
     match std::fs::read_to_string(path_config.data_src.as_ref().unwrap()) {
         Ok(content) => match json5::from_str::<Value>(&content) {
             Ok(json) => {
                 let json_text = json.to_string();
                 json_response_base(&path_config.headers, headers)
                     .status(path_config.code)
-                    .body(Body::from(json_text))
+                    .body(Full::new(Bytes::from(json_text)))
             }
             _ => bad_request_response("Invalid json content"),
         },
@@ -242,7 +257,7 @@ fn static_path_data_src_reponse(
 }
 
 /// handle on `dyn_data_dir` (dynamic json responses)
-fn handle_dyn_path(path: &str, dyn_data_dir: &str) -> Result<Response<Body>, Error> {
+fn handle_dyn_path(path: &str, dyn_data_dir: &str) -> Result<Response<Full<Bytes>>, Error> {
     let p = Path::new(dyn_data_dir).join(path.strip_prefix("/").unwrap_or_default());
 
     let dir = p.parent().unwrap();
@@ -277,7 +292,7 @@ fn handle_dyn_path(path: &str, dyn_data_dir: &str) -> Result<Response<Body>, Err
                     let body = json.to_string();
                     json_response_base(&None, &None)
                         .status(StatusCode::OK)
-                        .body(Body::from(body))
+                        .body(Full::new(Bytes::from(body)))
                 }
                 _ => bad_request_response("Invalid json content"),
             },
@@ -320,22 +335,22 @@ fn json_response_base(
 }
 
 /// plain text response
-fn plain_text_response(msg: &str) -> Result<Response<Body>, Error> {
+fn plain_text_response(msg: &str) -> Result<Response<Full<Bytes>>, Error> {
     response_base(&None, &None)
         .status(StatusCode::OK)
-        .body(Body::from(msg.to_owned()))
+        .body(Full::new(Bytes::from(msg.to_owned())))
 }
 
 /// error response on http NOT_FOUND
-fn not_found_response() -> Result<Response<Body>, Error> {
+fn not_found_response() -> Result<Response<Full<Bytes>>, Error> {
     response_base(&None, &None)
         .status(StatusCode::NOT_FOUND)
-        .body(Body::empty())
+        .body(Full::new(Bytes::new())) // todo ? to Empty<Bytes>
 }
 
 /// error response on http BAD_REQUEST
-fn bad_request_response(msg: &str) -> Result<Response<Body>, Error> {
+fn bad_request_response(msg: &str) -> Result<Response<Full<Bytes>>, Error> {
     response_base(&None, &None)
         .status(StatusCode::BAD_REQUEST)
-        .body(Body::from(msg.to_owned()))
+        .body(Full::new(Bytes::from(msg.to_owned())))
 }
