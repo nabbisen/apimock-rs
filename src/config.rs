@@ -53,6 +53,7 @@ pub struct JsonpathMatchingPattern {
 
 pub const DEFAULT_LISTEN_PORT: u16 = 3001;
 
+const CONFIG_FILENAME: &str = "apimock.toml";
 const DEFAULT_LISTEN_IP_ADDRESS: &str = "127.0.0.1";
 const DEFAULT_DYN_DATA_DIR: &str = "apimock-data";
 const CONFIG_SECTION_GENERAL: &str = "general";
@@ -74,9 +75,16 @@ impl Config {
             );
         }
 
+        let exists_default_config = Path::new(CONFIG_FILENAME).exists();
+        let config_path = if config_path.is_empty() && exists_default_config {
+            CONFIG_FILENAME
+        } else {
+            config_path
+        };
+        
         let mut config = Self::default_config();
 
-        if config_path.is_empty() {
+        if config_path.is_empty() && !exists_default_config {
             if !Path::new(DEFAULT_DYN_DATA_DIR).exists() {
                 config.always = Some(ALWAYS_DEFAULT_MESSAGES.to_owned());
                 println!(
