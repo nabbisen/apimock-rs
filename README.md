@@ -10,7 +10,7 @@
 
 Mocking helper to develop microservices and APIs. [hyper](https://hyper.rs/)-based HTTP server generating REST responses containing JSON ones. Written in [Rust](https://www.rust-lang.org/).
 
-With small single native binary, just run `./apimock` or `./apimock -c apimock.toml` to start the server !
+With small native binary, just run `./apimock` or `./apimock -c apimock.toml` to start the server !
 
 - [Install and usage](docs/INSTALL.md)
 
