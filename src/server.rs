@@ -359,7 +359,7 @@ fn plain_text_response(msg: &str) -> Result<Response<BoxBody>, Error> {
 fn not_found_response() -> Result<Response<BoxBody>, Error> {
     response_base(&None, &None)
         .status(StatusCode::NOT_FOUND)
-        .body(Empty::new().boxed()) // todo ? to Empty<Bytes>
+        .body(Empty::new().boxed())
 }
 
 /// error response on http BAD_REQUEST

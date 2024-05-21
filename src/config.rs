@@ -638,7 +638,6 @@ impl Config {
     }
 
     /// validate user settings in app config
-    // todo: matcher
     fn validate(&self) {
         if self.always.is_none() && (self.paths.is_none() || self.paths.clone().unwrap().len() == 0)
         {
