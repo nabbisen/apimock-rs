@@ -31,6 +31,7 @@ Server started to listen:
 - GET / POST methods
 - Multiple [`paths`](docs/CONFIGURE.md#urlpaths)
 - Multiple .json/.json5 files treated as JSON Response
+- based on hyper v1
 
 ### 2. Customization
 
