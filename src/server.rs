@@ -14,7 +14,7 @@ use serde_json::Value;
 use std::fs;
 use std::path::Path;
 use std::sync::Arc;
-use std::time::Duration;
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
 use std::{collections::HashMap, convert::Infallible};
 use tokio::sync::{Mutex, MutexGuard};
 use tokio::time;
@@ -73,7 +73,20 @@ pub async fn handle(
 
 /// print out logs
 fn log(path: &str) {
-    println!("{} - request got", style(path).yellow());
+    let now = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap()
+        .as_secs();
+    let hours = (now / 3600) % 24;
+    let minutes = (now / 60) % 60;
+    let seconds = now % 60;
+    let timestamp = format!("{:02}:{:02}:{:02}", hours, minutes, seconds);
+
+    println!(
+        " <- {} (request got at {} UTC)",
+        style(path).yellow(),
+        timestamp
+    );
 }
 
 /// sleep
