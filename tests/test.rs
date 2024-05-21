@@ -219,6 +219,7 @@ async fn http_response(uri_path: &str, body: Option<&str>) -> Response<Incoming>
     sender.send_request(req).await.unwrap()
 }
 
+/// convert response body bytes to string
 async fn response_body_str(response: Response<Incoming>) -> String {
     let body_bytes = response
         .into_body()

@@ -66,6 +66,7 @@ pub async fn start_server(
     }
 }
 
+/// server handler service
 async fn service(
     req: Request<body::Incoming>,
     app_state: Arc<Mutex<Config>>,
