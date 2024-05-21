@@ -1,7 +1,10 @@
 use console::style;
-use http_body_util::Full;
 use hyper::{body, body::Bytes, service::service_fn, Request, Response};
-use hyper_util::{rt::TokioExecutor, rt::TokioIo, server::conn::auto::Builder};
+use hyper_util::{
+    rt::{TokioExecutor, TokioIo},
+    server::conn::auto::Builder,
+};
+use std::convert::Infallible;
 use std::env;
 use std::net::ToSocketAddrs;
 use std::sync::Arc;
@@ -13,7 +16,7 @@ mod util;
 use crate::config::Config;
 use crate::server::handle;
 
-type BoxBody = http_body_util::combinators::BoxBody<Bytes, hyper::Error>;
+type BoxBody = http_body_util::combinators::BoxBody<Bytes, Infallible>;
 
 const APP_NAME: &str = "API mock";
 
@@ -66,7 +69,7 @@ pub async fn start_server(
 async fn service(
     req: Request<body::Incoming>,
     app_state: Arc<Mutex<Config>>,
-) -> Result<Response<Full<Bytes>>, hyper::http::Error> {
+) -> Result<Response<BoxBody>, hyper::http::Error> {
     handle(req, Arc::clone(&app_state)).await
 }
 

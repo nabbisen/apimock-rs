@@ -1,6 +1,6 @@
 use apimock::{config::DEFAULT_LISTEN_PORT, start_server};
 
-use http_body_util::{BodyExt, Full};
+use http_body_util::{BodyExt, Empty, Full};
 use hyper::{
     body::{Bytes, Incoming},
     Request, Response, StatusCode, Uri,
@@ -8,8 +8,6 @@ use hyper::{
 use hyper_util::rt::TokioIo;
 use std::path::Path;
 use tokio::net::TcpStream;
-
-type BoxBody = http_body_util::combinators::BoxBody<Bytes, hyper::Error>;
 
 #[tokio::test]
 async fn uri_root_as_empty() {
@@ -207,10 +205,15 @@ async fn http_response(uri_path: &str, body: Option<&str>) -> Response<Incoming>
     let authority = uri.authority().unwrap().clone();
 
     let path = uri.path();
+    let body = if body.is_none() {
+        Empty::new().boxed()
+    } else {
+        Full::new(Bytes::from(body.unwrap().to_owned())).boxed()
+    };
     let req = Request::builder()
         .uri(path)
         .header(hyper::header::HOST, authority.as_str())
-        .body(Full::new(Bytes::from(body.unwrap().to_owned())))
+        .body(body)
         .unwrap();
 
     sender.send_request(req).await.unwrap()
