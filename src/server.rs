@@ -6,20 +6,25 @@ use hyper::{
         HeaderValue, ACCESS_CONTROL_ALLOW_HEADERS, ACCESS_CONTROL_ALLOW_METHODS,
         ACCESS_CONTROL_ALLOW_ORIGIN, CONTENT_TYPE,
     },
-    http::{response::Builder, Error},
+    http::{request::Parts, response::Builder, Error},
     Request, Response, StatusCode,
 };
 use json5;
-use serde_json::Value;
-use std::fs;
-use std::path::Path;
-use std::sync::Arc;
-use std::time::{Duration, SystemTime, UNIX_EPOCH};
-use std::{collections::HashMap, convert::Infallible};
+use serde_json::{from_str, to_string_pretty, Value};
+use std::{
+    collections::HashMap,
+    convert::Infallible,
+    fs,
+    path::Path,
+    sync::Arc,
+    time::{Duration, SystemTime, UNIX_EPOCH},
+};
 use tokio::sync::{Mutex, MutexGuard};
 use tokio::time;
 
-use crate::config::{Config, HeaderConfig, HeaderId, JsonpathMatchingPattern, PathConfig, UrlPath};
+use crate::config::{
+    Config, HeaderConfig, HeaderId, JsonpathMatchingPattern, PathConfig, UrlPath, VerboseConfig,
+};
 use crate::util::jsonpath_value;
 
 type BoxBody = http_body_util::combinators::BoxBody<Bytes, Infallible>;
@@ -47,14 +52,21 @@ pub async fn handle(
         }
     }
 
-    log(path);
+    let request_body_bytes = body
+        .boxed()
+        .collect()
+        .await
+        .expect("failed to collect request incoming body")
+        .to_bytes();
+
+    log(path, &parts, &request_body_bytes, config.verbose);
 
     response_wait(config.response_wait_millis).await;
 
     if let Some(paths) = &config.paths {
         if let Some(x) = handle_static_path(
             path,
-            body,
+            &request_body_bytes,
             paths,
             &config.paths_jsonpath_patterns,
             &config.headers,
@@ -72,7 +84,7 @@ pub async fn handle(
 }
 
 /// print out logs
-fn log(path: &str) {
+fn log(path: &str, request_header: &Parts, request_body_bytes: &Bytes, verbose: VerboseConfig) {
     let now = SystemTime::now()
         .duration_since(UNIX_EPOCH)
         .unwrap()
@@ -82,11 +94,46 @@ fn log(path: &str) {
     let seconds = now % 60;
     let timestamp = format!("{:02}:{:02}:{:02}", hours, minutes, seconds);
 
-    println!(
-        " <- {} (request got at {} UTC)",
+    // uri and timestamp (base)
+    let mut printed = format!(
+        "<- {} (request got at {} UTC)",
         style(path).yellow(),
         timestamp
     );
+
+    // headers
+    if verbose.header || verbose.body {
+        printed.push_str("\n");
+    }
+    if verbose.header {
+        let headers = request_header
+            .headers
+            .iter()
+            .map(|x| format!("\n{}: {}", x.0, x.1.to_str().unwrap()))
+            .collect::<String>();
+        let printed_headers = format!(
+            "({:?}, {}){}",
+            request_header.version, request_header.method, headers
+        );
+        printed = format!("{}{}", printed, style(printed_headers).magenta());
+    }
+    // body (json params)
+    if verbose.body {
+        let mut body_str =
+            String::from_utf8(request_body_bytes.to_vec()).expect("request body is not string");
+        if let Ok(parsed_json) = from_str::<Value>(body_str.as_str()) {
+            if let Ok(prettified) = to_string_pretty(&parsed_json) {
+                body_str = prettified;
+            }
+        }
+        printed = format!("{}\n{}", printed, style(body_str).green());
+    }
+    if verbose.header || verbose.body {
+        printed.push_str("\n");
+    }
+
+    // if verbose {}
+    println!("{}", printed);
 }
 
 /// sleep
@@ -155,7 +202,7 @@ fn uri_path(uri_path: &str) -> &str {
 /// handle on `data_dir` paths (static json responses)
 async fn handle_static_path(
     path: &str,
-    request_body: Incoming,
+    request_body_bytes: &Bytes,
     path_configs: &HashMap<UrlPath, PathConfig>,
     paths_jsonpath_patterns: &Option<
         HashMap<String, HashMap<String, Vec<JsonpathMatchingPattern>>>,
@@ -168,7 +215,7 @@ async fn handle_static_path(
         match_jsonpath_patterns(
             &mut path_config,
             path,
-            request_body,
+            request_body_bytes,
             paths_jsonpath_patterns,
         )
         .await;
@@ -186,7 +233,7 @@ async fn handle_static_path(
 async fn match_jsonpath_patterns(
     path_config: &mut PathConfig,
     path: &str,
-    request_body: Incoming,
+    request_body_bytes: &Bytes,
     paths_jsonpath_patterns: &Option<
         HashMap<String, HashMap<String, Vec<JsonpathMatchingPattern>>>,
     >,
@@ -195,14 +242,8 @@ async fn match_jsonpath_patterns(
         if let Some(key) = paths_jsonpath_patterns.keys().find(|x| x.as_str() == path) {
             // let body_bytes = hyper::body::to_bytes(request_body).await.unwrap();
             // Bytes::copy_to_bytes(request_body).await.unwrap();
-            let body_bytes = request_body
-                .boxed()
-                .collect()
-                .await
-                .expect("failed to collect request incoming body")
-                .to_bytes();
-            if 0 < body_bytes.len() {
-                let json_value: Value = serde_json::from_slice(&body_bytes)
+            if 0 < request_body_bytes.len() {
+                let json_value: Value = serde_json::from_slice(request_body_bytes)
                     .expect("failed to get json value from request body");
 
                 let jsonpath_patterns = paths_jsonpath_patterns.get(key).unwrap();
