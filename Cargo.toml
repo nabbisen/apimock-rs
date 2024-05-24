@@ -1,6 +1,6 @@
 [package]
 name = "apimock"
-version = "2.6.0"
+version = "2.6.1"
 edition = "2021"
 authors = ["nabbisen <nabbisen@scqr.net>"]
 license = "ISC"
@@ -29,4 +29,4 @@ json5 = "^0.4"
 console = "^0.15"
 
 [dev-dependencies]
-hyper = { version = "1", features = ["client"] }
+hyper = { version = "^1.3", features = ["client"] }
