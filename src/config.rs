@@ -31,6 +31,7 @@ pub struct Config {
     config_path: Option<String>,
 }
 
+/// verbose logs
 #[derive(Clone, Default)]
 pub struct VerboseConfig {
     pub header: bool,
