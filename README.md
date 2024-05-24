@@ -49,7 +49,7 @@ Server started to listen:
 
 - Validates configuration: Missing JSON files, duplicate paths etc.
 - Prints out routing at startup
-- Describes request content on both HTTP header and body (json or plain text) when [`verbose`](docs/CONFIGURE.md#generalverbose) log is activated
+- Describes request content on both HTTP headers and body (json or plain text) when [`verbose`](docs/CONFIGURE.md#generalverbose) log is activated
 
 ### Reference
 
