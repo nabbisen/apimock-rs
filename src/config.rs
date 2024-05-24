@@ -13,11 +13,14 @@ pub type HeaderId = String;
 /// app config
 #[derive(Clone, Default)]
 pub struct Config {
+    // [general]
     pub ip_address: String,
     pub port: u16,
     pub dyn_data_dir: Option<String>,
     pub always: Option<String>,
     pub response_wait_millis: u64,
+    pub verbose: VerboseConfig,
+    // [url]
     pub path_prefix: Option<String>,
     pub data_dir: Option<String>,
     pub data_dir_query_path: Option<String>,
@@ -26,6 +29,13 @@ pub struct Config {
     pub paths_jsonpath_patterns:
         Option<HashMap<String, HashMap<String, Vec<JsonpathMatchingPattern>>>>,
     config_path: Option<String>,
+}
+
+/// verbose logs
+#[derive(Clone, Default)]
+pub struct VerboseConfig {
+    pub header: bool,
+    pub body: bool,
 }
 
 /// response content related to api uri path
@@ -255,10 +265,20 @@ impl Config {
         if let Some(always) = &self.always {
             println!("[always] {}", always);
         }
-        if 0 < self.response_wait_millis {
-            println!("[response wait] {} milliseconds", self.response_wait_millis);
-            println!("------");
-        }
+        println!(
+            "[response wait] {}",
+            if 0 < self.response_wait_millis {
+                format!("{} milliseconds", self.response_wait_millis)
+            } else {
+                "-".to_owned()
+            }
+        );
+        println!(
+            "[verbose] header = {}, body = {}",
+            if self.verbose.header { "Yes" } else { "No" },
+            if self.verbose.body { "Yes" } else { "No" }
+        );
+        println!("------");
         if let Some(data_dir) = &self.data_dir {
             println!("[data_dir] {}", data_dir);
         }
@@ -361,6 +381,30 @@ impl Config {
                     }
                     _ => (),
                 },
+                "verbose" => {
+                    let verbose = if let Some(t) = value.as_table() {
+                        VerboseConfig {
+                            header: if let Some(v) = t.get("header") {
+                                v.as_bool().unwrap_or_default()
+                            } else {
+                                false
+                            },
+                            body: if let Some(v) = t.get("body") {
+                                v.as_bool().unwrap_or_default()
+                            } else {
+                                false
+                            },
+                        }
+                    } else if let Some(v) = value.as_bool() {
+                        VerboseConfig { header: v, body: v }
+                    } else {
+                        VerboseConfig {
+                            header: false,
+                            body: false,
+                        }
+                    };
+                    self.verbose = verbose;
+                }
                 _ => (),
             }
         }

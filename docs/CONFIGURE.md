@@ -11,6 +11,7 @@ port = 3001
 dyn_data_dir = "apimock-data"
 # always = "{ greetings: \"Hello, world.\" }"
 response_wait = 100
+# verbose = { header = true, body = true }
 
 [url]
 data_dir = "tests"
@@ -71,6 +72,12 @@ It works even without config toml. It is config-less mode.
 Specify in milliseconds. If specified, server waits for the time before returning response on each request.
 
 **Default**: 0
+
+#### `general.verbose`
+
+Activates verbose log at each request which server gets.
+
+**Default**: header = false, body = false
 
 #### `url.data_dir`
 
