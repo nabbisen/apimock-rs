@@ -1,3 +1,8 @@
+//! API mock Server generating HTTP/JSON responses
+//! 
+//! Mocking helper to develop microservices and APIs.
+//! [hyper](https://hyper.rs/)-based HTTP server generating REST responses containing JSON ones.
+
 use console::style;
 use hyper::{body, body::Bytes, service::service_fn, Request, Response};
 use hyper_util::{
