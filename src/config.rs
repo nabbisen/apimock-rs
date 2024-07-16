@@ -368,7 +368,6 @@ impl Config {
                             .as_str(),
                         );
                         self.always = Some(always.to_owned());
-                        return;
                     }
                     _ => (),
                 },
