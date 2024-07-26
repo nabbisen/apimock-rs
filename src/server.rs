@@ -36,18 +36,25 @@ pub async fn handle(
 ) -> Result<Response<BoxBody>, Error> {
     let config = { app_state.lock().await.clone() };
 
+    let (parts, body) = req.into_parts();
+
+    let path = uri_path(parts.uri.path());
+    
     if let Some(x) = handle_always(&config.always) {
+        log(path, &parts, None, config.verbose.clone());
+
         response_wait(config.response_wait_millis).await;
         return Ok(x.unwrap());
     }
 
-    let (parts, body) = req.into_parts();
-
-    let path = uri_path(parts.uri.path());
-
     {
         let mut config = { app_state.lock().await };
         if let Some(x) = handle_data_dir_query_path(&mut config, path) {
+            log(path, &parts, None, config.verbose.clone());
+            println!(" * [url.data_dir] updated.\n");
+            config.print_paths();
+            println!("");
+
             return x;
         }
     }
@@ -59,7 +66,7 @@ pub async fn handle(
         .expect("failed to collect request incoming body")
         .to_bytes();
 
-    log(path, &parts, &request_body_bytes, config.verbose);
+    log(path, &parts, Some(&request_body_bytes), config.verbose);
 
     response_wait(config.response_wait_millis).await;
 
@@ -84,7 +91,7 @@ pub async fn handle(
 }
 
 /// print out logs
-fn log(path: &str, request_header: &Parts, request_body_bytes: &Bytes, verbose: VerboseConfig) {
+fn log(path: &str, request_header: &Parts, request_body_bytes: Option<&Bytes>, verbose: VerboseConfig) {
     let now = SystemTime::now()
         .duration_since(UNIX_EPOCH)
         .unwrap()
@@ -118,9 +125,10 @@ fn log(path: &str, request_header: &Parts, request_body_bytes: &Bytes, verbose: 
         printed = format!("{}{}", printed, style(printed_headers).magenta());
     }
     // body (json params)
-    if verbose.body {
+    let is_verbose_body = verbose.body && request_body_bytes.is_some();
+    if is_verbose_body {
         let mut body_str =
-            String::from_utf8(request_body_bytes.to_vec()).expect("request body is not string");
+            String::from_utf8(request_body_bytes.unwrap().to_vec()).expect("request body is not string");
         if let Ok(parsed_json) = from_str::<Value>(body_str.as_str()) {
             if let Ok(prettified) = to_string_pretty(&parsed_json) {
                 body_str = prettified;
@@ -128,11 +136,10 @@ fn log(path: &str, request_header: &Parts, request_body_bytes: &Bytes, verbose: 
         }
         printed = format!("{}\n{}", printed, style(body_str).green());
     }
-    if verbose.header || verbose.body {
+    if verbose.header || is_verbose_body {
         printed.push_str("\n");
     }
 
-    // if verbose {}
     println!("{}", printed);
 }
 
@@ -179,7 +186,6 @@ fn handle_data_dir_query_path(
             let data_dir = stripped.strip_prefix("/").unwrap();
             config.data_dir = Some(data_dir.to_owned());
             config.update_paths(data_dir, old_data_dir.as_str());
-            config.print_paths();
             return Some(plain_text_response(data_dir));
         }
         None => return None,
