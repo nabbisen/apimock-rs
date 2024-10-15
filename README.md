@@ -8,8 +8,7 @@
 
 ## Summary
 
-HTTP server generating REST/JSON responses, written in [Rust](https://www.rust-lang.org/) and based on [hyper](https://hyper.rs/).
-Aims to be mocking helper to develop microservices and APIs. 
+HTTP server generating REST/JSON responses. Aims to be mocking helper to develop microservices and APIs. Written in [Rust](https://www.rust-lang.org/) and based on [hyper](https://hyper.rs/).
 
 Run `./apimock` or `./apimock -c apimock.toml` to start the server. It is single small native binary. Multiple platforms are supported and no installation is required.
 
