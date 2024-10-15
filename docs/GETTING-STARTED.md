@@ -1,8 +1,9 @@
-# Install
+# Getting started
 
 ## Introduction
 
 Aims to help developers to easily get responses from dummy API, especially microservice API, according to several paths.
+
 Each single executable on Win/Mac/Linux are available, thanks to Rust and their cross-platform support. [Releases](../../../releases) are "out-of-the-box" coming with default config `apimock.toml`.
 
 ## Installation
