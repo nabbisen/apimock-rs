@@ -165,7 +165,7 @@ Array is also available with index number specified. For example, when the reque
 "=x=" = "special.json"
 ```
 
-`2` in "key_d.**2**.key_e" is the index.
+`2` in "key_d.**2**.key_e" is the list index.
 
 **Default**: None
 
