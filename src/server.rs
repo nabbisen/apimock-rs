@@ -39,7 +39,7 @@ pub async fn handle(
     let (parts, body) = req.into_parts();
 
     let path = uri_path(parts.uri.path());
-    
+
     if let Some(x) = handle_always(&config.always) {
         log(path, &parts, None, config.verbose.clone());
 
@@ -91,7 +91,12 @@ pub async fn handle(
 }
 
 /// print out logs
-fn log(path: &str, request_header: &Parts, request_body_bytes: Option<&Bytes>, verbose: VerboseConfig) {
+fn log(
+    path: &str,
+    request_header: &Parts,
+    request_body_bytes: Option<&Bytes>,
+    verbose: VerboseConfig,
+) {
     let now = SystemTime::now()
         .duration_since(UNIX_EPOCH)
         .unwrap()
@@ -127,8 +132,8 @@ fn log(path: &str, request_header: &Parts, request_body_bytes: Option<&Bytes>, v
     // body (json params)
     let is_verbose_body = verbose.body && request_body_bytes.is_some();
     if is_verbose_body {
-        let mut body_str =
-            String::from_utf8(request_body_bytes.unwrap().to_vec()).expect("request body is not string");
+        let mut body_str = String::from_utf8(request_body_bytes.unwrap().to_vec())
+            .expect("request body is not string");
         if let Ok(parsed_json) = from_str::<Value>(body_str.as_str()) {
             if let Ok(prettified) = to_string_pretty(&parsed_json) {
                 body_str = prettified;
