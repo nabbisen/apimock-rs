@@ -17,36 +17,37 @@ then
   export "CARGO_TARGET_$(echo $target | tr a-z- A-Z_)_LINKER"=rust-lld
 fi
 export CARGO_PROFILE_RELEASE_LTO=true
-cargo build --locked --bin apimock --release --target $target
+bin_name=$4
+cargo build --locked --bin $bin_name --release --target $target
 
 cd target/$target/release
 
-mkdir -p apimock-rs-main/tests
-cp $GITHUB_WORKSPACE/apimock.toml apimock-rs-main/
-cp $GITHUB_WORKSPACE/tests/home.json apimock-rs-main/tests/
-cp $GITHUB_WORKSPACE/tests/api.json5 apimock-rs-main/tests/
+mkdir -p $bin_name-main/tests
+cp $GITHUB_WORKSPACE/apimock.toml $bin_name-main/
+cp $GITHUB_WORKSPACE/tests/home.json $bin_name-main/tests/
+cp $GITHUB_WORKSPACE/tests/api.json5 $bin_name-main/tests/
 os_tag=$3
 case $1 in
   ubuntu*)
-    cp apimock apimock-rs-main/
-    asset="apimock-rs-$os_tag-$TAG.tar.gz"
-    tar czf ../../$asset apimock-rs-main
+    cp $bin_name $bin_name-main/
+    asset="$bin_name-$os_tag-$TAG.tar.gz"
+    tar czf ../../$asset $bin_name-main
     ;;
   macos*)
-    cp apimock apimock-rs-main/
-    asset="apimock-rs-$os_tag-$TAG.tar.gz"
+    cp $bin_name $bin_name-main/
+    asset="$bin_name-$os_tag-$TAG.tar.gz"
     # There is a bug with BSD tar on macOS where the first 8MB of the file are
     # sometimes all NUL bytes. See https://github.com/actions/cache/issues/403
     # and https://github.com/rust-lang/cargo/issues/8603 for some more
     # information. An alternative solution here is to install GNU tar, but
     # flushing the disk cache seems to work, too.
     sudo /usr/sbin/purge
-    tar czf ../../$asset apimock-rs-main
+    tar czf ../../$asset $bin_name-main
     ;;
   windows*)
-    cp apimock.exe apimock-rs-main/
-    asset="apimock-rs-$os_tag-$TAG.zip"
-    7z a -w ../../$asset apimock-rs-main
+    cp $bin_name.exe $bin_name-main/
+    asset="$bin_name-$os_tag-$TAG.zip"
+    7z a -w ../../$asset $bin_name-main
     ;;
   *)
     echo "OS should be first parameter, was: $1"

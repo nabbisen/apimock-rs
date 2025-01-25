@@ -24,11 +24,11 @@ jobs:
             os: windows-latest
             rust: stable
           - build: msrv
-            os: ubuntu-22.04
+            os: ubuntu-24.04
             # sync MSRV with docs: guide/src/guide/installation.md and Cargo.toml
             rust: 1.75.0
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Install Rust
       run: bash .github/workflows/scripts/install-rust.sh ${{ matrix.rust }}
     #- name: Build and run tests
@@ -40,7 +40,7 @@ jobs:
     name: Rustfmt
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Install Rust
       run: rustup update stable && rustup default stable && rustup component add rustfmt
     - run: cargo fmt --check
