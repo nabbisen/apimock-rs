@@ -1,4 +1,4 @@
-use apimock::{core::config::DEFAULT_LISTEN_PORT, start_server};
+use apimock::{core::constant::config::DEFAULT_LISTEN_PORT, start_server};
 
 use http_body_util::{BodyExt, Empty, Full};
 use hyper::{

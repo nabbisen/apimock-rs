@@ -1,4 +1,4 @@
-use apimock::{config_path, start_server};
+use apimock::{core::config::config_path, start_server};
 
 /// main - app entry point
 #[tokio::main]
