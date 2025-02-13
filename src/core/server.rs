@@ -22,10 +22,10 @@ use std::{
 use tokio::sync::{Mutex, MutexGuard};
 use tokio::time;
 
-use crate::config::{
+use super::config::{
     Config, HeaderConfig, HeaderId, JsonpathMatchingPattern, PathConfig, UrlPath, VerboseConfig,
 };
-use crate::util::jsonpath_value;
+use super::util::jsonpath_value;
 
 type BoxBody = http_body_util::combinators::BoxBody<Bytes, Infallible>;
 

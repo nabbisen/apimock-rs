@@ -1,8 +1,10 @@
+use super::constant::config::*;
 use console::style;
 use hyper::http::StatusCode;
 use json5;
 use serde_json;
 use std::collections::HashMap;
+use std::env;
 use std::fs;
 use std::path::Path;
 use toml;
@@ -60,19 +62,6 @@ pub struct JsonpathMatchingPattern {
     pub value: String,
     pub data_src: String,
 }
-
-pub const DEFAULT_LISTEN_PORT: u16 = 3001;
-
-const CONFIG_FILENAME: &str = "apimock.toml";
-const DEFAULT_LISTEN_IP_ADDRESS: &str = "127.0.0.1";
-const DEFAULT_DYN_DATA_DIR: &str = "apimock-data";
-const CONFIG_SECTION_GENERAL: &str = "general";
-const CONFIG_SECTION_URL: &str = "url";
-const CONFIG_SECTION_URL_HEADERS: &str = "headers";
-const CONFIG_SECTION_URL_PATHS: &str = "paths";
-const CONFIG_SECTION_URL_PATHS_JSONPATH_PATTERNS: &str = "paths_patterns";
-const CONFIG_SECTION_URL_RAW_PATH: &str = "raw_paths";
-const ALWAYS_DEFAULT_MESSAGES: &str = "Hello, world from API Mock.\n(Responses can be modified with either config toml file or dynamic data directory.)";
 
 /// app config
 impl Config {
@@ -732,4 +721,24 @@ fn data_src_path(file: &str, data_dir: &Option<String>) -> String {
         .to_string();
     let _ = fs::metadata(&path).expect(format!("`{}` is missing", path).as_str());
     path
+}
+
+/// app config path
+///
+/// - if specified with command-line option, use it
+/// - else use the default
+pub fn config_path() -> String {
+    let args: Vec<String> = env::args().collect();
+
+    let config_option_entry = args
+        .iter()
+        .position(|arg| arg.as_str().eq("-c") || arg.as_str().eq("--config"));
+    let config_path = match config_option_entry {
+        Some(config_option_entry) => match args.get(config_option_entry + 1) {
+            Some(config_option) => config_option,
+            _ => "",
+        },
+        _ => "",
+    };
+    config_path.to_owned()
 }
