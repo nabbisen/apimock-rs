@@ -15,11 +15,9 @@ use std::net::ToSocketAddrs;
 use std::sync::Arc;
 use tokio::{net::TcpListener, sync::Mutex};
 
-pub mod config;
-mod server;
-mod util;
-use crate::config::Config;
-use crate::server::handle;
+pub mod core;
+use core::config::Config;
+use core::server::handle;
 
 type BoxBody = http_body_util::combinators::BoxBody<Bytes, Infallible>;
 
