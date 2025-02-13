@@ -1,6 +1,6 @@
 [package]
 name = "apimock"
-version = "2.6.8"
+version = "2.7.0"
 edition = "2021"
 authors = ["nabbisen <nabbisen@scqr.net>"]
 license = "Apache-2.0"
