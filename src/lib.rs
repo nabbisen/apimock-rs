@@ -4,11 +4,18 @@
 //! [hyper](https://hyper.rs/)-based HTTP server generating REST responses containing JSON ones.
 
 pub mod core;
-use core::apimock::ApiMock;
+use core::app::App;
 
-/// start hyper http server
+/// return hyper http server
+pub async fn server(config_path: &str) -> App {
+    App::new(config_path).await
+}
+
+/// start hyper http server (deprecated)
+#[deprecated]
 pub async fn start_server(
     config_path: String,
 ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    ApiMock::start_server(config_path).await
+    #[allow(deprecated)]
+    App::start_server(config_path).await
 }

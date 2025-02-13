@@ -1,7 +1,8 @@
-use apimock::{core::config::config_path, start_server};
+use apimock::{core::config::config_path, server};
 
-/// main - app entry point
+/// app entry point on executable
 #[tokio::main]
 async fn main() {
-    start_server(config_path()).await.unwrap();
+    let server = server(config_path().as_str()).await;
+    server.start().await
 }

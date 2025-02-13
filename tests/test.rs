@@ -1,4 +1,4 @@
-use apimock::{core::constant::config::DEFAULT_LISTEN_PORT, start_server};
+use apimock::{core::app::App, core::constant::config::DEFAULT_LISTEN_PORT};
 
 use http_body_util::{BodyExt, Empty, Full};
 use hyper::{
@@ -175,7 +175,10 @@ async fn setup(config_file: &str) {
         panic!("config file was missing: {}", config_file);
     }
     let config_file = config_file.to_owned();
-    tokio::spawn(start_server(config_file.to_owned()));
+    tokio::spawn(async move {
+        let server = App::new(config_file.as_str()).await;
+        server.start().await
+    });
     // wait for server started
     tokio::time::sleep(std::time::Duration::from_secs(1)).await;
 }

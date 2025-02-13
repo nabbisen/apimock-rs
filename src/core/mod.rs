@@ -1,4 +1,4 @@
-pub mod apimock;
+pub mod app;
 pub mod config;
 pub mod constant;
 pub mod server;
