@@ -16,9 +16,15 @@ rust-version = "1.78.0"
 [profile.release]     # shrink executable size
 opt-level = "z"
 lto = true
-panic = "abort"
+# panic = "abort"
 strip = true
 codegen-units = 1
+
+[profile.dev]         # to reasonably improve productivity
+opt-level = 1         # slightly optimize
+lto = false           # disable link-time optimizations
+# strip = "debuginfo" # reduce size
+incremental = true
 
 [features]
 spawn = [] # offers another entry point for subprocess
