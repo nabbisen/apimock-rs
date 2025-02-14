@@ -11,11 +11,12 @@ categories = ["web-programming", "development-tools", "command-line-utilities"]
 keywords = ["https", "api", "mock", "testing"]
 rust-version = "1.74.0"
 
-# shrink executable
-[profile.release]
+[profile.release]     # shrink executable size
+opt-level = "z"
 lto = true
-codegen-units = 1
+panic = "abort"
 strip = true
+codegen-units = 1
 
 [dependencies]
 tokio = { version = "1", features = ["full"] }
