@@ -18,6 +18,9 @@ panic = "abort"
 strip = true
 codegen-units = 1
 
+[features]
+spawn = [] # offers another entry point for subprocess
+
 [dependencies]
 tokio = { version = "1", features = ["full"] }
 hyper = { version = "1", features = ["server", "http1", "http2"] }
