@@ -9,10 +9,12 @@ use hyper_util::{
     server::conn::auto::Builder,
 };
 use std::convert::Infallible;
+use tokio::sync::mpsc::Sender;
 use tokio::{net::TcpListener, sync::Mutex};
 
 use super::config::Config;
 use super::constant::APP_NAME;
+use super::logger::init_logger;
 use super::server::handle;
 
 type BoxBody = http_body_util::combinators::BoxBody<Bytes, Infallible>;
@@ -24,7 +26,9 @@ pub struct App {
 }
 
 impl App {
-    pub async fn new(config_path: &str) -> Self {
+    pub async fn new(config_path: &str, spawn_tx: Option<Sender<String>>) -> Self {
+        let _ = init_logger(spawn_tx);
+
         let config = Config::new(&config_path);
 
         let addr = config

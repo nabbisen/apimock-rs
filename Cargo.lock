@@ -19,13 +19,14 @@ checksum = "512761e0bb2578dd7380c6baaa0f4ce03e84f95e960231d1dec8bf4d7d6e2627"
 
 [[package]]
 name = "apimock"
-version = "2.7.0"
+version = "2.7.1"
 dependencies = [
  "console",
  "http-body-util",
  "hyper",
  "hyper-util",
  "json5",
+ "log",
  "serde",
  "serde_json",
  "tokio",
@@ -350,6 +351,12 @@ dependencies = [
  "autocfg",
  "scopeguard",
 ]
+
+[[package]]
+name = "log"
+version = "0.4.25"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "04cbf5b083de1c7e0222a7a51dbfdba1cbe1c6ab0b15e29fff3f6c077fd9cd9f"
 
 [[package]]
 name = "memchr"
