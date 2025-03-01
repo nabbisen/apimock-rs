@@ -18,11 +18,11 @@ Run `./apimock` or `./apimock -c apimock.toml` to start the server. It is single
 
 Server started to listen:
 
-![server starts](.docs-assets/demo-01.png)
+![server starts](docs/.assets/demo-01.png)
 
 `curl` test result:
 
-![server responds](.docs-assets/demo-02.png)
+![server responds](docs/.assets/demo-02.png)
 
 ## Features
 
