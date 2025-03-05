@@ -86,7 +86,7 @@ impl Config {
         if config_path.is_empty() && !exists_default_config {
             if !Path::new(DEFAULT_DYN_DATA_DIR).exists() {
                 config.always = Some(ALWAYS_DEFAULT_MESSAGES.to_owned());
-                println!(
+                log::warn!(
                     "Both `{}` file and `{}/` directory are missing\n`always` option is activated\n",
                     CONFIG_FILENAME, DEFAULT_DYN_DATA_DIR
                 );
@@ -94,7 +94,7 @@ impl Config {
                 return config;
             } else {
                 config.dyn_data_dir = Some(DEFAULT_DYN_DATA_DIR.to_owned());
-                println!(
+                log::warn!(
                     "{}: config file is missing (config-less mode)\n",
                     config_path
                 );
@@ -102,7 +102,7 @@ impl Config {
                 return config;
             }
         }
-        println!("[config] {}\n", config_path);
+        log::info!("[config] {}\n", config_path);
 
         config.config_path = Some(config_path.to_owned());
 
@@ -193,7 +193,7 @@ impl Config {
         let mut keys: Vec<_> = paths.keys().collect();
         keys.sort();
         for key in keys {
-            println!(
+            log::info!(
                 "[path] {} => [{}]{}{}",
                 style(paths.get_key_value(key).unwrap().0).yellow(),
                 paths.get(key).unwrap().code.as_u16(),
@@ -222,7 +222,7 @@ impl Config {
                 if let Some(jsonpath_patterns) = path_jsonpath_patterns.get(key) {
                     let mut keys: Vec<_> = jsonpath_patterns.keys().collect();
                     keys.sort();
-                    println!(
+                    log::info!(
                         " jsonpath {}",
                         keys.iter()
                             .map(|&jsonpath| {
@@ -252,9 +252,9 @@ impl Config {
     /// wholly print out config
     fn print(&self) {
         if let Some(always) = &self.always {
-            println!("[always] {}", always);
+            log::info!("[always] {}", always);
         }
-        println!(
+        log::info!(
             "[response wait] {}",
             if 0 < self.response_wait_millis {
                 format!("{} milliseconds", self.response_wait_millis)
@@ -262,32 +262,32 @@ impl Config {
                 "-".to_owned()
             }
         );
-        println!(
+        log::info!(
             "[verbose] header = {}, body = {}",
             if self.verbose.header { "Yes" } else { "No" },
             if self.verbose.body { "Yes" } else { "No" }
         );
-        println!("------");
+        log::info!("------");
         if let Some(data_dir) = &self.data_dir {
-            println!("[data_dir] {}", data_dir);
+            log::info!("[data_dir] {}", data_dir);
         }
         if let Some(data_dir_query_path) = &self.data_dir_query_path {
-            println!(
+            log::info!(
                 "[data_dir_query_url] http://{}/{}",
                 &self.listen_address(),
                 data_dir_query_path
             );
         }
         if let Some(path_prefix) = &self.path_prefix {
-            println!("[path_prefix] {}", path_prefix);
+            log::info!("[path_prefix] {}", path_prefix);
         }
         if let Some(headers) = &self.headers {
             if 0 < headers.len() {
-                println!("------");
+                log::info!("------");
                 let mut keys: Vec<_> = headers.keys().collect();
                 keys.sort();
                 for key in keys {
-                    println!(
+                    log::info!(
                         "[header] {} = {}{}",
                         style(headers.get_key_value(key).unwrap().0).magenta(),
                         headers.get(key).unwrap().key.clone(),
@@ -302,13 +302,13 @@ impl Config {
         }
         if let Some(paths) = &self.paths {
             if 0 < paths.len() {
-                println!("------");
+                log::info!("------");
                 self.print_paths();
-                println!("------");
+                log::info!("------");
             }
         }
         if let Some(dyn_data_dir) = &self.dyn_data_dir {
-            println!("[dyn_data_dir] {}", style(dyn_data_dir).green());
+            log::info!("[dyn_data_dir] {}", style(dyn_data_dir).green());
         }
     }
 

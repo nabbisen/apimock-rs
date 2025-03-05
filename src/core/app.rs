@@ -49,7 +49,7 @@ impl App {
     }
 
     pub async fn start(&self) {
-        println!(
+        log::info!(
             "\nGreetings from {APP_NAME} !!\nListening on {} ...\n",
             style(format!("http://{}", self.addr)).cyan()
         );
@@ -75,7 +75,7 @@ impl App {
                     )
                     .await
                 {
-                    eprintln!("error serving connection: {:?}", err);
+                    log::error!("error serving connection: {:?}", err);
                 }
             });
         }
@@ -86,7 +86,7 @@ impl App {
     pub async fn start_server(
         config_path: String,
     ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-        println!("\nGreetings from {APP_NAME} !!\n");
+        log::info!("\nGreetings from {APP_NAME} !!\n");
 
         let config = Config::new(&config_path);
 
@@ -96,7 +96,7 @@ impl App {
             .expect("invalid listend address or port")
             .next()
             .expect("failed to resolve address");
-        println!(
+        log::info!(
             "\nListening on {} ...\n",
             style(format!("http://{}", &addr)).cyan()
         );
@@ -124,7 +124,7 @@ impl App {
                     )
                     .await
                 {
-                    eprintln!("error serving connection: {:?}", err);
+                    log::error!("error serving connection: {:?}", err);
                 }
             });
         }

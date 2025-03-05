@@ -51,9 +51,9 @@ pub async fn handle(
         let mut config = { app_state.lock().await };
         if let Some(x) = handle_data_dir_query_path(&mut config, path) {
             log(path, &parts, None, config.verbose.clone());
-            println!(" * [url.data_dir] updated.\n");
+            log::info!(" * [url.data_dir] updated.\n");
             config.print_paths();
-            println!("");
+            log::info!("");
 
             return x;
         }
@@ -145,7 +145,7 @@ fn log(
         printed.push_str("\n");
     }
 
-    println!("{}", printed);
+    log::info!("{}", printed);
 }
 
 /// sleep

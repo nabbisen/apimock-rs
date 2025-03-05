@@ -51,6 +51,10 @@ Server started to listen:
 - Prints out routing at startup
 - Describes request content on both HTTP headers and body (json or plain text) when [`verbose`](docs/CONFIGURE.md#generalverbose) log is activated
 
+### 5. spawn feature
+
+- With `spawn` feature activated, the server is available as subprocess. The output will be returned via tokio mpsc queue.
+
 ### Reference
 
 - [Configuration and options](docs/CONFIGURE.md)

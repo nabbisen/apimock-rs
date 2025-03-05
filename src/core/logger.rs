@@ -24,17 +24,20 @@ impl log::Log for AppLogger {
             return;
         }
 
-        let msg = format!(
-            "[{}] {}",
-            record.level().to_string().chars().next().unwrap(),
-            record.args()
-        );
-
         match &self.output {
+            // default feature
             LogOutput::Stdout => {
-                println!("{}", msg);
+                println!("{}", record.args());
             }
+            // spawn feature
             LogOutput::Sender(tx) => {
+                // message with log level
+                let msg = format!(
+                    "[{}] {}",
+                    record.level().to_string().chars().next().unwrap(),
+                    record.args()
+                );
+
                 let tx = tx.clone();
                 tokio::spawn(async move {
                     let _ = tx.send(msg).await;
