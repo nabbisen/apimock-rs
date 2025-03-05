@@ -88,7 +88,7 @@ impl Config {
                 config.always = Some(ALWAYS_DEFAULT_MESSAGES.to_owned());
                 println!(
                     "Both `{}` file and `{}/` directory are missing\n`always` option is activated\n",
-                    config_path, DEFAULT_DYN_DATA_DIR
+                    CONFIG_FILENAME, DEFAULT_DYN_DATA_DIR
                 );
                 config.print();
                 return config;
