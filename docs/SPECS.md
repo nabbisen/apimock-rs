@@ -14,7 +14,7 @@
 graph
     subgraph Startup workflow
         direction TB
-        A[config mode if apimock.toml exists] --> B[config-less mode if apimock-data dir exists]
+        A[config mode if apimock.toml exists] --> B[config-less mode if apimock-dyn-data dir exists]
         B --> C[`always` mode : fixed response]
     end
 ```

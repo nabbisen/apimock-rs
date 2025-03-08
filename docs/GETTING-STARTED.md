@@ -10,7 +10,7 @@ Each single executable on Win/Mac/Linux are available, thanks to Rust and their 
 
 - [Releases](../../../releases) are available.
   - Create your configuration file (`./apimock.toml` by default) and run `apimock` with it.
-  - When `apimock` is run without both `apimock.toml` and `apimock-data/` directory, it results in [`always`](./CONFIGURE.md#configuration) option activated.
+  - When `apimock` is run without both `apimock.toml` and `apimock-dyn-data/` directory, it results in [`always`](./CONFIGURE.md#configuration) option activated.
 
 ### Alternative ways
 

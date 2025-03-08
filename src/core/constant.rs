@@ -5,7 +5,7 @@ pub mod config {
 
     pub const CONFIG_FILENAME: &str = "apimock.toml";
     pub const DEFAULT_LISTEN_IP_ADDRESS: &str = "127.0.0.1";
-    pub const DEFAULT_DYN_DATA_DIR: &str = "apimock-data";
+    pub const DEFAULT_DYN_DATA_DIR: &str = "apimock-dyn-data";
     pub const CONFIG_SECTION_GENERAL: &str = "general";
     pub const CONFIG_SECTION_URL: &str = "url";
     pub const CONFIG_SECTION_URL_HEADERS: &str = "headers";

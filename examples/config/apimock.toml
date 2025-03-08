@@ -1,13 +1,13 @@
 [general]
 ip_address = "127.0.0.1"
 port = 3001
-dyn_data_dir = "apimock-data"
+dyn_data_dir = "apimock-dyn-data"
 # always = "{ greetings: \"Hello, world.\" }"
 response_wait = 100
 # verbose = { header = true, body = true }
 
 [url]
-data_dir = "tests"
+data_dir = "apimock-data"
 data_dir_query_path = "@@"
 path_prefix = "api/v1"
 

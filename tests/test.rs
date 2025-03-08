@@ -6,7 +6,7 @@ use hyper::{
     Request, Response, StatusCode, Uri,
 };
 use hyper_util::rt::TokioIo;
-use std::path::Path;
+use std::{env, path::Path};
 use tokio::net::TcpStream;
 
 #[tokio::test]
@@ -171,6 +171,8 @@ async fn error403() {
 // utils
 /// test initial setup: start up mock server
 async fn setup(config_file: &str) {
+    let _ = env::set_current_dir("examples/config");
+
     if !Path::new(config_file).exists() {
         panic!("config file was missing: {}", config_file);
     }
