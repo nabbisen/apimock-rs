@@ -9,7 +9,7 @@ use core::app::App;
 /// return hyper http server
 #[cfg(not(feature = "spawn"))]
 pub async fn server(config_path: &str) -> App {
-    App::new(config_path, None).await
+    App::new(config_path, None, true).await
 }
 
 #[cfg(feature = "spawn")]
@@ -17,9 +17,10 @@ use tokio::sync::mpsc::Sender;
 
 /// accept sender to main proc set to logger and
 /// return hyper http server
+/// `includes_ansi_codes`: if true, log includes ansi escape codes for console text color
 #[cfg(feature = "spawn")]
-pub async fn server(config_path: &str, spawn_tx: Sender<String>) -> App {
-    App::new(config_path, Some(spawn_tx)).await
+pub async fn server(config_path: &str, spawn_tx: Sender<String>, includes_ansi_codes: bool) -> App {
+    App::new(config_path, Some(spawn_tx), includes_ansi_codes).await
 }
 
 /// start hyper http server (deprecated)

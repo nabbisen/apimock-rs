@@ -176,7 +176,7 @@ async fn setup(config_file: &str) {
     }
     let config_file = config_file.to_owned();
     tokio::spawn(async move {
-        let server = App::new(config_file.as_str(), None).await;
+        let server = App::new(config_file.as_str(), None, true).await;
         server.start().await
     });
     // wait for server started

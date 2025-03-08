@@ -19,6 +19,7 @@ use super::server::handle;
 
 type BoxBody = http_body_util::combinators::BoxBody<Bytes, Infallible>;
 
+/// app
 pub struct App {
     config: Config,
     addr: SocketAddr,
@@ -26,8 +27,13 @@ pub struct App {
 }
 
 impl App {
-    pub async fn new(config_path: &str, spawn_tx: Option<Sender<String>>) -> Self {
-        let _ = init_logger(spawn_tx);
+    /// create new app
+    pub async fn new(
+        config_path: &str,
+        spawn_tx: Option<Sender<String>>,
+        includes_ansi_codes: bool,
+    ) -> Self {
+        let _ = init_logger(spawn_tx, includes_ansi_codes);
 
         let config = Config::new(&config_path);
 
@@ -48,6 +54,7 @@ impl App {
         }
     }
 
+    /// app start
     pub async fn start(&self) {
         log::info!(
             "\nGreetings from {APP_NAME} !!\nListening on {} ...\n",
