@@ -1,0 +1,112 @@
+name: Executable Release
+
+on:
+  release:
+    types: [created]
+
+permissions:
+  contents: write
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  PRODUCT_BASENAME: apimock
+  TAG: ${{ github.ref_name }}            # tag or branch name
+  JOB_WORKDIR: tmp-${{ github.run_id }}  # unique number
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - name: Linux-aarch64-musl
+            target: aarch64-unknown-linux-musl
+            os: ubuntu-latest
+            bin_ext: 
+            archive_ext: .tar.gz
+          - name: Linux-x64-gnu
+            target: x86_64-unknown-linux-gnu
+            os: ubuntu-latest
+            bin_ext: 
+            archive_ext: .tar.gz
+          - name: Linux-x64-musl
+            target: x86_64-unknown-linux-musl
+            os: ubuntu-latest
+            bin_ext: 
+            archive_ext: .tar.gz
+          - name: macOS-aarch64
+            target: aarch64-apple-darwin
+            os: macos-latest
+            bin_ext: 
+            archive_ext: .zip
+          - name: Windows-x64
+            target: x86_64-pc-windows-msvc
+            os: windows-latest
+            bin_ext: .exe
+            archive_ext: .zip
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # [ build ]
+      - name: Install Rust
+        run: bash .github/workflows/scripts/install-rust.sh stable ${{ matrix.target }}
+      
+      - name: Cache cargo dependencies and build
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
+
+      - name: Build Rust executable
+        run: |
+          cargo build --release --target ${{ matrix.target }} --bin ${{ env.PRODUCT_BASENAME }} --locked
+
+      # [ release asset ]
+      - name: Prepare for release asset
+        run: |
+          BUILT_FILEPATH=target/${{ matrix.target }}/release/${{ env.PRODUCT_BASENAME }}${{ matrix.bin_ext }}
+          RELEASE_ASSET_BASENAME=${{ env.PRODUCT_BASENAME }}@${{ matrix.name }}-${{ env.TAG }}
+          RELEASE_SRC_DIR=${RELEASE_ASSET_BASENAME}
+          RELEASE_ASSET_FILENAME=${RELEASE_ASSET_BASENAME}${{ matrix.archive_ext }}
+          mkdir -p "${{ env.JOB_WORKDIR }}/${RELEASE_SRC_DIR}"
+          mv "${BUILT_FILEPATH}" "${{ env.JOB_WORKDIR }}/${RELEASE_SRC_DIR}/"
+          echo "RELEASE_SRC_DIR=${RELEASE_SRC_DIR}" >> $GITHUB_ENV
+          echo "RELEASE_ASSET_FILENAME=${RELEASE_ASSET_FILENAME}" >> $GITHUB_ENV
+
+      # BSD tar on macOS: first 8MB of the file are sometimes all NUL byte
+      # refs: https://github.com/actions/cache/issues/403 , https://github.com/rust-lang/cargo/issues/8603
+      - name: Mitigate macOS tar bug
+        if: matrix.target == 'aarch64-apple-darwin'
+        run: |
+          sudo /usr/sbin/purge
+      
+      - name: Create archive as release asset - Linux / macOS
+        if: >
+          matrix.target != 'aarch64-apple-darwin' &&
+          matrix.target != 'x86_64-pc-windows-msvc'
+        run: |
+          cd "${{ env.JOB_WORKDIR }}"
+          tar czf "../${RELEASE_ASSET_FILENAME}" "${RELEASE_SRC_DIR}"
+      
+      - name: Create archive as release asset - Windows
+        if: >
+          matrix.target == 'aarch64-apple-darwin' ||
+          matrix.target == 'x86_64-pc-windows-msvc'
+        run: |
+          cd "${{ env.JOB_WORKDIR }}"
+          7z a "../${RELEASE_ASSET_FILENAME}" "${RELEASE_SRC_DIR}"
+      
+      - name: Update release with new asset
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release upload ${{ github.ref_name }} ${RELEASE_ASSET_FILENAME}
