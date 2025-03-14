@@ -3,7 +3,7 @@
 [![crates.io](https://img.shields.io/crates/v/apimock?label=latest)](https://crates.io/crates/apimock)
 [![Documentation](https://docs.rs/apimock/badge.svg?version=latest)](https://docs.rs/apimock/latest)
 [![Dependency Status](https://deps.rs/crate/apimock/latest/status.svg)](https://deps.rs/crate/apimock/latest)
-[![Releases Workflow](https://github.com/nabbisen/apimock-rs/actions/workflows/release.yml/badge.svg)](https://github.com/nabbisen/apimock-rs/actions/workflows/)
+[![Releases Workflow](https://github.com/nabbisen/apimock-rs/actions/workflows/release-executable.yaml/badge.svg)](https://github.com/nabbisen/apimock-rs/actions/workflows/)
 [![License](https://img.shields.io/github/license/nabbisen/apimock-rs)](https://github.com/nabbisen/apimock-rs/blob/main/LICENSE)
 
 ## Summary
