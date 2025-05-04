@@ -19,9 +19,10 @@ use std::{
     sync::Arc,
     time::{Duration, SystemTime, UNIX_EPOCH},
 };
-use tokio::sync::{Mutex, MutexGuard};
+use tokio::sync::Mutex;
 use tokio::time;
 
+use super::app_state::AppState;
 use super::config::{
     Config, HeaderConfig, HeaderId, JsonpathMatchingPattern, PathConfig, UrlPath, VerboseConfig,
 };
@@ -32,9 +33,10 @@ type BoxBody = http_body_util::combinators::BoxBody<Bytes, Infallible>;
 /// entry point of http requests handler service
 pub async fn handle(
     req: Request<Incoming>,
-    app_state: Arc<Mutex<Config>>,
+    app_state: Arc<Mutex<AppState>>,
 ) -> Result<Response<BoxBody>, Error> {
-    let config = { app_state.lock().await.clone() };
+    let shared_app_state = { app_state.lock().await.clone() };
+    let config = shared_app_state.config;
 
     let (parts, body) = req.into_parts();
 
@@ -48,14 +50,29 @@ pub async fn handle(
     }
 
     {
-        let mut config = { app_state.lock().await };
-        if let Some(x) = handle_data_dir_query_path(&mut config, path) {
+        let mut shared_app_state = { app_state.lock().await.clone() };
+        let mut config = shared_app_state.config;
+
+        if let Some(x) = handle_data_dir_query_path(&config, path) {
+            let res = if !x.is_empty() {
+                let old_data_dir = config.data_dir.clone().unwrap();
+                let data_dir = x.strip_prefix("/").unwrap();
+
+                config.data_dir = Some(data_dir.to_owned());
+                config.update_paths(data_dir, old_data_dir.as_str());
+                shared_app_state.config = config.clone();
+
+                plain_text_response(data_dir)
+            } else {
+                plain_text_response(config.data_dir.clone().unwrap().as_str())
+            };
+
             log(path, &parts, None, config.verbose.clone());
             log::info!(" * [url.data_dir] updated.\n");
             config.print_paths();
             log::info!("");
 
-            return x;
+            return res;
         }
     }
 
@@ -166,10 +183,7 @@ fn handle_always(always: &Option<String>) -> Option<Result<Response<BoxBody>, Er
 }
 
 /// handle on `data_dir_query_path` config
-fn handle_data_dir_query_path(
-    config: &mut MutexGuard<Config>,
-    path: &str,
-) -> Option<Result<Response<BoxBody>, Error>> {
+fn handle_data_dir_query_path(config: &Config, path: &str) -> Option<String> {
     if path == "" || config.data_dir_query_path.is_none() {
         return None;
     }
@@ -181,18 +195,7 @@ fn handle_data_dir_query_path(
         .unwrap()
         .strip_prefix(data_dir_query_path.as_str());
     match stripped {
-        Some("") => {
-            return Some(plain_text_response(
-                config.data_dir.clone().unwrap().as_str(),
-            ))
-        }
-        Some(stripped) => {
-            let old_data_dir = config.data_dir.clone().unwrap();
-            let data_dir = stripped.strip_prefix("/").unwrap();
-            config.data_dir = Some(data_dir.to_owned());
-            config.update_paths(data_dir, old_data_dir.as_str());
-            return Some(plain_text_response(data_dir));
-        }
+        Some(x) => return Some(x.to_owned()),
         None => return None,
     }
 }

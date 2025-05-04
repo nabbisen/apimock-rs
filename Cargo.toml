@@ -1,6 +1,6 @@
 [package]
 name = "apimock"
-version = "2.9.6"
+version = "2.10.0"
 edition = "2021"
 
 description = "API mock Server generating HTTP/JSON responses"
@@ -40,6 +40,7 @@ serde_json = "1"
 json5 = "0"
 console = "0"
 log = "0"
+rhai = "1"
 
 [dev-dependencies]
 hyper = { version = "1", features = ["client"] }

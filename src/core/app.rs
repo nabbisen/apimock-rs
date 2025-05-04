@@ -12,6 +12,7 @@ use std::convert::Infallible;
 use tokio::sync::mpsc::Sender;
 use tokio::{net::TcpListener, sync::Mutex};
 
+use super::app_state::AppState;
 use super::config::Config;
 use super::constant::APP_NAME;
 use super::logger::init_logger;
@@ -21,9 +22,9 @@ type BoxBody = http_body_util::combinators::BoxBody<Bytes, Infallible>;
 
 /// app
 pub struct App {
-    config: Config,
     addr: SocketAddr,
     listener: TcpListener,
+    app_state: AppState,
 }
 
 impl App {
@@ -47,10 +48,15 @@ impl App {
             .await
             .expect("tcp listener failed to bind address");
 
-        App {
+        let app_state = AppState {
             config,
+            middleware: None,
+        };
+
+        App {
             addr,
             listener,
+            app_state,
         }
     }
 
@@ -60,7 +66,7 @@ impl App {
             "\nGreetings from {APP_NAME} !!\nListening on {} ...\n",
             style(format!("http://{}", self.addr)).cyan()
         );
-        let app_state = Arc::new(Mutex::new(self.config.clone()));
+        let app_state = Arc::new(Mutex::new(self.app_state.clone()));
         loop {
             let (stream, _) = self
                 .listener
@@ -107,7 +113,12 @@ impl App {
             "\nListening on {} ...\n",
             style(format!("http://{}", &addr)).cyan()
         );
-        let app_state = Arc::new(Mutex::new(config.clone()));
+
+        let app_state = Arc::new(Mutex::new(AppState {
+            config: config.clone(),
+            middleware: None,
+        }));
+
         let listener = TcpListener::bind(addr)
             .await
             .expect("tcp listener failed to bind address");
@@ -141,7 +152,7 @@ impl App {
 /// handle http service
 async fn service(
     req: Request<body::Incoming>,
-    app_state: Arc<Mutex<Config>>,
+    app_state: Arc<Mutex<AppState>>,
 ) -> Result<Response<BoxBody>, hyper::http::Error> {
     handle(req, Arc::clone(&app_state)).await
 }
