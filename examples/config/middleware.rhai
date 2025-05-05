@@ -3,9 +3,9 @@
 //! - body: request body json value defined only when exists
 
 // case `cargo run`:
-let returned_json_filepath = "examples/config/apimock-data/middleware-test.json";
+// let returned_json_filepath = "examples/config/apimock-data/middleware-test.json";
 // case `cargo test`:
-// let returned_json_filepath = "apimock-data/middleware-test.json";
+let returned_json_filepath = "apimock-data/middleware-test.json";
 
 // print(uri_path);
 if uri_path == "/middleware-test" {
