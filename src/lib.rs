@@ -6,6 +6,9 @@
 pub mod core;
 use core::app::App;
 
+const CONFIG_FILEPATH_OPTION_NAMES: [&str; 2] = ["-c", "--config"];
+const MIDDLEWARE_FILEPATH_OPTION_NAMES: [&str; 1] = ["--middleware"];
+
 /// return hyper http server
 #[cfg(not(feature = "spawn"))]
 pub async fn server(config_filepath: &str, middleware_filepath: Option<String>) -> App {

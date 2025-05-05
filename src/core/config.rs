@@ -1,3 +1,5 @@
+use crate::CONFIG_FILEPATH_OPTION_NAMES;
+
 use super::constant::config::*;
 use super::util::args_option_value;
 use console::style;
@@ -728,6 +730,5 @@ fn data_src_path(file: &str, data_dir: &Option<String>) -> String {
 /// - if specified with command-line option, use it
 /// - else use the default
 pub fn config_filepath() -> String {
-    let option_names: Vec<&str> = vec!["-c", "--config"];
-    args_option_value(&option_names)
+    args_option_value(&CONFIG_FILEPATH_OPTION_NAMES.to_vec())
 }

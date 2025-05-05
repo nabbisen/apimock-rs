@@ -2,6 +2,8 @@ use std::sync::Arc;
 
 use rhai::{Engine, AST};
 
+use crate::MIDDLEWARE_FILEPATH_OPTION_NAMES;
+
 use super::{config::Config, util::args_option_value};
 
 #[derive(Clone)]
@@ -22,6 +24,5 @@ pub struct Middleware {
 /// - if specified with command-line option, use it
 /// - else miss it
 pub fn middleware_filepath() -> String {
-    let option_names: Vec<&str> = vec!["--middleware"];
-    args_option_value(&option_names)
+    args_option_value(&MIDDLEWARE_FILEPATH_OPTION_NAMES.to_vec())
 }
