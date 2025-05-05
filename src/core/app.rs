@@ -49,7 +49,7 @@ impl App {
         }
 
         let addr = config
-            .listen_address()
+            .listener_address()
             .to_socket_addrs()
             .expect("invalid listend address or port")
             .next()

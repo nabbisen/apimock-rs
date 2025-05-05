@@ -1,6 +1,8 @@
-[general]
+[listener]
 ip_address = "127.0.0.1"
 port = 3001
+
+[general]
 dyn_data_dir = "apimock-dyn-data"
 # always = "{ greetings: \"Hello, world.\" }"
 response_wait = 100

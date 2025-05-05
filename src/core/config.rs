@@ -17,9 +17,10 @@ pub type HeaderId = String;
 /// app config
 #[derive(Clone, Default)]
 pub struct Config {
-    // [general]
+    // [listener]
     pub ip_address: String,
     pub port: u16,
+    // [general]
     pub dyn_data_dir: Option<String>,
     pub always: Option<String>,
     pub response_wait_millis: u64,
@@ -112,6 +113,9 @@ impl Config {
         let toml_content: toml::Value = toml::from_str(&toml_string)
             .expect(format!("{}: Invalid toml content", config_filepath).as_str());
 
+        if let Some(listener_config_content) = toml_content.get(CONFIG_SECTION_LISTENER) {
+            config.listener_config(&listener_config_content);
+        }
         if let Some(general_config_content) = toml_content.get(CONFIG_SECTION_GENERAL) {
             config.general_config(&general_config_content);
         }
@@ -126,7 +130,7 @@ impl Config {
     }
 
     /// address listened to
-    pub fn listen_address(&self) -> String {
+    pub fn listener_address(&self) -> String {
         format!("{}:{}", self.ip_address, self.port)
     }
 
@@ -276,7 +280,7 @@ impl Config {
         if let Some(data_dir_query_path) = &self.data_dir_query_path {
             log::info!(
                 "[data_dir_query_url] http://{}/{}",
-                &self.listen_address(),
+                &self.listener_address(),
                 data_dir_query_path
             );
         }
@@ -319,10 +323,37 @@ impl Config {
     /// app config default
     fn default_config() -> Config {
         let mut config = Config::default();
-        config.port = DEFAULT_LISTEN_PORT;
-        config.ip_address = DEFAULT_LISTEN_IP_ADDRESS.to_owned();
+        config.port = DEFAULT_LISTENER_PORT;
+        config.ip_address = DEFAULT_LISTENER_IP_ADDRESS.to_owned();
         config.response_wait_millis = 0;
         config
+    }
+
+    /// [listener] section
+    fn listener_config(&mut self, listener_config_content: &toml::Value) {
+        let listener_config = listener_config_content.as_table().expect(
+            format!(
+                "{}: Invalid [{}] section",
+                &self.config_filepath.clone().unwrap(),
+                CONFIG_SECTION_GENERAL
+            )
+            .as_str(),
+        );
+        for (key, value) in listener_config {
+            match key.as_str() {
+                "ip_address" => match value.as_str() {
+                    Some(ip_address) => self.ip_address = ip_address.to_owned(),
+                    _ => (),
+                },
+                "port" => match value.as_integer() {
+                    Some(port) => {
+                        self.port = port as u16;
+                    }
+                    _ => (),
+                },
+                _ => (),
+            }
+        }
     }
 
     /// [general] section
@@ -337,16 +368,6 @@ impl Config {
         );
         for (key, value) in general_config {
             match key.as_str() {
-                "ip_address" => match value.as_str() {
-                    Some(ip_address) => self.ip_address = ip_address.to_owned(),
-                    _ => (),
-                },
-                "port" => match value.as_integer() {
-                    Some(port) => {
-                        self.port = port as u16;
-                    }
-                    _ => (),
-                },
                 "dyn_data_dir" => match value.as_str() {
                     Some(dyn_data_dir) => self.dyn_data_dir = Some(dyn_data_dir.to_owned()),
                     _ => (),
