@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::net::{SocketAddr, ToSocketAddrs};
 use std::path::Path;
 use std::sync::Arc;
@@ -15,7 +16,7 @@ use tokio::sync::mpsc::Sender;
 use tokio::{net::TcpListener, sync::Mutex};
 
 use super::app_state::{AppState, Middleware};
-use super::config::Config;
+use super::config::{Config, PathConfig, UrlPath};
 use super::constant::APP_NAME;
 use super::logger::init_logger;
 use super::server::handle;
@@ -124,6 +125,11 @@ impl App {
                 }
             });
         }
+    }
+
+    /// get [url.paths] in config
+    pub fn config_url_paths(&self) -> Option<HashMap<UrlPath, PathConfig>> {
+        self.app_state.config.paths.clone()
     }
 }
 

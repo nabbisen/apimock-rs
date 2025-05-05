@@ -76,7 +76,7 @@ pub async fn handle(
                 Ok(content) => match json5::from_str::<Value>(&content) {
                     Ok(json) => {
                         let body = json.to_string();
-                        json_response_base(&None, &None)
+                        json_response_base(None, None)
                             .status(StatusCode::OK)
                             .body(Full::new(Bytes::from(body)).boxed())
                     }
@@ -91,7 +91,7 @@ pub async fn handle(
     let config = shared_app_state.config;
 
     // fixed response with `always` in config
-    if let Some(x) = handle_always(&config.always) {
+    if let Some(x) = handle_always(config.always.as_ref()) {
         log(
             request_uri_path.as_str(),
             &parts,
@@ -152,8 +152,8 @@ pub async fn handle(
             request_uri_path.as_str(),
             request_body_json_value.as_ref(),
             paths,
-            &config.paths_jsonpath_patterns,
-            &config.headers,
+            config.paths_jsonpath_patterns.as_ref(),
+            config.headers.as_ref(),
         )
         .await
         {
@@ -230,11 +230,11 @@ async fn response_wait(millis: u64) {
 }
 
 /// handle on `always` config
-fn handle_always(always: &Option<String>) -> Option<Result<Response<BoxBody>, Error>> {
+fn handle_always(always: Option<&String>) -> Option<Result<Response<BoxBody>, Error>> {
     match always {
         Some(x) => {
             let response =
-                json_response_base(&None, &None).body(Full::new(Bytes::from(x.to_owned())).boxed());
+                json_response_base(None, None).body(Full::new(Bytes::from(x.to_owned())).boxed());
             Some(response)
         }
         _ => None,
@@ -277,10 +277,10 @@ async fn handle_static_path(
     request_uri_path: &str,
     request_body_json_value: Option<&Value>,
     path_configs: &HashMap<UrlPath, PathConfig>,
-    paths_jsonpath_patterns: &Option<
-        HashMap<String, HashMap<String, Vec<JsonpathMatchingPattern>>>,
+    paths_jsonpath_patterns: Option<
+        &HashMap<String, HashMap<String, Vec<JsonpathMatchingPattern>>>,
     >,
-    headers: &Option<HashMap<HeaderId, HeaderConfig>>,
+    headers: Option<&HashMap<HeaderId, HeaderConfig>>,
 ) -> Option<Result<Response<BoxBody>, Error>> {
     let path_config_hashmap = path_configs
         .iter()
@@ -312,8 +312,8 @@ async fn match_jsonpath_patterns(
     path_config: &mut PathConfig,
     request_uri_path: &str,
     request_body_json_value: &Value,
-    paths_jsonpath_patterns: &Option<
-        HashMap<String, HashMap<String, Vec<JsonpathMatchingPattern>>>,
+    paths_jsonpath_patterns: Option<
+        &HashMap<String, HashMap<String, Vec<JsonpathMatchingPattern>>>,
     >,
 ) {
     if let Some(paths_jsonpath_patterns) = paths_jsonpath_patterns {
@@ -349,19 +349,19 @@ async fn match_jsonpath_patterns(
 /// response on `data_dir` paths
 fn static_path_response(
     path_config: &PathConfig,
-    headers: &Option<HashMap<HeaderId, HeaderConfig>>,
+    headers: Option<&HashMap<HeaderId, HeaderConfig>>,
 ) -> Result<Response<BoxBody>, Error> {
     if let Some(_) = &path_config.data_src {
         return static_path_data_src_reponse(path_config, headers);
     }
 
     if let Some(data_text) = &path_config.data_text {
-        return json_response_base(&path_config.headers, headers)
+        return json_response_base(path_config.headers.as_ref(), headers)
             .status(path_config.code)
             .body(Full::new(Bytes::from(data_text.to_owned())).boxed());
     }
 
-    response_base(&path_config.headers, headers)
+    response_base(path_config.headers.as_ref(), headers)
         .status(path_config.code)
         .body(Empty::new().boxed())
 }
@@ -369,13 +369,13 @@ fn static_path_response(
 /// json file on `data_src` response on `data_dir` paths
 fn static_path_data_src_reponse(
     path_config: &PathConfig,
-    headers: &Option<HashMap<HeaderId, HeaderConfig>>,
+    headers: Option<&HashMap<HeaderId, HeaderConfig>>,
 ) -> Result<Response<BoxBody>, Error> {
     match std::fs::read_to_string(path_config.data_src.as_ref().unwrap()) {
         Ok(content) => match json5::from_str::<Value>(&content) {
             Ok(json) => {
                 let json_text = json.to_string();
-                json_response_base(&path_config.headers, headers)
+                json_response_base(path_config.headers.as_ref(), headers)
                     .status(path_config.code)
                     .body(Full::new(Bytes::from(json_text)).boxed())
             }
@@ -419,7 +419,7 @@ fn handle_dyn_path(request_uri_path: &str, dyn_data_dir: &str) -> Result<Respons
             Ok(content) => match json5::from_str::<Value>(&content) {
                 Ok(json) => {
                     let body = json.to_string();
-                    json_response_base(&None, &None)
+                    json_response_base(None, None)
                         .status(StatusCode::OK)
                         .body(Full::new(Bytes::from(body)).boxed())
                 }
@@ -434,8 +434,8 @@ fn handle_dyn_path(request_uri_path: &str, dyn_data_dir: &str) -> Result<Respons
 
 /// response base on any
 fn response_base(
-    path_headers: &Option<Vec<String>>,
-    headers: &Option<HashMap<HeaderId, HeaderConfig>>,
+    path_headers: Option<&Vec<String>>,
+    headers: Option<&HashMap<HeaderId, HeaderConfig>>,
 ) -> Builder {
     let mut ret = Response::builder()
         .header(ACCESS_CONTROL_ALLOW_ORIGIN, HeaderValue::from_static("*"))
@@ -456,8 +456,8 @@ fn response_base(
 
 /// response base on json response
 fn json_response_base(
-    path_headers: &Option<Vec<String>>,
-    headers: &Option<HashMap<HeaderId, HeaderConfig>>,
+    path_headers: Option<&Vec<String>>,
+    headers: Option<&HashMap<HeaderId, HeaderConfig>>,
 ) -> Builder {
     response_base(path_headers, headers)
         .header(CONTENT_TYPE, HeaderValue::from_static("application/json"))
@@ -465,21 +465,21 @@ fn json_response_base(
 
 /// plain text response
 fn plain_text_response(msg: &str) -> Result<Response<BoxBody>, Error> {
-    response_base(&None, &None)
+    response_base(None, None)
         .status(StatusCode::OK)
         .body(Full::new(Bytes::from(msg.to_owned())).boxed())
 }
 
 /// error response on http NOT_FOUND
 fn not_found_response() -> Result<Response<BoxBody>, Error> {
-    response_base(&None, &None)
+    response_base(None, None)
         .status(StatusCode::NOT_FOUND)
         .body(Empty::new().boxed())
 }
 
 /// error response on http BAD_REQUEST
 fn bad_request_response(msg: &str) -> Result<Response<BoxBody>, Error> {
-    response_base(&None, &None)
+    response_base(None, None)
         .status(StatusCode::BAD_REQUEST)
         .body(Full::new(Bytes::from(msg.to_owned())).boxed())
 }

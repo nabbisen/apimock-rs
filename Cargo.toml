@@ -1,6 +1,6 @@
 [package]
 name = "apimock"
-version = "3.0.0"
+version = "3.0.1"
 edition = "2021"
 
 description = "API mock Server generating HTTP/JSON responses"
@@ -30,7 +30,7 @@ incremental = true
 spawn = [] # offers another entry point for subprocess
 
 [dependencies]
-tokio = { version = "1", features = ["full"] }
+tokio = { version = "^1.44", features = ["full"] }
 hyper = { version = "1", features = ["server", "http1", "http2"] }
 hyper-util = { version = "0", features = ["server", "http1", "http2", "tokio"] }
 http-body-util = "0"
