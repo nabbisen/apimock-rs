@@ -174,6 +174,28 @@ async fn error403() {
     assert_eq!(response.status(), StatusCode::FORBIDDEN);
 }
 
+#[tokio::test]
+async fn middleware_handled() {
+    let port = setup().await;
+    let response = http_response("/middleware-test", None, port).await;
+
+    assert_eq!(response.status(), StatusCode::OK);
+
+    let body_str = response_body_str(response).await;
+    assert_eq!(body_str.as_str(), "{\"thisIs\":\"missedByConfigToml\"}");
+}
+
+#[tokio::test]
+async fn middleware_missed() {
+    let port = setup().await;
+    let response = http_response("/middleware-test/dummy", None, port).await;
+
+    assert_eq!(response.status(), StatusCode::NOT_FOUND);
+
+    let body_str = response_body_str(response).await;
+    assert_eq!(body_str.as_str(), "");
+}
+
 // utils
 /// test initial setup: start up mock server
 async fn setup() -> u16 {
