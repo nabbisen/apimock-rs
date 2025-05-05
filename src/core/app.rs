@@ -1,4 +1,5 @@
 use std::net::{SocketAddr, ToSocketAddrs};
+use std::path::Path;
 use std::sync::Arc;
 
 use console::style;
@@ -57,24 +58,30 @@ impl App {
             .await
             .expect("tcp listener failed to bind address");
 
-        let middleware = if let Some(middleware_filepath) = middleware_filepath {
-            let engine = Engine::new();
-            // todo: watch source file change - `notify` crate ?
-            let ast = engine
-                .compile_file(middleware_filepath.clone().into())
-                // todo: error msg
-                .expect("todo1");
+        let middleware = match middleware_filepath {
+            Some(middleware_filepath) if Path::new(middleware_filepath.as_str()).exists() => {
+                let engine = Engine::new();
+                // todo: watch source file change - `notify` crate ?
+                let ast = engine
+                    .compile_file(middleware_filepath.clone().into())
+                    .expect(
+                        format!(
+                            "failed to compile middleware file to get ast: {}",
+                            middleware_filepath
+                        )
+                        .as_str(),
+                    );
 
-            let middleware = Middleware {
-                engine: Arc::new(engine),
-                filepath: middleware_filepath.to_owned(),
-                ast,
-            };
+                let middleware = Middleware {
+                    engine: Arc::new(engine),
+                    filepath: middleware_filepath.to_owned(),
+                    ast,
+                };
 
-            println!("\nMiddleware is activated: {}", middleware_filepath);
-            Some(middleware)
-        } else {
-            None
+                println!("\nMiddleware is activated: {}", middleware_filepath);
+                Some(middleware)
+            }
+            _ => None,
         };
         let app_state = AppState { config, middleware };
 
