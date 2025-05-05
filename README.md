@@ -24,6 +24,10 @@ Server started to listen:
 
 ![server responds](docs/.assets/demo-02.png)
 
+Middleware is available as `rhai` script:
+
+![server responds](docs/.assets/demo-03.png)
+
 ## Features
 
 ### 1. Basic
