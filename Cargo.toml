@@ -40,7 +40,7 @@ serde_json = "1"
 json5 = "0"
 console = "0"
 log = "0"
-rhai = { version = "1", features = ["sync"] }
+rhai = { version = "1", features = ["sync", "serde"] }
 
 [dev-dependencies]
 hyper = { version = "1", features = ["client"] }
