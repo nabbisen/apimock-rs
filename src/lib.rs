@@ -33,13 +33,3 @@ pub async fn server(
     )
     .await
 }
-
-/// start hyper http server (deprecated)
-#[deprecated]
-pub async fn start_server(
-    config_filepath: String,
-    middleware_filepath: Option<String>,
-) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    #[allow(deprecated)]
-    App::start_server(config_filepath, middleware_filepath).await
-}

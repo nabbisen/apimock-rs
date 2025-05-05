@@ -109,67 +109,6 @@ impl App {
             });
         }
     }
-
-    /// start hyper http server
-    #[deprecated]
-    pub async fn start_server(
-        config_filepath: String,
-        middleware_filepath: Option<String>,
-    ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-        log::info!("\nGreetings from {APP_NAME} !!\n");
-
-        let config = Config::new(&config_filepath);
-
-        let addr = config
-            .listen_address()
-            .to_socket_addrs()
-            .expect("invalid listend address or port")
-            .next()
-            .expect("failed to resolve address");
-        log::info!(
-            "\nListening on {} ...\n",
-            style(format!("http://{}", &addr)).cyan()
-        );
-
-        let middleware = if let Some(middleware_filepath) = middleware_filepath {
-            // todo: middleware
-            None
-        } else {
-            None
-        };
-        let app_state = Arc::new(Mutex::new(AppState {
-            config: config.clone(),
-            middleware,
-        }));
-
-        let listener = TcpListener::bind(addr)
-            .await
-            .expect("tcp listener failed to bind address");
-        loop {
-            let (stream, _) = listener
-                .accept()
-                .await
-                .expect("tcp listener failed to accept");
-            let io = TokioIo::new(stream);
-
-            let app_state = app_state.clone();
-            tokio::task::spawn(async move {
-                // Finally, we bind the incoming connection to our `hello` service
-                if let Err(err) = Builder::new(TokioExecutor::new())
-                    // `service_fn` converts our function in a `Service`
-                    .serve_connection(
-                        io,
-                        service_fn(move |req: Request<body::Incoming>| {
-                            service(req, app_state.clone())
-                        }),
-                    )
-                    .await
-                {
-                    log::error!("error serving connection: {:?}", err);
-                }
-            });
-        }
-    }
 }
 
 /// handle http service
