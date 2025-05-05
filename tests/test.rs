@@ -9,9 +9,12 @@ use hyper_util::rt::TokioIo;
 use std::{env, path::Path};
 use tokio::net::TcpStream;
 
+const CONFIG_FILEPATH: &str = "apimock.toml";
+const MIDDLEWARE_FILEPATH: &str = "../../middleware.rhai";
+
 #[tokio::test]
 async fn uri_root_as_empty() {
-    setup("apimock.toml").await;
+    setup().await;
     let response = http_response("", None).await;
 
     assert_eq!(response.status(), StatusCode::OK);
@@ -21,7 +24,7 @@ async fn uri_root_as_empty() {
 
 #[tokio::test]
 async fn uri_root() {
-    setup("apimock.toml").await;
+    setup().await;
     let response = http_response("/", None).await;
 
     assert_eq!(response.status(), StatusCode::OK);
@@ -31,7 +34,7 @@ async fn uri_root() {
 
 #[tokio::test]
 async fn api_root_as_empty() {
-    setup("apimock.toml").await;
+    setup().await;
     let response = http_response("/api/v1", None).await;
 
     assert_eq!(response.status(), StatusCode::NOT_FOUND);
@@ -39,7 +42,7 @@ async fn api_root_as_empty() {
 
 #[tokio::test]
 async fn api_root() {
-    setup("apimock.toml").await;
+    setup().await;
     let response = http_response("/api/v1/", None).await;
 
     assert_eq!(response.status(), StatusCode::NOT_FOUND);
@@ -47,7 +50,7 @@ async fn api_root() {
 
 #[tokio::test]
 async fn api_home() {
-    setup("apimock.toml").await;
+    setup().await;
     let response = http_response("/api/v1/home", None).await;
 
     assert_eq!(response.status(), StatusCode::OK);
@@ -58,7 +61,7 @@ async fn api_home() {
 
 #[tokio::test]
 async fn matcher_object_1() {
-    setup("apimock.toml").await;
+    setup().await;
     let body = "{\"a\":{\"b\":{\"c\":\"1\"}}}";
     let response = http_response("/api/v1/some/path/w/matcher", Some(body)).await;
 
@@ -70,7 +73,7 @@ async fn matcher_object_1() {
 
 #[tokio::test]
 async fn matcher_object_2() {
-    setup("apimock.toml").await;
+    setup().await;
     let body = "{\"a\":{\"b\":{\"c\":\"0\"}}}";
     let response = http_response("/api/v1/some/path/w/matcher", Some(body)).await;
 
@@ -82,7 +85,7 @@ async fn matcher_object_2() {
 
 #[tokio::test]
 async fn matcher_object_3() {
-    setup("apimock.toml").await;
+    setup().await;
     let body = "{\"a\":{\"b\":{\"c\":\"1\", \"d\": 0}}}";
     let response = http_response("/api/v1/some/path/w/matcher", Some(body)).await;
 
@@ -94,7 +97,7 @@ async fn matcher_object_3() {
 
 #[tokio::test]
 async fn matcher_data_type_insensitiveness() {
-    setup("apimock.toml").await;
+    setup().await;
     let body = "{\"a\":{\"b\":{\"c\":1}}}";
     let response = http_response("/api/v1/some/path/w/matcher", Some(body)).await;
 
@@ -106,7 +109,7 @@ async fn matcher_data_type_insensitiveness() {
 
 #[tokio::test]
 async fn matcher_object_missing() {
-    setup("apimock.toml").await;
+    setup().await;
     let body = "{\"a\":{\"b\":{\"c\":\"2\"}}}";
     let response = http_response("/api/v1/some/path/w/matcher", Some(body)).await;
 
@@ -118,7 +121,7 @@ async fn matcher_object_missing() {
 
 #[tokio::test]
 async fn matcher_array() {
-    setup("apimock.toml").await;
+    setup().await;
     let body = "{\"d\":[{},{},{\"e\":\"x=\"}]}";
     let response = http_response("/api/v1/some/path/w/matcher", Some(body)).await;
 
@@ -130,7 +133,7 @@ async fn matcher_array() {
 
 #[tokio::test]
 async fn matcher_array_missing() {
-    setup("apimock.toml").await;
+    setup().await;
     let body = "{\"d\":[{\"e\":\"x=\"}]}";
     let response = http_response("/api/v1/some/path/w/matcher", Some(body)).await;
 
@@ -142,7 +145,7 @@ async fn matcher_array_missing() {
 
 #[tokio::test]
 async fn matcher_empty_value() {
-    setup("apimock.toml").await;
+    setup().await;
     let body = "{\"f\":\"\"}";
     let response = http_response("/api/v1/some/path/w/matcher", Some(body)).await;
 
@@ -154,7 +157,7 @@ async fn matcher_empty_value() {
 
 #[tokio::test]
 async fn error401() {
-    setup("apimock.toml").await;
+    setup().await;
     let response = http_response("/api/v1/error/401", None).await;
 
     assert_eq!(response.status(), StatusCode::UNAUTHORIZED);
@@ -162,7 +165,7 @@ async fn error401() {
 
 #[tokio::test]
 async fn error403() {
-    setup("apimock.toml").await;
+    setup().await;
     let response = http_response("/api/v1/error/api-403", None).await;
 
     assert_eq!(response.status(), StatusCode::FORBIDDEN);
@@ -170,15 +173,19 @@ async fn error403() {
 
 // utils
 /// test initial setup: start up mock server
-async fn setup(config_file: &str) {
+async fn setup() {
     let _ = env::set_current_dir("examples/config");
 
-    if !Path::new(config_file).exists() {
-        panic!("config file was missing: {}", config_file);
+    let config_filepath = CONFIG_FILEPATH;
+    // todo: preapre .rhai if necessary
+    let middleware_filepath = Some(MIDDLEWARE_FILEPATH.to_owned());
+
+    if !Path::new(config_filepath).exists() {
+        panic!("config file was missing: {}", config_filepath);
     }
-    let config_file = config_file.to_owned();
+
     tokio::spawn(async move {
-        let server = App::new(config_file.as_str(), None, true).await;
+        let server = App::new(config_filepath, middleware_filepath, None, true).await;
         server.start().await
     });
     // wait for server started

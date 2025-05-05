@@ -10,7 +10,6 @@ use hyper::{
     Request, Response, StatusCode,
 };
 use json5;
-use rhai::Engine;
 use serde_json::{from_str, to_string_pretty, Value};
 use std::{
     collections::HashMap,
@@ -23,7 +22,7 @@ use tokio::sync::Mutex;
 use tokio::time;
 
 use super::util::jsonpath_value;
-use super::{app_state::AppState, server_middleware::middleware};
+use super::{app_state::AppState, server_middleware};
 use super::{
     config::{
         Config, HeaderConfig, HeaderId, JsonpathMatchingPattern, PathConfig, UrlPath, VerboseConfig,
@@ -39,25 +38,19 @@ pub async fn handle(
     let (parts, body) = req.into_parts();
     let path = uri_path(parts.uri.path());
 
-    let path_for_middleware = path.to_owned();
-    let middleware_response = tokio::task::spawn_blocking(move || {
-        // todo: app state
-        let engine = Engine::new();
-        // todo: app state and watched
-        let ast = engine
-            .compile_file("middleware.rhai".into())
-            // todo: file location: ../../middleware.rhai is required when `cargo test`
-            // .compile_file("../../middleware.rhai".into())
-            .expect("todo1");
-        middleware(path_for_middleware.as_str(), &engine, &ast)
-    })
-    .await
-    .expect("todo middleware");
-    if let Some(middleware_response) = middleware_response {
-        return middleware_response;
+    let shared_app_state = { app_state.lock().await.clone() };
+
+    if let Some(middleware) = shared_app_state.middleware {
+        let middleware_response = server_middleware::handle(
+            middleware.filepath.as_str(),
+            &middleware.engine,
+            &middleware.ast,
+        );
+        if let Some(middleware_response) = middleware_response {
+            return middleware_response;
+        }
     }
 
-    let shared_app_state = { app_state.lock().await.clone() };
     let config = shared_app_state.config;
 
     if let Some(x) = handle_always(&config.always) {

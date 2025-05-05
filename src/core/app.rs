@@ -8,11 +8,12 @@ use hyper_util::{
     rt::{TokioExecutor, TokioIo},
     server::conn::auto::Builder,
 };
+use rhai::Engine;
 use std::convert::Infallible;
 use tokio::sync::mpsc::Sender;
 use tokio::{net::TcpListener, sync::Mutex};
 
-use super::app_state::AppState;
+use super::app_state::{AppState, Middleware};
 use super::config::Config;
 use super::constant::APP_NAME;
 use super::logger::init_logger;
@@ -30,13 +31,14 @@ pub struct App {
 impl App {
     /// create new app
     pub async fn new(
-        config_path: &str,
+        config_filepath: &str,
+        middleware_filepath: Option<String>,
         spawn_tx: Option<Sender<String>>,
         includes_ansi_codes: bool,
     ) -> Self {
         let _ = init_logger(spawn_tx, includes_ansi_codes);
 
-        let config = Config::new(&config_path);
+        let config = Config::new(&config_filepath);
 
         let addr = config
             .listen_address()
@@ -48,10 +50,24 @@ impl App {
             .await
             .expect("tcp listener failed to bind address");
 
-        let app_state = AppState {
-            config,
-            middleware: None,
+        let middleware = if let Some(middleware_filepath) = middleware_filepath {
+            let engine = Engine::new();
+            // todo: watch source file change - `notify` crate ?
+            let ast = engine
+                .compile_file(middleware_filepath.clone().into())
+                // todo: file location: ../../middleware.rhai is required when `cargo test`
+                // .compile_file("../../middleware.rhai".into())
+                .expect("todo1");
+            let middleware = Middleware {
+                engine: Arc::new(engine),
+                filepath: middleware_filepath.to_owned(),
+                ast,
+            };
+            Some(middleware)
+        } else {
+            None
         };
+        let app_state = AppState { config, middleware };
 
         App {
             addr,
@@ -97,11 +113,12 @@ impl App {
     /// start hyper http server
     #[deprecated]
     pub async fn start_server(
-        config_path: String,
+        config_filepath: String,
+        middleware_filepath: Option<String>,
     ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         log::info!("\nGreetings from {APP_NAME} !!\n");
 
-        let config = Config::new(&config_path);
+        let config = Config::new(&config_filepath);
 
         let addr = config
             .listen_address()
@@ -114,9 +131,15 @@ impl App {
             style(format!("http://{}", &addr)).cyan()
         );
 
+        let middleware = if let Some(middleware_filepath) = middleware_filepath {
+            // todo: middleware
+            None
+        } else {
+            None
+        };
         let app_state = Arc::new(Mutex::new(AppState {
             config: config.clone(),
-            middleware: None,
+            middleware,
         }));
 
         let listener = TcpListener::bind(addr)

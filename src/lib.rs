@@ -8,8 +8,8 @@ use core::app::App;
 
 /// return hyper http server
 #[cfg(not(feature = "spawn"))]
-pub async fn server(config_path: &str) -> App {
-    App::new(config_path, None, true).await
+pub async fn server(config_filepath: &str, middleware_filepath: Option<String>) -> App {
+    App::new(config_filepath, middleware_filepath, None, true).await
 }
 
 #[cfg(feature = "spawn")]
@@ -19,15 +19,27 @@ use tokio::sync::mpsc::Sender;
 /// return hyper http server
 /// `includes_ansi_codes`: if true, log includes ansi escape codes for console text color
 #[cfg(feature = "spawn")]
-pub async fn server(config_path: &str, spawn_tx: Sender<String>, includes_ansi_codes: bool) -> App {
-    App::new(config_path, Some(spawn_tx), includes_ansi_codes).await
+pub async fn server(
+    config_filepath: &str,
+    middleware_filepath: Option<String>,
+    spawn_tx: Sender<String>,
+    includes_ansi_codes: bool,
+) -> App {
+    App::new(
+        config_filepath,
+        middleware_filepath,
+        Some(spawn_tx),
+        includes_ansi_codes,
+    )
+    .await
 }
 
 /// start hyper http server (deprecated)
 #[deprecated]
 pub async fn start_server(
-    config_path: String,
+    config_filepath: String,
+    middleware_filepath: Option<String>,
 ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     #[allow(deprecated)]
-    App::start_server(config_path).await
+    App::start_server(config_filepath, middleware_filepath).await
 }

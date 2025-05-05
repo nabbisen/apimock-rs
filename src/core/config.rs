@@ -30,7 +30,7 @@ pub struct Config {
     pub paths: Option<HashMap<UrlPath, PathConfig>>,
     pub paths_jsonpath_patterns:
         Option<HashMap<String, HashMap<String, Vec<JsonpathMatchingPattern>>>>,
-    config_path: Option<String>,
+    config_filepath: Option<String>,
 }
 
 /// verbose logs
@@ -66,24 +66,24 @@ pub struct JsonpathMatchingPattern {
 /// app config
 impl Config {
     /// create new instance
-    pub fn new(config_path: &str) -> Config {
-        if !config_path.is_empty() && !Path::new(config_path).exists() {
+    pub fn new(config_filepath: &str) -> Config {
+        if !config_filepath.is_empty() && !Path::new(config_filepath).exists() {
             panic!(
                 "config file was specified but didn't exist: {}",
-                config_path
+                config_filepath
             );
         }
 
         let exists_default_config = Path::new(CONFIG_FILENAME).exists();
-        let config_path = if config_path.is_empty() && exists_default_config {
+        let config_filepath = if config_filepath.is_empty() && exists_default_config {
             CONFIG_FILENAME
         } else {
-            config_path
+            config_filepath
         };
 
         let mut config = Self::default_config();
 
-        if config_path.is_empty() && !exists_default_config {
+        if config_filepath.is_empty() && !exists_default_config {
             if !Path::new(DEFAULT_DYN_DATA_DIR).exists() {
                 config.always = Some(ALWAYS_DEFAULT_MESSAGES.to_owned());
                 log::warn!(
@@ -96,19 +96,19 @@ impl Config {
                 config.dyn_data_dir = Some(DEFAULT_DYN_DATA_DIR.to_owned());
                 log::warn!(
                     "{}: config file is missing (config-less mode)\n",
-                    config_path
+                    config_filepath
                 );
                 config.print();
                 return config;
             }
         }
-        log::info!("[config] {}\n", config_path);
+        log::info!("[config] {}\n", config_filepath);
 
-        config.config_path = Some(config_path.to_owned());
+        config.config_filepath = Some(config_filepath.to_owned());
 
-        let toml_string = fs::read_to_string(config_path).unwrap();
+        let toml_string = fs::read_to_string(config_filepath).unwrap();
         let toml_content: toml::Value = toml::from_str(&toml_string)
-            .expect(format!("{}: Invalid toml content", config_path).as_str());
+            .expect(format!("{}: Invalid toml content", config_filepath).as_str());
 
         if let Some(general_config_content) = toml_content.get(CONFIG_SECTION_GENERAL) {
             config.general_config(&general_config_content);
@@ -326,7 +326,7 @@ impl Config {
         let general_config = general_config_content.as_table().expect(
             format!(
                 "{}: Invalid [{}] section",
-                &self.config_path.clone().unwrap(),
+                &self.config_filepath.clone().unwrap(),
                 CONFIG_SECTION_GENERAL
             )
             .as_str(),
@@ -352,7 +352,7 @@ impl Config {
                         let _ = json5::from_str::<serde_json::Value>(&always).expect(
                             format!(
                                 "{}: Invalid `always` value",
-                                &self.config_path.clone().unwrap()
+                                &self.config_filepath.clone().unwrap()
                             )
                             .as_str(),
                         );
@@ -403,7 +403,7 @@ impl Config {
         let url_config = url_config_content.as_table().expect(
             format!(
                 "{}: Invalid [{}] section",
-                &self.config_path.clone().unwrap(),
+                &self.config_filepath.clone().unwrap(),
                 CONFIG_SECTION_URL
             )
             .as_str(),
@@ -449,7 +449,7 @@ impl Config {
         let table = headers_config_content.as_table().expect(
             format!(
                 "{}: Invalid [{}] section",
-                &self.config_path.clone().unwrap(),
+                &self.config_filepath.clone().unwrap(),
                 CONFIG_SECTION_URL_HEADERS
             )
             .as_str(),
@@ -723,22 +723,22 @@ fn data_src_path(file: &str, data_dir: &Option<String>) -> String {
     path
 }
 
-/// app config path
+/// app config file path
 ///
 /// - if specified with command-line option, use it
 /// - else use the default
-pub fn config_path() -> String {
+pub fn config_filepath() -> String {
     let args: Vec<String> = env::args().collect();
 
     let config_option_entry = args
         .iter()
         .position(|arg| arg.as_str().eq("-c") || arg.as_str().eq("--config"));
-    let config_path = match config_option_entry {
+    let config_filepath = match config_option_entry {
         Some(config_option_entry) => match args.get(config_option_entry + 1) {
             Some(config_option) => config_option,
             _ => "",
         },
         _ => "",
     };
-    config_path.to_owned()
+    config_filepath.to_owned()
 }

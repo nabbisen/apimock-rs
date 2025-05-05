@@ -4,11 +4,7 @@ use rhai::{Engine, Scope, AST};
 use super::types::BoxBody;
 
 /// middleware
-pub fn middleware(
-    path: &str,
-    engine: &Engine,
-    ast: &AST,
-) -> Option<Result<Response<BoxBody>, Error>> {
+pub fn handle(path: &str, engine: &Engine, ast: &AST) -> Option<Result<Response<BoxBody>, Error>> {
     let mut scope = Scope::new();
     // todo: args
     scope.push("path", path.to_owned());
