@@ -283,8 +283,8 @@ impl Config {
         if let Some(path_prefix) = &self.path_prefix {
             log::info!("[path_prefix] {}", path_prefix);
         }
-        if let Some(headers) = &self.headers {
-            if 0 < headers.len() {
+        let _ = match &self.headers {
+            Some(headers) if 0 < headers.len() => {
                 log::info!("------");
                 let mut keys: Vec<_> = headers.keys().collect();
                 keys.sort();
@@ -301,14 +301,16 @@ impl Config {
                     );
                 }
             }
-        }
-        if let Some(paths) = &self.paths {
-            if 0 < paths.len() {
+            _ => (),
+        };
+        let _ = match &self.paths {
+            Some(paths) if 0 < paths.len() => {
                 log::info!("------");
                 self.print_paths();
                 log::info!("------");
             }
-        }
+            _ => (),
+        };
         if let Some(dyn_data_dir) = &self.dyn_data_dir {
             log::info!("[dyn_data_dir] {}", style(dyn_data_dir).green());
         }
@@ -678,11 +680,12 @@ impl Config {
             panic!("paths not defined");
         }
 
-        if let Some(data_dir_query_path) = self.data_dir_query_path.clone() {
-            if data_dir_query_path == "" {
+        let _ = match self.data_dir_query_path.clone() {
+            Some(data_dir_query_path) if data_dir_query_path == "" => {
                 panic!("data_dir_query_path is set but empty");
             }
-        }
+            _ => (),
+        };
 
         if let Some(paths) = &self.paths {
             for (path, path_config) in paths {
