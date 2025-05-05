@@ -10,6 +10,7 @@ use hyper::{
     Request, Response, StatusCode,
 };
 use json5;
+use rhai::Engine;
 use serde_json::{from_str, to_string_pretty, Value};
 use std::{
     collections::HashMap,
@@ -38,7 +39,21 @@ pub async fn handle(
     let (parts, body) = req.into_parts();
     let path = uri_path(parts.uri.path());
 
-    if let Some(middleware_response) = middleware(path.as_str()) {
+    let path_for_middleware = path.to_owned();
+    let middleware_response = tokio::task::spawn_blocking(move || {
+        // todo: app state
+        let engine = Engine::new();
+        // todo: app state and watched
+        let ast = engine
+            .compile_file("middleware.rhai".into())
+            // todo: file location: ../../middleware.rhai is required when `cargo test`
+            // .compile_file("../../middleware.rhai".into())
+            .expect("todo1");
+        middleware(path_for_middleware.as_str(), &engine, &ast)
+    })
+    .await
+    .expect("todo middleware");
+    if let Some(middleware_response) = middleware_response {
         return middleware_response;
     }
 
