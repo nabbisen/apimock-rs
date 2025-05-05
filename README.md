@@ -38,11 +38,11 @@ Server started to listen:
 - Custom HTTP response codes: 3xx as redirects, and 4xx and 5xx as errors
 - Custom response [headers](docs/CONFIGURE.md#urlheaders) which are reusable
 - Can specify response time on all or each API path
+- [Middleware](docs/CONFIGURE.md#middleware) as [`rhai`](https://github.com/rhaiscript/rhai) script (ref: [Rhai book](https://rhai.rs/book/language/statements.html) (Statements chapter)) is available to customize request routing and response handling
 
 ### 3. Dynamic processing
 
 - Flexible responses with patterns and jsonpath queries. Even with the same API URL path, multiple responses can be returned. See [`url.paths_patterns`](docs/CONFIGURE.md#urlpaths_patterns)
-- [Middleware](docs/CONFIGURE.md#middleware) as [`rhai`](https://github.com/rhaiscript/rhai) script (ref: [Rhai book](https://rhai.rs/book/language/statements.html) (Statements chapter)) is available to customize request routing and response handling
 - Dynamic path resolution with [`dyn_data_dir`](docs/CONFIGURE.md#generaldyn_data_dir)
 
 ### 4. Safe and observable usage

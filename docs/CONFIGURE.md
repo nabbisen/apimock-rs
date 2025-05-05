@@ -206,7 +206,7 @@ default: `middleware.rhai`
 #### URI path
 
 ```js
-// print(uri_path);
+// print(uri_path); // debug
 if uri_path == "/middleware-test" { ... }
 ```
 
@@ -214,8 +214,14 @@ if uri_path == "/middleware-test" { ... }
 
 ```js
 if is_def_var("body") {
-    // print(body);
+    // print(body); // debug
+    // matches on json value dealed with as map
     if body.middleware == "isHere" { ... }
+    // alternatively, case matching is available. if guard may be combined with
+    switch (uri_path) {
+        "/middleware-test/dummy" if body.middleware == "isHere" => { ... },
+        _ => ()
+    }
 ```
 
 ### Response handling
