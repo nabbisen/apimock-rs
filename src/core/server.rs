@@ -13,7 +13,6 @@ use json5;
 use serde_json::{from_str, to_string_pretty, Value};
 use std::{
     collections::HashMap,
-    convert::Infallible,
     fs,
     path::Path,
     sync::Arc,
@@ -22,28 +21,32 @@ use std::{
 use tokio::sync::Mutex;
 use tokio::time;
 
-use super::app_state::AppState;
-use super::config::{
-    Config, HeaderConfig, HeaderId, JsonpathMatchingPattern, PathConfig, UrlPath, VerboseConfig,
-};
 use super::util::jsonpath_value;
-
-type BoxBody = http_body_util::combinators::BoxBody<Bytes, Infallible>;
+use super::{app_state::AppState, server_middleware::middleware};
+use super::{
+    config::{
+        Config, HeaderConfig, HeaderId, JsonpathMatchingPattern, PathConfig, UrlPath, VerboseConfig,
+    },
+    types::BoxBody,
+};
 
 /// entry point of http requests handler service
 pub async fn handle(
     req: Request<Incoming>,
     app_state: Arc<Mutex<AppState>>,
 ) -> Result<Response<BoxBody>, Error> {
+    let (parts, body) = req.into_parts();
+    let path = uri_path(parts.uri.path());
+
+    if let Some(middleware_response) = middleware(path.as_str()) {
+        return middleware_response;
+    }
+
     let shared_app_state = { app_state.lock().await.clone() };
     let config = shared_app_state.config;
 
-    let (parts, body) = req.into_parts();
-
-    let path = uri_path(parts.uri.path());
-
     if let Some(x) = handle_always(&config.always) {
-        log(path, &parts, None, config.verbose.clone());
+        log(path.as_str(), &parts, None, config.verbose.clone());
 
         response_wait(config.response_wait_millis).await;
         return Ok(x.unwrap());
@@ -53,7 +56,7 @@ pub async fn handle(
         let mut shared_app_state = { app_state.lock().await.clone() };
         let mut config = shared_app_state.config;
 
-        if let Some(x) = handle_data_dir_query_path(&config, path) {
+        if let Some(x) = handle_data_dir_query_path(&config, path.as_str()) {
             let res = if !x.is_empty() {
                 let old_data_dir = config.data_dir.clone().unwrap();
                 let data_dir = x.strip_prefix("/").unwrap();
@@ -67,7 +70,7 @@ pub async fn handle(
                 plain_text_response(config.data_dir.clone().unwrap().as_str())
             };
 
-            log(path, &parts, None, config.verbose.clone());
+            log(path.as_str(), &parts, None, config.verbose.clone());
             log::info!(" * [url.data_dir] updated.\n");
             config.print_paths();
             log::info!("");
@@ -83,13 +86,18 @@ pub async fn handle(
         .expect("failed to collect request incoming body")
         .to_bytes();
 
-    log(path, &parts, Some(&request_body_bytes), config.verbose);
+    log(
+        path.as_str(),
+        &parts,
+        Some(&request_body_bytes),
+        config.verbose,
+    );
 
     response_wait(config.response_wait_millis).await;
 
     if let Some(paths) = &config.paths {
         if let Some(x) = handle_static_path(
-            path,
+            path.as_str(),
             &request_body_bytes,
             paths,
             &config.paths_jsonpath_patterns,
@@ -101,7 +109,7 @@ pub async fn handle(
         }
     }
     if let Some(dyn_data_dir) = &config.dyn_data_dir.clone() {
-        handle_dyn_path(path, dyn_data_dir.as_str())
+        handle_dyn_path(path.as_str(), dyn_data_dir.as_str())
     } else {
         not_found_response()
     }
@@ -203,13 +211,13 @@ fn handle_data_dir_query_path(config: &Config, path: &str) -> Option<String> {
 /// format uri path
 ///
 /// omit leading slash
-fn uri_path(uri_path: &str) -> &str {
+fn uri_path(uri_path: &str) -> String {
     if uri_path.chars().filter(|&c| c == '/').count() == 1 {
-        uri_path
+        uri_path.to_owned()
     } else if uri_path.ends_with("/") {
-        &uri_path[..uri_path.len() - 1]
+        uri_path[..uri_path.len() - 1].to_owned()
     } else {
-        uri_path
+        uri_path.to_owned()
     }
 }
 
