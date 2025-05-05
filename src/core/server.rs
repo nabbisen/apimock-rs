@@ -10,70 +10,147 @@ use hyper::{
     Request, Response, StatusCode,
 };
 use json5;
-use serde_json::{from_str, to_string_pretty, Value};
+use serde_json::Value;
 use std::{
     collections::HashMap,
-    convert::Infallible,
     fs,
     path::Path,
     sync::Arc,
     time::{Duration, SystemTime, UNIX_EPOCH},
 };
-use tokio::sync::{Mutex, MutexGuard};
+use tokio::sync::Mutex;
 use tokio::time;
 
-use super::config::{
-    Config, HeaderConfig, HeaderId, JsonpathMatchingPattern, PathConfig, UrlPath, VerboseConfig,
-};
 use super::util::jsonpath_value;
-
-type BoxBody = http_body_util::combinators::BoxBody<Bytes, Infallible>;
+use super::{app_state::AppState, server_middleware};
+use super::{
+    config::{
+        Config, HeaderConfig, HeaderId, JsonpathMatchingPattern, PathConfig, UrlPath, VerboseConfig,
+    },
+    types::BoxBody,
+};
 
 /// entry point of http requests handler service
 pub async fn handle(
     req: Request<Incoming>,
-    app_state: Arc<Mutex<Config>>,
+    app_state: Arc<Mutex<AppState>>,
 ) -> Result<Response<BoxBody>, Error> {
-    let config = { app_state.lock().await.clone() };
-
     let (parts, body) = req.into_parts();
+    let request_uri_path = uri_path(parts.uri.path());
 
-    let path = uri_path(parts.uri.path());
-
-    if let Some(x) = handle_always(&config.always) {
-        log(path, &parts, None, config.verbose.clone());
-
-        response_wait(config.response_wait_millis).await;
-        return Ok(x.unwrap());
-    }
-
-    {
-        let mut config = { app_state.lock().await };
-        if let Some(x) = handle_data_dir_query_path(&mut config, path) {
-            log(path, &parts, None, config.verbose.clone());
-            log::info!(" * [url.data_dir] updated.\n");
-            config.print_paths();
-            log::info!("");
-
-            return x;
-        }
-    }
-
+    // todo: old code to remove:
+    // let body_bytes = hyper::body::to_bytes(request_body).await.unwrap();
+    // Bytes::copy_to_bytes(request_body).await.unwrap();
     let request_body_bytes = body
         .boxed()
         .collect()
         .await
         .expect("failed to collect request incoming body")
         .to_bytes();
+    let request_body_json_value: Option<Value> = if 0 < request_body_bytes.len() {
+        serde_json::from_slice(&request_body_bytes)
+            .expect("failed to get json value from request body")
+    } else {
+        None
+    };
 
-    log(path, &parts, Some(&request_body_bytes), config.verbose);
+    let shared_app_state = { app_state.lock().await.clone() };
 
+    // middleware if activated
+    if let Some(middleware) = shared_app_state.middleware {
+        let middleware_response_json_filepath = server_middleware::handle(
+            request_uri_path.as_str(),
+            request_body_json_value.as_ref(),
+            &middleware.engine,
+            &middleware.ast,
+        );
+        if let Some(middleware_response_json_filepath) = middleware_response_json_filepath {
+            log(
+                request_uri_path.as_str(),
+                &parts,
+                request_body_json_value.as_ref(),
+                shared_app_state.config.verbose,
+            );
+
+            return match std::fs::read_to_string(middleware_response_json_filepath) {
+                Ok(content) => match json5::from_str::<Value>(&content) {
+                    Ok(json) => {
+                        let body = json.to_string();
+                        json_response_base(&None, &None)
+                            .status(StatusCode::OK)
+                            .body(Full::new(Bytes::from(body)).boxed())
+                    }
+                    _ => bad_request_response("Invalid json content"),
+                },
+                _ => not_found_response(),
+            };
+        }
+    }
+
+    // app handle driven by config
+    let config = shared_app_state.config;
+
+    // fixed response with `always` in config
+    if let Some(x) = handle_always(&config.always) {
+        log(
+            request_uri_path.as_str(),
+            &parts,
+            None,
+            config.verbose.clone(),
+        );
+
+        response_wait(config.response_wait_millis).await;
+        return Ok(x.unwrap());
+    }
+
+    // config update
+    {
+        let mut shared_app_state = { app_state.lock().await.clone() };
+        let mut config = shared_app_state.config;
+
+        if let Some(x) = handle_data_dir_query_path(&config, request_uri_path.as_str()) {
+            let res = if !x.is_empty() {
+                let old_data_dir = config.data_dir.clone().unwrap();
+                let data_dir = x.strip_prefix("/").unwrap();
+
+                config.data_dir = Some(data_dir.to_owned());
+                config.update_paths(data_dir, old_data_dir.as_str());
+                shared_app_state.config = config.clone();
+
+                plain_text_response(data_dir)
+            } else {
+                plain_text_response(config.data_dir.clone().unwrap().as_str())
+            };
+
+            log(
+                request_uri_path.as_str(),
+                &parts,
+                None,
+                config.verbose.clone(),
+            );
+            log::info!(" * [url.data_dir] updated.\n");
+            config.print_paths();
+            log::info!("");
+
+            return res;
+        }
+    }
+
+    log(
+        request_uri_path.as_str(),
+        &parts,
+        request_body_json_value.as_ref(),
+        config.verbose,
+    );
+
+    // wait to mimic real world server behavior
     response_wait(config.response_wait_millis).await;
 
+    // response with static paths routing
     if let Some(paths) = &config.paths {
         if let Some(x) = handle_static_path(
-            path,
-            &request_body_bytes,
+            request_uri_path.as_str(),
+            request_body_json_value.as_ref(),
             paths,
             &config.paths_jsonpath_patterns,
             &config.headers,
@@ -83,8 +160,10 @@ pub async fn handle(
             return x;
         }
     }
+
+    // response with dynamic paths routing
     if let Some(dyn_data_dir) = &config.dyn_data_dir.clone() {
-        handle_dyn_path(path, dyn_data_dir.as_str())
+        handle_dyn_path(request_uri_path.as_str(), dyn_data_dir.as_str())
     } else {
         not_found_response()
     }
@@ -92,9 +171,9 @@ pub async fn handle(
 
 /// print out logs
 fn log(
-    path: &str,
+    request_uri_path: &str,
     request_header: &Parts,
-    request_body_bytes: Option<&Bytes>,
+    request_body_json_value: Option<&Value>,
     verbose: VerboseConfig,
 ) {
     let now = SystemTime::now()
@@ -109,7 +188,7 @@ fn log(
     // uri and timestamp (base)
     let mut printed = format!(
         "<- {} (request got at {} UTC)",
-        style(path).yellow(),
+        style(request_uri_path).yellow(),
         timestamp
     );
 
@@ -130,16 +209,13 @@ fn log(
         printed = format!("{}{}", printed, style(printed_headers).magenta());
     }
     // body (json params)
-    let is_verbose_body = verbose.body && request_body_bytes.is_some();
-    if is_verbose_body {
-        let mut body_str = String::from_utf8(request_body_bytes.unwrap().to_vec())
-            .expect("request body is not string");
-        if let Ok(parsed_json) = from_str::<Value>(body_str.as_str()) {
-            if let Ok(prettified) = to_string_pretty(&parsed_json) {
-                body_str = prettified;
-            }
+    let mut is_verbose_body = false;
+    if verbose.body {
+        if let Some(request_body_json_value) = request_body_json_value {
+            let body_str = request_body_json_value.to_string();
+            printed = format!("{}\n{}", printed, style(body_str).green());
+            is_verbose_body = true;
         }
-        printed = format!("{}\n{}", printed, style(body_str).green());
     }
     if verbose.header || is_verbose_body {
         printed.push_str("\n");
@@ -166,33 +242,19 @@ fn handle_always(always: &Option<String>) -> Option<Result<Response<BoxBody>, Er
 }
 
 /// handle on `data_dir_query_path` config
-fn handle_data_dir_query_path(
-    config: &mut MutexGuard<Config>,
-    path: &str,
-) -> Option<Result<Response<BoxBody>, Error>> {
-    if path == "" || config.data_dir_query_path.is_none() {
+fn handle_data_dir_query_path(config: &Config, request_uri_path: &str) -> Option<String> {
+    if request_uri_path == "" || config.data_dir_query_path.is_none() {
         return None;
     }
 
     let data_dir_query_path = config.data_dir_query_path.clone().unwrap();
 
-    let stripped = path
+    let stripped = request_uri_path
         .strip_prefix("/")
         .unwrap()
         .strip_prefix(data_dir_query_path.as_str());
     match stripped {
-        Some("") => {
-            return Some(plain_text_response(
-                config.data_dir.clone().unwrap().as_str(),
-            ))
-        }
-        Some(stripped) => {
-            let old_data_dir = config.data_dir.clone().unwrap();
-            let data_dir = stripped.strip_prefix("/").unwrap();
-            config.data_dir = Some(data_dir.to_owned());
-            config.update_paths(data_dir, old_data_dir.as_str());
-            return Some(plain_text_response(data_dir));
-        }
+        Some(x) => return Some(x.to_owned()),
         None => return None,
     }
 }
@@ -200,36 +262,41 @@ fn handle_data_dir_query_path(
 /// format uri path
 ///
 /// omit leading slash
-fn uri_path(uri_path: &str) -> &str {
+fn uri_path(uri_path: &str) -> String {
     if uri_path.chars().filter(|&c| c == '/').count() == 1 {
-        uri_path
+        uri_path.to_owned()
     } else if uri_path.ends_with("/") {
-        &uri_path[..uri_path.len() - 1]
+        uri_path[..uri_path.len() - 1].to_owned()
     } else {
-        uri_path
+        uri_path.to_owned()
     }
 }
 
 /// handle on `data_dir` paths (static json responses)
 async fn handle_static_path(
-    path: &str,
-    request_body_bytes: &Bytes,
+    request_uri_path: &str,
+    request_body_json_value: Option<&Value>,
     path_configs: &HashMap<UrlPath, PathConfig>,
     paths_jsonpath_patterns: &Option<
         HashMap<String, HashMap<String, Vec<JsonpathMatchingPattern>>>,
     >,
     headers: &Option<HashMap<HeaderId, HeaderConfig>>,
 ) -> Option<Result<Response<BoxBody>, Error>> {
-    let path_config_hashmap = path_configs.iter().find(|(key, _)| key.as_str() == path);
+    let path_config_hashmap = path_configs
+        .iter()
+        .find(|(key, _)| key.as_str() == request_uri_path);
     if let Some(path_config_hashmap) = path_config_hashmap {
         let mut path_config = path_config_hashmap.1.clone();
-        match_jsonpath_patterns(
-            &mut path_config,
-            path,
-            request_body_bytes,
-            paths_jsonpath_patterns,
-        )
-        .await;
+
+        if let Some(request_body_json_value) = request_body_json_value {
+            match_jsonpath_patterns(
+                &mut path_config,
+                request_uri_path,
+                request_body_json_value,
+                paths_jsonpath_patterns,
+            )
+            .await;
+        }
 
         response_wait(path_config.response_wait_more_millis).await;
 
@@ -243,39 +310,35 @@ async fn handle_static_path(
 /// update path config if matcher finds pair
 async fn match_jsonpath_patterns(
     path_config: &mut PathConfig,
-    path: &str,
-    request_body_bytes: &Bytes,
+    request_uri_path: &str,
+    request_body_json_value: &Value,
     paths_jsonpath_patterns: &Option<
         HashMap<String, HashMap<String, Vec<JsonpathMatchingPattern>>>,
     >,
 ) {
     if let Some(paths_jsonpath_patterns) = paths_jsonpath_patterns {
-        if let Some(key) = paths_jsonpath_patterns.keys().find(|x| x.as_str() == path) {
-            // let body_bytes = hyper::body::to_bytes(request_body).await.unwrap();
-            // Bytes::copy_to_bytes(request_body).await.unwrap();
-            if 0 < request_body_bytes.len() {
-                let json_value: Value = serde_json::from_slice(request_body_bytes)
-                    .expect("failed to get json value from request body");
-
-                let jsonpath_patterns = paths_jsonpath_patterns.get(key).unwrap();
-                for jsonpath in jsonpath_patterns.keys() {
-                    if let Some(value) = jsonpath_value(&json_value, jsonpath) {
-                        let request_json_value = match value {
-                            Value::String(x) => x,
-                            Value::Number(x) => x.to_string(),
-                            _ => {
-                                continue;
-                            }
-                        };
-                        let patterns = jsonpath_patterns.get(jsonpath).unwrap();
-                        if let Some(matched) = patterns
-                            .iter()
-                            .find(|x| x.value.as_str() == request_json_value.as_str())
-                        {
-                            // first matched only
-                            path_config.data_src = Some(matched.data_src.to_owned());
-                            break;
+        if let Some(key) = paths_jsonpath_patterns
+            .keys()
+            .find(|x| x.as_str() == request_uri_path)
+        {
+            let jsonpath_patterns = paths_jsonpath_patterns.get(key).unwrap();
+            for jsonpath in jsonpath_patterns.keys() {
+                if let Some(value) = jsonpath_value(request_body_json_value, jsonpath) {
+                    let request_json_value = match value {
+                        Value::String(x) => x,
+                        Value::Number(x) => x.to_string(),
+                        _ => {
+                            continue;
                         }
+                    };
+                    let patterns = jsonpath_patterns.get(jsonpath).unwrap();
+                    if let Some(matched) = patterns
+                        .iter()
+                        .find(|x| x.value.as_str() == request_json_value.as_str())
+                    {
+                        // first matched only
+                        path_config.data_src = Some(matched.data_src.to_owned());
+                        break;
                     }
                 }
             }
@@ -323,8 +386,8 @@ fn static_path_data_src_reponse(
 }
 
 /// handle on `dyn_data_dir` (dynamic json responses)
-fn handle_dyn_path(path: &str, dyn_data_dir: &str) -> Result<Response<BoxBody>, Error> {
-    let p = Path::new(dyn_data_dir).join(path.strip_prefix("/").unwrap_or_default());
+fn handle_dyn_path(request_uri_path: &str, dyn_data_dir: &str) -> Result<Response<BoxBody>, Error> {
+    let p = Path::new(dyn_data_dir).join(request_uri_path.strip_prefix("/").unwrap_or_default());
 
     let dir = p.parent().unwrap();
     if !Path::new(dir).exists() {

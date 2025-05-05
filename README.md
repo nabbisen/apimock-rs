@@ -24,6 +24,10 @@ Server started to listen:
 
 ![server responds](docs/.assets/demo-02.png)
 
+Middleware is available as `rhai` script:
+
+![server responds](docs/.assets/demo-03.png)
+
 ## Features
 
 ### 1. Basic
@@ -37,21 +41,25 @@ Server started to listen:
 
 - Custom HTTP response codes: 3xx as redirects, and 4xx and 5xx as errors
 - Custom response [headers](docs/CONFIGURE.md#urlheaders) which are reusable
-- Flexible responses with patterns and jsonpath queries. Even with the same API URL path, multiple responses can be returned. See [`url.paths_patterns`](docs/CONFIGURE.md#urlpaths_patterns)
 - Can specify response time on all or each API path
+- [Middleware](docs/CONFIGURE.md#middleware) as [`rhai`](https://github.com/rhaiscript/rhai) script (ref: [Rhai book](https://rhai.rs/book/language/statements.html) (Statements chapter)) is available to customize request routing and response handling
 
 ### 3. Dynamic processing
 
-- Can [switch data directory paths](docs/CONFIGURE.md#urldata_dir_query_path) manually in testing via specific HTTP request to make json responses flexible
+- Flexible responses with patterns and jsonpath queries. Even with the same API URL path, multiple responses can be returned. See [`url.paths_patterns`](docs/CONFIGURE.md#urlpaths_patterns)
 - Dynamic path resolution with [`dyn_data_dir`](docs/CONFIGURE.md#generaldyn_data_dir)
 
-### 4. Usability
+### 4. Safe and observable usage
 
 - Validates configuration: Missing JSON files, duplicate paths etc.
 - Prints out routing at startup
 - Describes request content on both HTTP headers and body (json or plain text) when [`verbose`](docs/CONFIGURE.md#generalverbose) log is activated
 
-### 5. spawn feature
+### 5. Test helper
+
+- Can [switch data directory paths](docs/CONFIGURE.md#urldata_dir_query_path) manually in testing via specific HTTP request to make json responses flexible
+
+### 6. spawn feature
 
 - With `spawn` feature activated, the server is available as subprocess. The output will be returned via tokio mpsc queue.
 

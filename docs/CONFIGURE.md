@@ -5,9 +5,11 @@
 `apimock.toml`
 
 ```toml
-[general]
+[listener]
 address = "127.0.0.1"
 port = 3001
+
+[general]
 dyn_data_dir = "apimock-dyn-data"
 # always = "{ greetings: \"Hello, world.\" }"
 response_wait = 100
@@ -47,13 +49,13 @@ redirect_1 = { key = "Location", value = "/api/v1/home" }
 
 ### Properties
 
-#### `general.address`
+#### `listener.address`
 
 IP Address listened to by server.
 
 **Default**: "127.0.0.1"
 
-#### `general.port`
+#### `listener.port`
 
 Port listened to by server.
 
@@ -181,3 +183,55 @@ Not affected by `url.path_prefix`. Everything else is the same to `url.paths`.
 
 Config file path.
 default: `apimock.toml`
+
+### `-p` / `--port`
+
+Listener port to overwrite config.
+default: see: [listener.port](#listenerport)
+
+### `--middleware`
+
+Middleware file path.
+default: `middleware.rhai`
+
+## Middleware
+
+### Pre-defined variables available in `.rhai`
+
+- `uri_path`: Request URI path.
+- `body`: Request Body JSON value defined only when exists.
+
+### Request routing
+
+#### URI path
+
+```js
+// print(uri_path); // debug
+if uri_path == "/middleware-test" { ... }
+```
+
+#### Body
+
+```js
+if is_def_var("body") {
+    // print(body); // debug
+    // matches on json value dealed with as map
+    if body.middleware == "isHere" { ... }
+    // alternatively, case matching is available. if guard may be combined with
+    switch (uri_path) {
+        "/middleware-test/dummy" if body.middleware == "isHere" => { ... },
+        _ => ()
+    }
+```
+
+### Response handling
+
+Specify JSON file path.
+
+```js
+// return to middleware caller:
+return "some/path/response.json";
+// alternative statements:
+let ret = "some/path/response.json";
+exit(ret);
+```

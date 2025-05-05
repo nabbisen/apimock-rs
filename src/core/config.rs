@@ -1,10 +1,14 @@
+use crate::{
+    CONFIG_FILEPATH_OPTION_NAMES, CONFIG_LISTENER_PORT_OPTION_NAMES, DEFAULT_CONFIG_FILENAME,
+};
+
 use super::constant::config::*;
+use super::util::args_option_value;
 use console::style;
 use hyper::http::StatusCode;
 use json5;
 use serde_json;
 use std::collections::HashMap;
-use std::env;
 use std::fs;
 use std::path::Path;
 use toml;
@@ -15,9 +19,10 @@ pub type HeaderId = String;
 /// app config
 #[derive(Clone, Default)]
 pub struct Config {
-    // [general]
+    // [listener]
     pub ip_address: String,
     pub port: u16,
+    // [general]
     pub dyn_data_dir: Option<String>,
     pub always: Option<String>,
     pub response_wait_millis: u64,
@@ -30,7 +35,7 @@ pub struct Config {
     pub paths: Option<HashMap<UrlPath, PathConfig>>,
     pub paths_jsonpath_patterns:
         Option<HashMap<String, HashMap<String, Vec<JsonpathMatchingPattern>>>>,
-    config_path: Option<String>,
+    config_filepath: Option<String>,
 }
 
 /// verbose logs
@@ -66,29 +71,29 @@ pub struct JsonpathMatchingPattern {
 /// app config
 impl Config {
     /// create new instance
-    pub fn new(config_path: &str) -> Config {
-        if !config_path.is_empty() && !Path::new(config_path).exists() {
+    pub fn new(config_filepath: &str) -> Config {
+        if !config_filepath.is_empty() && !Path::new(config_filepath).exists() {
             panic!(
                 "config file was specified but didn't exist: {}",
-                config_path
+                config_filepath
             );
         }
 
-        let exists_default_config = Path::new(CONFIG_FILENAME).exists();
-        let config_path = if config_path.is_empty() && exists_default_config {
-            CONFIG_FILENAME
+        let exists_default_config = Path::new(DEFAULT_CONFIG_FILENAME).exists();
+        let config_filepath = if config_filepath.is_empty() && exists_default_config {
+            DEFAULT_CONFIG_FILENAME
         } else {
-            config_path
+            config_filepath
         };
 
         let mut config = Self::default_config();
 
-        if config_path.is_empty() && !exists_default_config {
+        if config_filepath.is_empty() && !exists_default_config {
             if !Path::new(DEFAULT_DYN_DATA_DIR).exists() {
                 config.always = Some(ALWAYS_DEFAULT_MESSAGES.to_owned());
                 log::warn!(
                     "Both `{}` file and `{}/` directory are missing\n`always` option is activated\n",
-                    CONFIG_FILENAME, DEFAULT_DYN_DATA_DIR
+                    DEFAULT_CONFIG_FILENAME, DEFAULT_DYN_DATA_DIR
                 );
                 config.print();
                 return config;
@@ -96,20 +101,23 @@ impl Config {
                 config.dyn_data_dir = Some(DEFAULT_DYN_DATA_DIR.to_owned());
                 log::warn!(
                     "{}: config file is missing (config-less mode)\n",
-                    config_path
+                    config_filepath
                 );
                 config.print();
                 return config;
             }
         }
-        log::info!("[config] {}\n", config_path);
+        log::info!("[config] {}\n", config_filepath);
 
-        config.config_path = Some(config_path.to_owned());
+        config.config_filepath = Some(config_filepath.to_owned());
 
-        let toml_string = fs::read_to_string(config_path).unwrap();
+        let toml_string = fs::read_to_string(config_filepath).unwrap();
         let toml_content: toml::Value = toml::from_str(&toml_string)
-            .expect(format!("{}: Invalid toml content", config_path).as_str());
+            .expect(format!("{}: Invalid toml content", config_filepath).as_str());
 
+        if let Some(listener_config_content) = toml_content.get(CONFIG_SECTION_LISTENER) {
+            config.listener_config(&listener_config_content);
+        }
         if let Some(general_config_content) = toml_content.get(CONFIG_SECTION_GENERAL) {
             config.general_config(&general_config_content);
         }
@@ -124,7 +132,7 @@ impl Config {
     }
 
     /// address listened to
-    pub fn listen_address(&self) -> String {
+    pub fn listener_address(&self) -> String {
         format!("{}:{}", self.ip_address, self.port)
     }
 
@@ -274,15 +282,15 @@ impl Config {
         if let Some(data_dir_query_path) = &self.data_dir_query_path {
             log::info!(
                 "[data_dir_query_url] http://{}/{}",
-                &self.listen_address(),
+                &self.listener_address(),
                 data_dir_query_path
             );
         }
         if let Some(path_prefix) = &self.path_prefix {
             log::info!("[path_prefix] {}", path_prefix);
         }
-        if let Some(headers) = &self.headers {
-            if 0 < headers.len() {
+        let _ = match &self.headers {
+            Some(headers) if 0 < headers.len() => {
                 log::info!("------");
                 let mut keys: Vec<_> = headers.keys().collect();
                 keys.sort();
@@ -299,14 +307,16 @@ impl Config {
                     );
                 }
             }
-        }
-        if let Some(paths) = &self.paths {
-            if 0 < paths.len() {
+            _ => (),
+        };
+        let _ = match &self.paths {
+            Some(paths) if 0 < paths.len() => {
                 log::info!("------");
                 self.print_paths();
                 log::info!("------");
             }
-        }
+            _ => (),
+        };
         if let Some(dyn_data_dir) = &self.dyn_data_dir {
             log::info!("[dyn_data_dir] {}", style(dyn_data_dir).green());
         }
@@ -315,23 +325,23 @@ impl Config {
     /// app config default
     fn default_config() -> Config {
         let mut config = Config::default();
-        config.port = DEFAULT_LISTEN_PORT;
-        config.ip_address = DEFAULT_LISTEN_IP_ADDRESS.to_owned();
+        config.port = DEFAULT_LISTENER_PORT;
+        config.ip_address = DEFAULT_LISTENER_IP_ADDRESS.to_owned();
         config.response_wait_millis = 0;
         config
     }
 
-    /// [general] section
-    fn general_config(&mut self, general_config_content: &toml::Value) {
-        let general_config = general_config_content.as_table().expect(
+    /// [listener] section
+    fn listener_config(&mut self, listener_config_content: &toml::Value) {
+        let listener_config = listener_config_content.as_table().expect(
             format!(
                 "{}: Invalid [{}] section",
-                &self.config_path.clone().unwrap(),
+                &self.config_filepath.clone().unwrap(),
                 CONFIG_SECTION_GENERAL
             )
             .as_str(),
         );
-        for (key, value) in general_config {
+        for (key, value) in listener_config {
             match key.as_str() {
                 "ip_address" => match value.as_str() {
                     Some(ip_address) => self.ip_address = ip_address.to_owned(),
@@ -343,6 +353,23 @@ impl Config {
                     }
                     _ => (),
                 },
+                _ => (),
+            }
+        }
+    }
+
+    /// [general] section
+    fn general_config(&mut self, general_config_content: &toml::Value) {
+        let general_config = general_config_content.as_table().expect(
+            format!(
+                "{}: Invalid [{}] section",
+                &self.config_filepath.clone().unwrap(),
+                CONFIG_SECTION_GENERAL
+            )
+            .as_str(),
+        );
+        for (key, value) in general_config {
+            match key.as_str() {
                 "dyn_data_dir" => match value.as_str() {
                     Some(dyn_data_dir) => self.dyn_data_dir = Some(dyn_data_dir.to_owned()),
                     _ => (),
@@ -352,7 +379,7 @@ impl Config {
                         let _ = json5::from_str::<serde_json::Value>(&always).expect(
                             format!(
                                 "{}: Invalid `always` value",
-                                &self.config_path.clone().unwrap()
+                                &self.config_filepath.clone().unwrap()
                             )
                             .as_str(),
                         );
@@ -403,7 +430,7 @@ impl Config {
         let url_config = url_config_content.as_table().expect(
             format!(
                 "{}: Invalid [{}] section",
-                &self.config_path.clone().unwrap(),
+                &self.config_filepath.clone().unwrap(),
                 CONFIG_SECTION_URL
             )
             .as_str(),
@@ -449,7 +476,7 @@ impl Config {
         let table = headers_config_content.as_table().expect(
             format!(
                 "{}: Invalid [{}] section",
-                &self.config_path.clone().unwrap(),
+                &self.config_filepath.clone().unwrap(),
                 CONFIG_SECTION_URL_HEADERS
             )
             .as_str(),
@@ -676,11 +703,12 @@ impl Config {
             panic!("paths not defined");
         }
 
-        if let Some(data_dir_query_path) = self.data_dir_query_path.clone() {
-            if data_dir_query_path == "" {
+        let _ = match self.data_dir_query_path.clone() {
+            Some(data_dir_query_path) if data_dir_query_path == "" => {
                 panic!("data_dir_query_path is set but empty");
             }
-        }
+            _ => (),
+        };
 
         if let Some(paths) = &self.paths {
             for (path, path_config) in paths {
@@ -723,22 +751,22 @@ fn data_src_path(file: &str, data_dir: &Option<String>) -> String {
     path
 }
 
-/// app config path
+/// app config file path
 ///
-/// - if specified with command-line option, use it
-/// - else use the default
-pub fn config_path() -> String {
-    let args: Vec<String> = env::args().collect();
+/// - if specified in arguments, use it
+/// - else use the default (in Config::new())
+pub fn config_filepath() -> String {
+    args_option_value(&CONFIG_FILEPATH_OPTION_NAMES.to_vec())
+}
 
-    let config_option_entry = args
-        .iter()
-        .position(|arg| arg.as_str().eq("-c") || arg.as_str().eq("--config"));
-    let config_path = match config_option_entry {
-        Some(config_option_entry) => match args.get(config_option_entry + 1) {
-            Some(config_option) => config_option,
-            _ => "",
-        },
-        _ => "",
-    };
-    config_path.to_owned()
+/// app listener port
+///
+/// - if specified in arguments, use it
+/// - else use the default (in Config::new())
+pub fn config_listener_port() -> Option<u16> {
+    let option_value = args_option_value(&CONFIG_LISTENER_PORT_OPTION_NAMES.to_vec());
+    match option_value.parse::<u16>() {
+        Ok(v) => Some(v),
+        Err(_) => None,
+    }
 }
