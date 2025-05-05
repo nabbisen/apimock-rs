@@ -32,7 +32,7 @@ pub struct App {
 impl App {
     /// create new app
     ///
-    /// - listener_port_to_overwrite: ignores port in config toml. used in tests
+    /// - listener_port_to_overwrite: ignores port in config toml. used in both arguments and tests
     pub async fn new(
         config_filepath: &str,
         listener_port_to_overwrite: Option<u16>,

@@ -7,14 +7,26 @@ pub mod core;
 use core::app::App;
 
 const CONFIG_FILEPATH_OPTION_NAMES: [&str; 2] = ["-c", "--config"];
+const CONFIG_LISTENER_PORT_OPTION_NAMES: [&str; 2] = ["-p", "--port"];
 const MIDDLEWARE_FILEPATH_OPTION_NAMES: [&str; 1] = ["--middleware"];
 const DEFAULT_CONFIG_FILENAME: &str = "apimock.toml";
 const DEFAULT_MIDDLEWARE_FILEPATH: &str = "./middleware.rhai";
 
 /// return hyper http server
 #[cfg(not(feature = "spawn"))]
-pub async fn server(config_filepath: &str, middleware_filepath: Option<String>) -> App {
-    App::new(config_filepath, None, middleware_filepath, None, true).await
+pub async fn server(
+    config_filepath: &str,
+    listener_port: Option<u16>,
+    middleware_filepath: Option<String>,
+) -> App {
+    App::new(
+        config_filepath,
+        listener_port,
+        middleware_filepath,
+        None,
+        true,
+    )
+    .await
 }
 
 #[cfg(feature = "spawn")]

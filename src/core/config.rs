@@ -1,4 +1,6 @@
-use crate::{CONFIG_FILEPATH_OPTION_NAMES, DEFAULT_CONFIG_FILENAME};
+use crate::{
+    CONFIG_FILEPATH_OPTION_NAMES, CONFIG_LISTENER_PORT_OPTION_NAMES, DEFAULT_CONFIG_FILENAME,
+};
 
 use super::constant::config::*;
 use super::util::args_option_value;
@@ -752,7 +754,19 @@ fn data_src_path(file: &str, data_dir: &Option<String>) -> String {
 /// app config file path
 ///
 /// - if specified in arguments, use it
-/// - else use the default
+/// - else use the default (in Config::new())
 pub fn config_filepath() -> String {
     args_option_value(&CONFIG_FILEPATH_OPTION_NAMES.to_vec())
+}
+
+/// app listener port
+///
+/// - if specified in arguments, use it
+/// - else use the default (in Config::new())
+pub fn config_listener_port() -> Option<u16> {
+    let option_value = args_option_value(&CONFIG_LISTENER_PORT_OPTION_NAMES.to_vec());
+    match option_value.parse::<u16>() {
+        Ok(v) => Some(v),
+        Err(_) => None,
+    }
 }
