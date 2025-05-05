@@ -189,7 +189,7 @@ async fn setup(config_file: &str) {
 async fn http_response(uri_path: &str, body: Option<&str>) -> Response<Incoming> {
     let uri: Uri = Uri::builder()
         .scheme("http")
-        .authority("127.0.0.1".to_string() + ":" + &DEFAULT_LISTEN_PORT.to_string())
+        .authority(format!("127.0.0.1:{}", &DEFAULT_LISTEN_PORT.to_string()))
         .path_and_query(uri_path)
         .build()
         .unwrap();
