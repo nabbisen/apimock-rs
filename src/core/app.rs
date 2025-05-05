@@ -30,15 +30,22 @@ pub struct App {
 
 impl App {
     /// create new app
+    ///
+    /// - listener_port_to_overwrite: ignores port in config toml. used in tests
     pub async fn new(
         config_filepath: &str,
+        listener_port_to_overwrite: Option<u16>,
         middleware_filepath: Option<String>,
         spawn_tx: Option<Sender<String>>,
         includes_ansi_codes: bool,
     ) -> Self {
         let _ = init_logger(spawn_tx, includes_ansi_codes);
 
-        let config = Config::new(&config_filepath);
+        let mut config = Config::new(&config_filepath);
+
+        if let Some(port) = listener_port_to_overwrite {
+            config.port = port;
+        }
 
         let addr = config
             .listen_address()

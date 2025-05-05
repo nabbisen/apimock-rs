@@ -1,4 +1,4 @@
-use apimock::{core::app::App, core::constant::config::DEFAULT_LISTEN_PORT};
+use apimock::core::app::App;
 
 use http_body_util::{BodyExt, Empty, Full};
 use hyper::{
@@ -6,19 +6,19 @@ use hyper::{
     Request, Response, StatusCode, Uri,
 };
 use hyper_util::rt::TokioIo;
+use rand::Rng;
 use std::{env, path::Path};
 use tokio::net::TcpStream;
 
 // todo: config -> default or something ?
 const TEST_WORKDIR: &str = "examples/config";
 const CONFIG_FILEPATH: &str = "apimock.toml";
-// todo:
 const MIDDLEWARE_FILEPATH: &str = "middleware.rhai";
 
 #[tokio::test]
 async fn uri_root_as_empty() {
-    setup().await;
-    let response = http_response("", None).await;
+    let port = setup().await;
+    let response = http_response("", None, port).await;
 
     assert_eq!(response.status(), StatusCode::OK);
     let body_str = response_body_str(response).await;
@@ -27,8 +27,8 @@ async fn uri_root_as_empty() {
 
 #[tokio::test]
 async fn uri_root() {
-    setup().await;
-    let response = http_response("/", None).await;
+    let port = setup().await;
+    let response = http_response("/", None, port).await;
 
     assert_eq!(response.status(), StatusCode::OK);
     let body_str = response_body_str(response).await;
@@ -37,24 +37,24 @@ async fn uri_root() {
 
 #[tokio::test]
 async fn api_root_as_empty() {
-    setup().await;
-    let response = http_response("/api/v1", None).await;
+    let port = setup().await;
+    let response = http_response("/api/v1", None, port).await;
 
     assert_eq!(response.status(), StatusCode::NOT_FOUND);
 }
 
 #[tokio::test]
 async fn api_root() {
-    setup().await;
-    let response = http_response("/api/v1/", None).await;
+    let port = setup().await;
+    let response = http_response("/api/v1/", None, port).await;
 
     assert_eq!(response.status(), StatusCode::NOT_FOUND);
 }
 
 #[tokio::test]
 async fn api_home() {
-    setup().await;
-    let response = http_response("/api/v1/home", None).await;
+    let port = setup().await;
+    let response = http_response("/api/v1/home", None, port).await;
 
     assert_eq!(response.status(), StatusCode::OK);
 
@@ -64,9 +64,9 @@ async fn api_home() {
 
 #[tokio::test]
 async fn matcher_object_1() {
-    setup().await;
+    let port = setup().await;
     let body = "{\"a\":{\"b\":{\"c\":\"1\"}}}";
-    let response = http_response("/api/v1/some/path/w/matcher", Some(body)).await;
+    let response = http_response("/api/v1/some/path/w/matcher", Some(body), port).await;
 
     assert_eq!(response.status(), StatusCode::OK);
 
@@ -76,9 +76,9 @@ async fn matcher_object_1() {
 
 #[tokio::test]
 async fn matcher_object_2() {
-    setup().await;
+    let port = setup().await;
     let body = "{\"a\":{\"b\":{\"c\":\"0\"}}}";
-    let response = http_response("/api/v1/some/path/w/matcher", Some(body)).await;
+    let response = http_response("/api/v1/some/path/w/matcher", Some(body), port).await;
 
     assert_eq!(response.status(), StatusCode::OK);
 
@@ -88,9 +88,9 @@ async fn matcher_object_2() {
 
 #[tokio::test]
 async fn matcher_object_3() {
-    setup().await;
+    let port = setup().await;
     let body = "{\"a\":{\"b\":{\"c\":\"1\", \"d\": 0}}}";
-    let response = http_response("/api/v1/some/path/w/matcher", Some(body)).await;
+    let response = http_response("/api/v1/some/path/w/matcher", Some(body), port).await;
 
     assert_eq!(response.status(), StatusCode::OK);
 
@@ -100,9 +100,9 @@ async fn matcher_object_3() {
 
 #[tokio::test]
 async fn matcher_data_type_insensitiveness() {
-    setup().await;
+    let port = setup().await;
     let body = "{\"a\":{\"b\":{\"c\":1}}}";
-    let response = http_response("/api/v1/some/path/w/matcher", Some(body)).await;
+    let response = http_response("/api/v1/some/path/w/matcher", Some(body), port).await;
 
     assert_eq!(response.status(), StatusCode::OK);
 
@@ -112,9 +112,9 @@ async fn matcher_data_type_insensitiveness() {
 
 #[tokio::test]
 async fn matcher_object_missing() {
-    setup().await;
+    let port = setup().await;
     let body = "{\"a\":{\"b\":{\"c\":\"2\"}}}";
-    let response = http_response("/api/v1/some/path/w/matcher", Some(body)).await;
+    let response = http_response("/api/v1/some/path/w/matcher", Some(body), port).await;
 
     assert_eq!(response.status(), StatusCode::OK);
 
@@ -124,9 +124,9 @@ async fn matcher_object_missing() {
 
 #[tokio::test]
 async fn matcher_array() {
-    setup().await;
+    let port = setup().await;
     let body = "{\"d\":[{},{},{\"e\":\"x=\"}]}";
-    let response = http_response("/api/v1/some/path/w/matcher", Some(body)).await;
+    let response = http_response("/api/v1/some/path/w/matcher", Some(body), port).await;
 
     assert_eq!(response.status(), StatusCode::OK);
 
@@ -136,9 +136,9 @@ async fn matcher_array() {
 
 #[tokio::test]
 async fn matcher_array_missing() {
-    setup().await;
+    let port = setup().await;
     let body = "{\"d\":[{\"e\":\"x=\"}]}";
-    let response = http_response("/api/v1/some/path/w/matcher", Some(body)).await;
+    let response = http_response("/api/v1/some/path/w/matcher", Some(body), port).await;
 
     assert_eq!(response.status(), StatusCode::OK);
 
@@ -148,9 +148,9 @@ async fn matcher_array_missing() {
 
 #[tokio::test]
 async fn matcher_empty_value() {
-    setup().await;
+    let port = setup().await;
     let body = "{\"f\":\"\"}";
-    let response = http_response("/api/v1/some/path/w/matcher", Some(body)).await;
+    let response = http_response("/api/v1/some/path/w/matcher", Some(body), port).await;
 
     assert_eq!(response.status(), StatusCode::OK);
 
@@ -160,23 +160,25 @@ async fn matcher_empty_value() {
 
 #[tokio::test]
 async fn error401() {
-    setup().await;
-    let response = http_response("/api/v1/error/401", None).await;
+    let port = setup().await;
+    let response = http_response("/api/v1/error/401", None, port).await;
 
     assert_eq!(response.status(), StatusCode::UNAUTHORIZED);
 }
 
 #[tokio::test]
 async fn error403() {
-    setup().await;
-    let response = http_response("/api/v1/error/api-403", None).await;
+    let port = setup().await;
+    let response = http_response("/api/v1/error/api-403", None, port).await;
 
     assert_eq!(response.status(), StatusCode::FORBIDDEN);
 }
 
 // utils
 /// test initial setup: start up mock server
-async fn setup() {
+async fn setup() -> u16 {
+    let port = dynamic_port();
+
     let _ = env::set_current_dir(TEST_WORKDIR);
 
     let config_filepath = CONFIG_FILEPATH;
@@ -188,26 +190,35 @@ async fn setup() {
     }
 
     tokio::spawn(async move {
-        let server = App::new(config_filepath, middleware_filepath, None, true).await;
+        let server = App::new(config_filepath, Some(port), middleware_filepath, None, true).await;
         server.start().await
     });
     // wait for server started
-    tokio::time::sleep(std::time::Duration::from_secs(1)).await;
+    tokio::time::sleep(std::time::Duration::from_millis(400)).await;
+
+    port
+}
+
+/// select dynamic port randomly
+fn dynamic_port() -> u16 {
+    rand::rng().random_range(49152..=65535)
 }
 
 /// get http response from mock server
-async fn http_response(uri_path: &str, body: Option<&str>) -> Response<Incoming> {
+async fn http_response(uri_path: &str, body: Option<&str>, port: u16) -> Response<Incoming> {
     let uri: Uri = Uri::builder()
         .scheme("http")
-        .authority(format!("127.0.0.1:{}", &DEFAULT_LISTEN_PORT.to_string()))
+        .authority(format!("127.0.0.1:{}", port.to_string()))
         .path_and_query(uri_path)
         .build()
         .unwrap();
 
     let host = uri.host().expect("uri has no host");
-    let port = uri.port_u16().unwrap_or(80);
+    let port = uri.port_u16().expect("some problem around port");
     let addr = format!("{}:{}", host, port);
-    let stream = TcpStream::connect(addr).await.unwrap();
+    let stream = TcpStream::connect(addr)
+        .await
+        .expect(format!("tcp connect failed with {}:{}", host, port).as_str());
     let io = TokioIo::new(stream);
 
     let (mut sender, conn) = hyper::client::conn::http1::handshake(io).await.unwrap();

@@ -14,7 +14,7 @@ const DEFAULT_MIDDLEWARE_FILEPATH: &str = "./middleware.rhai";
 /// return hyper http server
 #[cfg(not(feature = "spawn"))]
 pub async fn server(config_filepath: &str, middleware_filepath: Option<String>) -> App {
-    App::new(config_filepath, middleware_filepath, None, true).await
+    App::new(config_filepath, None, middleware_filepath, None, true).await
 }
 
 #[cfg(feature = "spawn")]
@@ -32,6 +32,7 @@ pub async fn server(
 ) -> App {
     App::new(
         config_filepath,
+        None,
         middleware_filepath,
         Some(spawn_tx),
         includes_ansi_codes,
