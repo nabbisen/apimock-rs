@@ -1,10 +1,10 @@
 use super::constant::config::*;
+use super::util::args_option_value;
 use console::style;
 use hyper::http::StatusCode;
 use json5;
 use serde_json;
 use std::collections::HashMap;
-use std::env;
 use std::fs;
 use std::path::Path;
 use toml;
@@ -728,17 +728,6 @@ fn data_src_path(file: &str, data_dir: &Option<String>) -> String {
 /// - if specified with command-line option, use it
 /// - else use the default
 pub fn config_filepath() -> String {
-    let args: Vec<String> = env::args().collect();
-
-    let config_option_entry = args
-        .iter()
-        .position(|arg| arg.as_str().eq("-c") || arg.as_str().eq("--config"));
-    let config_filepath = match config_option_entry {
-        Some(config_option_entry) => match args.get(config_option_entry + 1) {
-            Some(config_option) => config_option,
-            _ => "",
-        },
-        _ => "",
-    };
-    config_filepath.to_owned()
+    let option_names: Vec<&str> = vec!["-c", "--config"];
+    args_option_value(&option_names)
 }
