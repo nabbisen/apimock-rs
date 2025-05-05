@@ -1,4 +1,4 @@
-use crate::CONFIG_FILEPATH_OPTION_NAMES;
+use crate::{CONFIG_FILEPATH_OPTION_NAMES, DEFAULT_CONFIG_FILENAME};
 
 use super::constant::config::*;
 use super::util::args_option_value;
@@ -76,9 +76,9 @@ impl Config {
             );
         }
 
-        let exists_default_config = Path::new(CONFIG_FILENAME).exists();
+        let exists_default_config = Path::new(DEFAULT_CONFIG_FILENAME).exists();
         let config_filepath = if config_filepath.is_empty() && exists_default_config {
-            CONFIG_FILENAME
+            DEFAULT_CONFIG_FILENAME
         } else {
             config_filepath
         };
@@ -90,7 +90,7 @@ impl Config {
                 config.always = Some(ALWAYS_DEFAULT_MESSAGES.to_owned());
                 log::warn!(
                     "Both `{}` file and `{}/` directory are missing\n`always` option is activated\n",
-                    CONFIG_FILENAME, DEFAULT_DYN_DATA_DIR
+                    DEFAULT_CONFIG_FILENAME, DEFAULT_DYN_DATA_DIR
                 );
                 config.print();
                 return config;
@@ -727,7 +727,7 @@ fn data_src_path(file: &str, data_dir: &Option<String>) -> String {
 
 /// app config file path
 ///
-/// - if specified with command-line option, use it
+/// - if specified in arguments, use it
 /// - else use the default
 pub fn config_filepath() -> String {
     args_option_value(&CONFIG_FILEPATH_OPTION_NAMES.to_vec())

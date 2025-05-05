@@ -1,14 +1,14 @@
-use apimock::{core::config::config_filepath, server};
-
-// todo: treat as arg ?
-pub const MIDDLEWARE_FILEPATH: &str = "middleware.rhai";
+use apimock::{
+    core::{app_state::middleware_filepath, config::config_filepath},
+    server,
+};
 
 /// app entry point on executable
 #[tokio::main]
 async fn main() {
     let server = server(
         config_filepath().as_str(),
-        Some(MIDDLEWARE_FILEPATH.to_owned()),
+        Some(middleware_filepath().to_owned()),
     )
     .await;
     server.start().await

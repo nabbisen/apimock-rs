@@ -36,25 +36,53 @@ pub async fn handle(
     app_state: Arc<Mutex<AppState>>,
 ) -> Result<Response<BoxBody>, Error> {
     let (parts, body) = req.into_parts();
-    let path = uri_path(parts.uri.path());
+    let request_uri_path = uri_path(parts.uri.path());
 
     let shared_app_state = { app_state.lock().await.clone() };
 
+    // middleware if activated
     if let Some(middleware) = shared_app_state.middleware {
-        let middleware_response = server_middleware::handle(
-            middleware.filepath.as_str(),
+        let middleware_response_json_filepath = server_middleware::handle(
+            request_uri_path.as_str(),
             &middleware.engine,
             &middleware.ast,
         );
-        if let Some(middleware_response) = middleware_response {
-            return middleware_response;
+        if let Some(middleware_response_json_filepath) = middleware_response_json_filepath {
+            log(
+                request_uri_path.as_str(),
+                &parts,
+                None,
+                VerboseConfig {
+                    header: false,
+                    body: false,
+                },
+            );
+
+            return match std::fs::read_to_string(middleware_response_json_filepath) {
+                Ok(content) => match json5::from_str::<Value>(&content) {
+                    Ok(json) => {
+                        let body = json.to_string();
+                        json_response_base(&None, &None)
+                            .status(StatusCode::OK)
+                            .body(Full::new(Bytes::from(body)).boxed())
+                    }
+                    _ => bad_request_response("Invalid json content"),
+                },
+                _ => not_found_response(),
+            };
         }
     }
 
+    // app handle driven by config
     let config = shared_app_state.config;
 
     if let Some(x) = handle_always(&config.always) {
-        log(path.as_str(), &parts, None, config.verbose.clone());
+        log(
+            request_uri_path.as_str(),
+            &parts,
+            None,
+            config.verbose.clone(),
+        );
 
         response_wait(config.response_wait_millis).await;
         return Ok(x.unwrap());
@@ -64,7 +92,7 @@ pub async fn handle(
         let mut shared_app_state = { app_state.lock().await.clone() };
         let mut config = shared_app_state.config;
 
-        if let Some(x) = handle_data_dir_query_path(&config, path.as_str()) {
+        if let Some(x) = handle_data_dir_query_path(&config, request_uri_path.as_str()) {
             let res = if !x.is_empty() {
                 let old_data_dir = config.data_dir.clone().unwrap();
                 let data_dir = x.strip_prefix("/").unwrap();
@@ -78,7 +106,12 @@ pub async fn handle(
                 plain_text_response(config.data_dir.clone().unwrap().as_str())
             };
 
-            log(path.as_str(), &parts, None, config.verbose.clone());
+            log(
+                request_uri_path.as_str(),
+                &parts,
+                None,
+                config.verbose.clone(),
+            );
             log::info!(" * [url.data_dir] updated.\n");
             config.print_paths();
             log::info!("");
@@ -95,7 +128,7 @@ pub async fn handle(
         .to_bytes();
 
     log(
-        path.as_str(),
+        request_uri_path.as_str(),
         &parts,
         Some(&request_body_bytes),
         config.verbose,
@@ -105,7 +138,7 @@ pub async fn handle(
 
     if let Some(paths) = &config.paths {
         if let Some(x) = handle_static_path(
-            path.as_str(),
+            request_uri_path.as_str(),
             &request_body_bytes,
             paths,
             &config.paths_jsonpath_patterns,
@@ -117,7 +150,7 @@ pub async fn handle(
         }
     }
     if let Some(dyn_data_dir) = &config.dyn_data_dir.clone() {
-        handle_dyn_path(path.as_str(), dyn_data_dir.as_str())
+        handle_dyn_path(request_uri_path.as_str(), dyn_data_dir.as_str())
     } else {
         not_found_response()
     }
@@ -125,7 +158,7 @@ pub async fn handle(
 
 /// print out logs
 fn log(
-    path: &str,
+    request_uri_path: &str,
     request_header: &Parts,
     request_body_bytes: Option<&Bytes>,
     verbose: VerboseConfig,
@@ -142,7 +175,7 @@ fn log(
     // uri and timestamp (base)
     let mut printed = format!(
         "<- {} (request got at {} UTC)",
-        style(path).yellow(),
+        style(request_uri_path).yellow(),
         timestamp
     );
 
@@ -199,14 +232,14 @@ fn handle_always(always: &Option<String>) -> Option<Result<Response<BoxBody>, Er
 }
 
 /// handle on `data_dir_query_path` config
-fn handle_data_dir_query_path(config: &Config, path: &str) -> Option<String> {
-    if path == "" || config.data_dir_query_path.is_none() {
+fn handle_data_dir_query_path(config: &Config, request_uri_path: &str) -> Option<String> {
+    if request_uri_path == "" || config.data_dir_query_path.is_none() {
         return None;
     }
 
     let data_dir_query_path = config.data_dir_query_path.clone().unwrap();
 
-    let stripped = path
+    let stripped = request_uri_path
         .strip_prefix("/")
         .unwrap()
         .strip_prefix(data_dir_query_path.as_str());
@@ -231,7 +264,7 @@ fn uri_path(uri_path: &str) -> String {
 
 /// handle on `data_dir` paths (static json responses)
 async fn handle_static_path(
-    path: &str,
+    request_uri_path: &str,
     request_body_bytes: &Bytes,
     path_configs: &HashMap<UrlPath, PathConfig>,
     paths_jsonpath_patterns: &Option<
@@ -239,12 +272,14 @@ async fn handle_static_path(
     >,
     headers: &Option<HashMap<HeaderId, HeaderConfig>>,
 ) -> Option<Result<Response<BoxBody>, Error>> {
-    let path_config_hashmap = path_configs.iter().find(|(key, _)| key.as_str() == path);
+    let path_config_hashmap = path_configs
+        .iter()
+        .find(|(key, _)| key.as_str() == request_uri_path);
     if let Some(path_config_hashmap) = path_config_hashmap {
         let mut path_config = path_config_hashmap.1.clone();
         match_jsonpath_patterns(
             &mut path_config,
-            path,
+            request_uri_path,
             request_body_bytes,
             paths_jsonpath_patterns,
         )
@@ -262,14 +297,17 @@ async fn handle_static_path(
 /// update path config if matcher finds pair
 async fn match_jsonpath_patterns(
     path_config: &mut PathConfig,
-    path: &str,
+    request_uri_path: &str,
     request_body_bytes: &Bytes,
     paths_jsonpath_patterns: &Option<
         HashMap<String, HashMap<String, Vec<JsonpathMatchingPattern>>>,
     >,
 ) {
     if let Some(paths_jsonpath_patterns) = paths_jsonpath_patterns {
-        if let Some(key) = paths_jsonpath_patterns.keys().find(|x| x.as_str() == path) {
+        if let Some(key) = paths_jsonpath_patterns
+            .keys()
+            .find(|x| x.as_str() == request_uri_path)
+        {
             // let body_bytes = hyper::body::to_bytes(request_body).await.unwrap();
             // Bytes::copy_to_bytes(request_body).await.unwrap();
             if 0 < request_body_bytes.len() {
@@ -342,8 +380,8 @@ fn static_path_data_src_reponse(
 }
 
 /// handle on `dyn_data_dir` (dynamic json responses)
-fn handle_dyn_path(path: &str, dyn_data_dir: &str) -> Result<Response<BoxBody>, Error> {
-    let p = Path::new(dyn_data_dir).join(path.strip_prefix("/").unwrap_or_default());
+fn handle_dyn_path(request_uri_path: &str, dyn_data_dir: &str) -> Result<Response<BoxBody>, Error> {
+    let p = Path::new(dyn_data_dir).join(request_uri_path.strip_prefix("/").unwrap_or_default());
 
     let dir = p.parent().unwrap();
     if !Path::new(dir).exists() {

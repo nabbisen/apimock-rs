@@ -3,7 +3,6 @@ pub const APP_NAME: &str = "API mock";
 pub mod config {
     pub const DEFAULT_LISTEN_PORT: u16 = 3001;
 
-    pub const CONFIG_FILENAME: &str = "apimock.toml";
     pub const DEFAULT_LISTEN_IP_ADDRESS: &str = "127.0.0.1";
     pub const DEFAULT_DYN_DATA_DIR: &str = "apimock-dyn-data";
     pub const CONFIG_SECTION_GENERAL: &str = "general";

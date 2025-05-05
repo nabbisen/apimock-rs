@@ -9,8 +9,11 @@ use hyper_util::rt::TokioIo;
 use std::{env, path::Path};
 use tokio::net::TcpStream;
 
+// todo: config -> default or something ?
+const TEST_WORKDIR: &str = "examples/config";
 const CONFIG_FILEPATH: &str = "apimock.toml";
-const MIDDLEWARE_FILEPATH: &str = "../../middleware.rhai";
+// todo:
+const MIDDLEWARE_FILEPATH: &str = "middleware.rhai";
 
 #[tokio::test]
 async fn uri_root_as_empty() {
@@ -174,7 +177,7 @@ async fn error403() {
 // utils
 /// test initial setup: start up mock server
 async fn setup() {
-    let _ = env::set_current_dir("examples/config");
+    let _ = env::set_current_dir(TEST_WORKDIR);
 
     let config_filepath = CONFIG_FILEPATH;
     // todo: preapre .rhai if necessary

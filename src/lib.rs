@@ -8,6 +8,8 @@ use core::app::App;
 
 const CONFIG_FILEPATH_OPTION_NAMES: [&str; 2] = ["-c", "--config"];
 const MIDDLEWARE_FILEPATH_OPTION_NAMES: [&str; 1] = ["--middleware"];
+const DEFAULT_CONFIG_FILENAME: &str = "apimock.toml";
+const DEFAULT_MIDDLEWARE_FILEPATH: &str = "./middleware.rhai";
 
 /// return hyper http server
 #[cfg(not(feature = "spawn"))]

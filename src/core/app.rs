@@ -55,14 +55,16 @@ impl App {
             // todo: watch source file change - `notify` crate ?
             let ast = engine
                 .compile_file(middleware_filepath.clone().into())
-                // todo: file location: ../../middleware.rhai is required when `cargo test`
-                // .compile_file("../../middleware.rhai".into())
+                // todo: error msg
                 .expect("todo1");
+
             let middleware = Middleware {
                 engine: Arc::new(engine),
                 filepath: middleware_filepath.to_owned(),
                 ast,
             };
+
+            println!("\nMiddleware is activated: {}", middleware_filepath);
             Some(middleware)
         } else {
             None
