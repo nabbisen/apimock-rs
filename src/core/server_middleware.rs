@@ -20,8 +20,7 @@ pub fn handle(
 
     let middleware_response = engine
         .eval_ast_with_scope::<Dynamic>(&mut scope, ast)
-        // todo: error msg
-        .expect("todo2");
+        .expect("failed to evaluate middleware");
     if middleware_response.type_name() == "string" {
         return Some(middleware_response.to_string());
     }

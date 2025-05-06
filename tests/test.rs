@@ -10,7 +10,7 @@ use rand::Rng;
 use std::{env, path::Path};
 use tokio::net::TcpStream;
 
-// todo: config -> default or something ?
+// todo: rename dir "config" -> "default" or something ?
 const TEST_WORKDIR: &str = "examples/config";
 const CONFIG_FILEPATH: &str = "apimock.toml";
 const MIDDLEWARE_FILEPATH: &str = "middleware.rhai";
@@ -228,7 +228,6 @@ async fn setup() -> u16 {
     let _ = env::set_current_dir(TEST_WORKDIR);
 
     let config_filepath = CONFIG_FILEPATH;
-    // todo: preapre .rhai if necessary
     let middleware_filepath = Some(MIDDLEWARE_FILEPATH.to_owned());
 
     if !Path::new(config_filepath).exists() {
