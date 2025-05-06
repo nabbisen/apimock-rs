@@ -78,7 +78,7 @@ impl App {
                     ast,
                 };
 
-                println!("\nMiddleware is activated: {}", middleware_filepath);
+                log::info!("\nMiddleware is activated: {}", middleware_filepath);
                 Some(middleware)
             }
             _ => None,
