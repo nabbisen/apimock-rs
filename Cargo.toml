@@ -1,6 +1,6 @@
 [package]
 name = "apimock"
-version = "3.0.3"
+version = "3.0.4"
 edition = "2021"
 
 description = "API mock Server generating HTTP/JSON responses"
@@ -8,7 +8,7 @@ authors = ["nabbisen <nabbisen@scqr.net>"]
 license = "Apache-2.0"
 
 categories = ["web-programming", "development-tools", "command-line-utilities"]
-keywords = ["https", "api", "mock", "testing"]
+keywords = ["http", "api", "mock", "testing"]
 repository = "https://github.com/nabbisen/apimock-rs"
 readme = "README.md"
 rust-version = "1.78.0"
