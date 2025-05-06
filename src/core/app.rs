@@ -1,4 +1,3 @@
-use std::collections::HashMap;
 use std::net::{SocketAddr, ToSocketAddrs};
 use std::path::Path;
 use std::sync::Arc;
@@ -16,10 +15,11 @@ use tokio::sync::mpsc::Sender;
 use tokio::{net::TcpListener, sync::Mutex};
 
 use super::app_state::{AppState, Middleware};
-use super::config::{Config, PathConfig, UrlPath};
+use super::config::Config;
 use super::constant::APP_NAME;
 use super::logger::init_logger;
 use super::server::handle;
+use super::types::{ConfigUrlPaths, ConfigUrlPathsJsonpathPatterns};
 
 type BoxBody = http_body_util::combinators::BoxBody<Bytes, Infallible>;
 
@@ -128,8 +128,13 @@ impl App {
     }
 
     /// get [url.paths] in config
-    pub fn config_url_paths(&self) -> Option<HashMap<UrlPath, PathConfig>> {
+    pub fn config_url_paths(&self) -> Option<ConfigUrlPaths> {
         self.app_state.config.paths.clone()
+    }
+
+    /// get [url.paths_patterns] in config
+    pub fn config_url_paths_patterns(&self) -> Option<ConfigUrlPathsJsonpathPatterns> {
+        self.app_state.config.paths_jsonpath_patterns.clone()
     }
 }
 

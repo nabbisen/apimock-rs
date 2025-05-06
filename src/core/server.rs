@@ -21,14 +21,12 @@ use std::{
 use tokio::sync::Mutex;
 use tokio::time;
 
-use super::util::jsonpath_value;
 use super::{app_state::AppState, server_middleware};
 use super::{
-    config::{
-        Config, HeaderConfig, HeaderId, JsonpathMatchingPattern, PathConfig, UrlPath, VerboseConfig,
-    },
+    config::{Config, HeaderConfig, HeaderId, JsonpathMatchingPattern, PathConfig, VerboseConfig},
     types::BoxBody,
 };
+use super::{types::ConfigUrlPaths, util::jsonpath_value};
 
 /// entry point of http requests handler service
 pub async fn handle(
@@ -276,7 +274,7 @@ fn uri_path(uri_path: &str) -> String {
 async fn handle_static_path(
     request_uri_path: &str,
     request_body_json_value: Option<&Value>,
-    path_configs: &HashMap<UrlPath, PathConfig>,
+    path_configs: &ConfigUrlPaths,
     paths_jsonpath_patterns: Option<
         &HashMap<String, HashMap<String, Vec<JsonpathMatchingPattern>>>,
     >,

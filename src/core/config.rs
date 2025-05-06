@@ -3,6 +3,9 @@ use crate::{
 };
 
 use super::constant::config::*;
+use super::types::{
+    ConfigHeaders, ConfigUrlPaths, ConfigUrlPathsJsonpathPattern, ConfigUrlPathsJsonpathPatterns,
+};
 use super::util::args_option_value;
 use console::style;
 use hyper::http::StatusCode;
@@ -31,10 +34,9 @@ pub struct Config {
     pub path_prefix: Option<String>,
     pub data_dir: Option<String>,
     pub data_dir_query_path: Option<String>,
-    pub headers: Option<HashMap<HeaderId, HeaderConfig>>,
-    pub paths: Option<HashMap<UrlPath, PathConfig>>,
-    pub paths_jsonpath_patterns:
-        Option<HashMap<String, HashMap<String, Vec<JsonpathMatchingPattern>>>>,
+    pub headers: Option<ConfigHeaders>,
+    pub paths: Option<ConfigUrlPaths>,
+    pub paths_jsonpath_patterns: Option<ConfigUrlPathsJsonpathPatterns>,
     config_filepath: Option<String>,
 }
 
@@ -45,7 +47,15 @@ pub struct VerboseConfig {
     pub body: bool,
 }
 
+/// http headers on responses
+#[derive(Clone, Default)]
+pub struct HeaderConfig {
+    pub key: String,
+    pub value: Option<String>,
+}
+
 /// response content related to api uri path
+#[cfg_attr(feature = "debug", derive(Debug))]
 #[derive(Clone, Default)]
 pub struct PathConfig {
     pub code: StatusCode,
@@ -55,13 +65,7 @@ pub struct PathConfig {
     pub response_wait_more_millis: u64,
 }
 
-/// http headers on responses
-#[derive(Clone, Default)]
-pub struct HeaderConfig {
-    pub key: String,
-    pub value: Option<String>,
-}
-
+#[cfg_attr(feature = "debug", derive(Debug))]
 #[derive(Clone)]
 pub struct JsonpathMatchingPattern {
     pub value: String,
@@ -168,13 +172,9 @@ impl Config {
 
         // [url.paths_patterns] data_src
         if let Some(paths_jsonpath_patterns) = self.paths_jsonpath_patterns.clone() {
-            let mut updated_paths_jsonpath_patterns: HashMap<
-                String,
-                HashMap<String, Vec<JsonpathMatchingPattern>>,
-            > = HashMap::new();
+            let mut updated_paths_jsonpath_patterns = ConfigUrlPathsJsonpathPatterns::new();
             paths_jsonpath_patterns.keys().for_each(|path| {
-                let mut updated_jsonpath_patterns: HashMap<String, Vec<JsonpathMatchingPattern>> =
-                    HashMap::new();
+                let mut updated_jsonpath_patterns = ConfigUrlPathsJsonpathPattern::new();
                 let jsonpath_patterns = paths_jsonpath_patterns.get(path).unwrap();
                 jsonpath_patterns.keys().for_each(|jsonpath| {
                     let patterns = jsonpath_patterns.get(jsonpath).unwrap();
@@ -510,10 +510,7 @@ impl Config {
             .as_table()
             .expect("`paths_jsonpath_patterns` should be table");
 
-        let mut paths_jsonpath_patterns: HashMap<
-            String,
-            HashMap<String, Vec<JsonpathMatchingPattern>>,
-        > = HashMap::new();
+        let mut paths_jsonpath_patterns = ConfigUrlPathsJsonpathPatterns::new();
         for path in table.keys() {
             let value = table.get(path).expect(
                 format!(
@@ -526,8 +523,7 @@ impl Config {
                 .as_table()
                 .expect(format!("paths_jsonpath_patterns: must be table. key = {}", path).as_str());
 
-            let mut jsonpath_patterns: HashMap<String, Vec<JsonpathMatchingPattern>> =
-                HashMap::new();
+            let mut jsonpath_patterns = ConfigUrlPathsJsonpathPattern::new();
             table.keys().for_each(|jsonpath| {
                 let json = table.get(jsonpath).unwrap();
                 let patterns_config = json.as_table().expect(
@@ -594,12 +590,8 @@ impl Config {
     }
 
     /// response defs related to api uri paths on static / dynamic json responses
-    fn url_paths(
-        &self,
-        paths_config_content: &toml::Value,
-        is_raw_paths: bool,
-    ) -> HashMap<UrlPath, PathConfig> {
-        let mut ret = HashMap::<UrlPath, PathConfig>::new();
+    fn url_paths(&self, paths_config_content: &toml::Value, is_raw_paths: bool) -> ConfigUrlPaths {
+        let mut ret = ConfigUrlPaths::new();
         let p = paths_config_content.as_table().expect(
             format!(
                 "[{}] Invalid entries",

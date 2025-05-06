@@ -1,6 +1,6 @@
 [package]
 name = "apimock"
-version = "3.0.1"
+version = "3.0.2"
 edition = "2021"
 
 description = "API mock Server generating HTTP/JSON responses"
@@ -27,6 +27,7 @@ lto = false           # disable link-time optimizations
 incremental = true
 
 [features]
+debug = [] # activates Debug trait on custom structs
 spawn = [] # offers another entry point for subprocess
 
 [dependencies]
