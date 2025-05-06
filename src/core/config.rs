@@ -3,9 +3,6 @@ use crate::{
 };
 
 use super::constant::config::*;
-use super::types::{
-    ConfigHeaders, ConfigUrlPaths, ConfigUrlPathsJsonpathPattern, ConfigUrlPathsJsonpathPatterns,
-};
 use super::util::args_option_value;
 use console::style;
 use hyper::http::StatusCode;
@@ -18,6 +15,11 @@ use toml;
 
 pub type UrlPath = String;
 pub type HeaderId = String;
+
+pub type ConfigHeaders = HashMap<HeaderId, HeaderConfig>;
+pub type ConfigUrlPaths = HashMap<UrlPath, PathConfig>;
+pub type ConfigUrlPathsJsonpathPattern = HashMap<String, Vec<JsonpathMatchingPattern>>;
+pub type ConfigUrlPathsJsonpathPatterns = HashMap<String, ConfigUrlPathsJsonpathPattern>;
 
 /// app config
 #[derive(Clone, Default)]

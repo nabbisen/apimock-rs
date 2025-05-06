@@ -15,11 +15,10 @@ use tokio::sync::mpsc::Sender;
 use tokio::{net::TcpListener, sync::Mutex};
 
 use super::app_state::{AppState, Middleware};
-use super::config::Config;
+use super::config::{Config, ConfigUrlPaths, ConfigUrlPathsJsonpathPatterns};
 use super::constant::APP_NAME;
 use super::logger::init_logger;
 use super::server::handle;
-use super::types::{ConfigUrlPaths, ConfigUrlPathsJsonpathPatterns};
 
 type BoxBody = http_body_util::combinators::BoxBody<Bytes, Infallible>;
 

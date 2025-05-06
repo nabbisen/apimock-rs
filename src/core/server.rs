@@ -22,11 +22,11 @@ use tokio::sync::Mutex;
 use tokio::time;
 
 use super::{app_state::AppState, server_middleware};
+use super::{config::ConfigUrlPaths, util::jsonpath_value};
 use super::{
     config::{Config, HeaderConfig, HeaderId, JsonpathMatchingPattern, PathConfig, VerboseConfig},
     types::BoxBody,
 };
-use super::{types::ConfigUrlPaths, util::jsonpath_value};
 
 /// entry point of http requests handler service
 pub async fn handle(

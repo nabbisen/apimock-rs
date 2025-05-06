@@ -33,7 +33,7 @@ dependencies = [
 
 [[package]]
 name = "apimock"
-version = "3.0.4"
+version = "3.0.5"
 dependencies = [
  "console",
  "http-body-util",
