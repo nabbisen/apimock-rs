@@ -1,19 +1,8 @@
-use apimock::{
-    core::{
-        app_state::middleware_filepath,
-        config::{config_filepath, config_listener_port},
-    },
-    server,
-};
+use apimock::{core::args::EnvArgs, server};
 
 /// app entry point on executable
 #[tokio::main]
 async fn main() {
-    let server = server(
-        config_filepath().as_str(),
-        config_listener_port(),
-        Some(middleware_filepath().to_owned()),
-    )
-    .await;
+    let server = server(EnvArgs::init_with_default()).await;
     server.start().await
 }

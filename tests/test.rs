@@ -1,4 +1,4 @@
-use apimock::core::app::App;
+use apimock::core::{app::App, args::EnvArgs};
 
 use http_body_util::{BodyExt, Empty, Full};
 use hyper::{
@@ -7,7 +7,7 @@ use hyper::{
 };
 use hyper_util::rt::TokioIo;
 use rand::Rng;
-use std::{env, path::Path};
+use std::{env, u16};
 use tokio::net::TcpStream;
 
 // todo: rename dir "config" -> "default" or something ?
@@ -175,6 +175,18 @@ async fn error403() {
 }
 
 #[tokio::test]
+async fn port_env_arg_overwrites() {
+    let port = u16::MAX;
+    setup_with_port(port).await;
+
+    let response = http_response("/", None, port).await;
+
+    assert_eq!(response.status(), StatusCode::OK);
+    let body_str = response_body_str(response).await;
+    assert_eq!(body_str.as_str(), "{\"hello\":\"world\"}");
+}
+
+#[tokio::test]
 async fn middleware_uri_path_handled() {
     let port = setup().await;
     let response = http_response("/middleware-test", None, port).await;
@@ -224,24 +236,34 @@ async fn middleware_body_missed() {
 /// test initial setup: start up mock server
 async fn setup() -> u16 {
     let port = dynamic_port();
+    setup_with_port(port).await;
+    port
+}
 
+/// test initial setup: start up mock server with specific port number
+async fn setup_with_port(port: u16) {
     let _ = env::set_current_dir(TEST_WORKDIR);
 
-    let config_filepath = CONFIG_FILEPATH;
-    let middleware_filepath = Some(MIDDLEWARE_FILEPATH.to_owned());
-
-    if !Path::new(config_filepath).exists() {
-        panic!("config file was missing: {}", config_filepath);
-    }
-
     tokio::spawn(async move {
-        let server = App::new(config_filepath, Some(port), middleware_filepath, None, true).await;
+        let server = App::new(env_args(port), None, true).await;
         server.start().await
     });
     // wait for server started
     tokio::time::sleep(std::time::Duration::from_millis(400)).await;
+}
 
-    port
+/// env args for testing
+fn env_args(port: u16) -> EnvArgs {
+    let mut ret = EnvArgs::init_with_default();
+
+    ret.config_filepath = Some(CONFIG_FILEPATH.to_owned());
+    ret.port = Some(port);
+    ret.middleware_filepath = Some(MIDDLEWARE_FILEPATH.to_owned());
+
+    match ret.validate() {
+        Ok(_) => ret,
+        Err(_) => panic!("something wrong in env args"),
+    }
 }
 
 /// select dynamic port randomly

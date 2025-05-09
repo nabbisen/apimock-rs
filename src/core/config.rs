@@ -1,9 +1,6 @@
-use crate::{
-    CONFIG_FILEPATH_OPTION_NAMES, CONFIG_LISTENER_PORT_OPTION_NAMES, DEFAULT_CONFIG_FILENAME,
-};
+use crate::core::constant::args::DEFAULT_CONFIG_FILENAME;
 
 use super::constant::config::*;
-use super::util::args_option_value;
 use console::style;
 use hyper::http::StatusCode;
 use json5;
@@ -77,42 +74,33 @@ pub struct JsonpathMatchingPattern {
 /// app config
 impl Config {
     /// create new instance
-    pub fn new(config_filepath: &str) -> Config {
-        if !config_filepath.is_empty() && !Path::new(config_filepath).exists() {
-            panic!(
-                "config file was specified but didn't exist: {}",
-                config_filepath
-            );
-        }
-
-        let exists_default_config = Path::new(DEFAULT_CONFIG_FILENAME).exists();
-        let config_filepath = if config_filepath.is_empty() && exists_default_config {
-            DEFAULT_CONFIG_FILENAME
-        } else {
-            config_filepath
-        };
-
+    pub fn new(config_filepath: Option<&String>) -> Config {
         let mut config = Self::default_config();
 
-        if config_filepath.is_empty() && !exists_default_config {
+        // config-less mode
+        if config_filepath.is_none() {
+            // `always` only
             if !Path::new(DEFAULT_DYN_DATA_DIR).exists() {
                 config.always = Some(ALWAYS_DEFAULT_MESSAGES.to_owned());
                 log::warn!(
-                    "Both `{}` file and `{}/` directory are missing\n`always` option is activated\n",
+                    "config-less mode: `always` option is activated, because\nboth `{}` file and `{}/` directory are missing\n",
                     DEFAULT_CONFIG_FILENAME, DEFAULT_DYN_DATA_DIR
                 );
                 config.print();
                 return config;
+            // `dyn_data_dir` is activated
             } else {
                 config.dyn_data_dir = Some(DEFAULT_DYN_DATA_DIR.to_owned());
                 log::warn!(
-                    "{}: config file is missing (config-less mode)\n",
-                    config_filepath
+                    "config-less mode: `dyn_data_dir` is activated with `{}/`\n`{}` file is missing\n",
+                    DEFAULT_DYN_DATA_DIR, DEFAULT_CONFIG_FILENAME
                 );
                 config.print();
                 return config;
             }
         }
+
+        let config_filepath = config_filepath.unwrap().as_str();
         log::info!("[config] {}\n", config_filepath);
 
         config.config_filepath = Some(config_filepath.to_owned());
@@ -743,24 +731,4 @@ fn data_src_path(file: &str, data_dir: &Option<String>) -> String {
         .to_string();
     let _ = fs::metadata(&path).expect(format!("`{}` is missing", path).as_str());
     path
-}
-
-/// app config file path
-///
-/// - if specified in arguments, use it
-/// - else use the default (in Config::new())
-pub fn config_filepath() -> String {
-    args_option_value(&CONFIG_FILEPATH_OPTION_NAMES.to_vec())
-}
-
-/// app listener port
-///
-/// - if specified in arguments, use it
-/// - else use the default (in Config::new())
-pub fn config_listener_port() -> Option<u16> {
-    let option_value = args_option_value(&CONFIG_LISTENER_PORT_OPTION_NAMES.to_vec());
-    match option_value.parse::<u16>() {
-        Ok(v) => Some(v),
-        Err(_) => None,
-    }
 }

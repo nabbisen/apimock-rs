@@ -1,5 +1,3 @@
-use std::env;
-
 use serde_json::Value;
 
 /// get value from json value with jsonpath
@@ -41,23 +39,4 @@ fn jsonpath_value_recursive<'a>(
     } else {
         Some(value.clone())
     }
-}
-
-/// arguments: get option value if the option name is found
-pub fn args_option_value(option_names: &Vec<&str>) -> String {
-    let args: Vec<String> = env::args().collect();
-
-    let name_index = args.iter().position(|arg| {
-        option_names
-            .iter()
-            .any(|option_name| arg.as_str().eq(*option_name))
-    });
-    let value = match name_index {
-        Some(name_index) => match args.get(name_index + 1) {
-            Some(value) => value,
-            _ => "",
-        },
-        _ => "",
-    };
-    value.to_owned()
 }

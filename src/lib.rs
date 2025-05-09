@@ -5,28 +5,12 @@
 
 pub mod core;
 use core::app::App;
-
-const CONFIG_FILEPATH_OPTION_NAMES: [&str; 2] = ["-c", "--config"];
-const CONFIG_LISTENER_PORT_OPTION_NAMES: [&str; 2] = ["-p", "--port"];
-const MIDDLEWARE_FILEPATH_OPTION_NAMES: [&str; 1] = ["--middleware"];
-const DEFAULT_CONFIG_FILENAME: &str = "apimock.toml";
-const DEFAULT_MIDDLEWARE_FILEPATH: &str = "./middleware.rhai";
+use core::args::EnvArgs;
 
 /// return hyper http server
 #[cfg(not(feature = "spawn"))]
-pub async fn server(
-    config_filepath: &str,
-    listener_port: Option<u16>,
-    middleware_filepath: Option<String>,
-) -> App {
-    App::new(
-        config_filepath,
-        listener_port,
-        middleware_filepath,
-        None,
-        true,
-    )
-    .await
+pub async fn server(env_args: EnvArgs) -> App {
+    App::new(env_args, None, true).await
 }
 
 #[cfg(feature = "spawn")]
@@ -36,18 +20,6 @@ use tokio::sync::mpsc::Sender;
 /// return hyper http server
 /// `includes_ansi_codes`: if true, log includes ansi escape codes for console text color
 #[cfg(feature = "spawn")]
-pub async fn server(
-    config_filepath: &str,
-    middleware_filepath: Option<String>,
-    spawn_tx: Sender<String>,
-    includes_ansi_codes: bool,
-) -> App {
-    App::new(
-        config_filepath,
-        None,
-        middleware_filepath,
-        Some(spawn_tx),
-        includes_ansi_codes,
-    )
-    .await
+pub async fn server(env_args: EnvArgs, spawn_tx: Sender<String>, includes_ansi_codes: bool) -> App {
+    App::new(env_args, Some(spawn_tx), includes_ansi_codes).await
 }

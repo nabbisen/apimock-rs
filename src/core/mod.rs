@@ -1,5 +1,6 @@
 pub mod app;
 pub mod app_state;
+pub mod args;
 pub mod config;
 pub mod constant;
 pub mod logger;

@@ -15,6 +15,7 @@ use tokio::sync::mpsc::Sender;
 use tokio::{net::TcpListener, sync::Mutex};
 
 use super::app_state::{AppState, Middleware};
+use super::args::EnvArgs;
 use super::config::{Config, ConfigUrlPaths, ConfigUrlPathsJsonpathPatterns};
 use super::constant::APP_NAME;
 use super::logger::init_logger;
@@ -34,17 +35,15 @@ impl App {
     ///
     /// - listener_port_to_overwrite: ignores port in config toml. used in both arguments and tests
     pub async fn new(
-        config_filepath: &str,
-        listener_port_to_overwrite: Option<u16>,
-        middleware_filepath: Option<String>,
+        env_args: EnvArgs,
         spawn_tx: Option<Sender<String>>,
         includes_ansi_codes: bool,
     ) -> Self {
         let _ = init_logger(spawn_tx, includes_ansi_codes);
 
-        let mut config = Config::new(&config_filepath);
+        let mut config = Config::new(env_args.config_filepath.as_ref());
 
-        if let Some(port) = listener_port_to_overwrite {
+        if let Some(port) = env_args.port {
             config.port = port;
         }
 
@@ -58,7 +57,7 @@ impl App {
             .await
             .expect("tcp listener failed to bind address");
 
-        let middleware = match middleware_filepath {
+        let middleware = match env_args.middleware_filepath {
             Some(middleware_filepath) if Path::new(middleware_filepath.as_str()).exists() => {
                 let engine = Engine::new();
                 // todo: watch source file change - `notify` crate ?
