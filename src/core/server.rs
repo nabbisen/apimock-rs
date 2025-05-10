@@ -10,7 +10,7 @@ use hyper::{
     Request, Response, StatusCode,
 };
 use json5;
-use serde_json::{Map, Value};
+use serde_json::{json, Map, Value};
 use std::{
     collections::HashMap,
     fs,
@@ -20,6 +20,8 @@ use std::{
 };
 use tokio::sync::Mutex;
 use tokio::time;
+
+use crate::core::constant::server::CSV_RECORDS_DEFAULT_KEY;
 
 use super::{app_state::AppState, server_middleware};
 use super::{config::ConfigUrlPaths, util::jsonpath_value};
@@ -565,7 +567,8 @@ fn csv_text_file_to_response(
 
     match rows {
         Ok(rows) => {
-            let body = serde_json::to_string(&rows);
+            let json_value = json!({ CSV_RECORDS_DEFAULT_KEY: &rows });
+            let body = serde_json::to_string(&json_value);
             match body {
                 Ok(body) => json_response_base(path_headers, headers)
                     .status(StatusCode::OK)
