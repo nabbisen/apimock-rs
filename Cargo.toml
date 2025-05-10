@@ -1,6 +1,6 @@
 [package]
 name = "apimock"
-version = "3.1.0"
+version = "3.2.0"
 edition = "2021"
 
 description = "API mock Server generating HTTP/JSON responses"
@@ -42,6 +42,7 @@ json5 = "0"
 console = "0"
 log = "0"
 rhai = { version = "1", features = ["sync", "serde"] }
+csv = "1"
 
 [dev-dependencies]
 hyper = { version = "1", features = ["client"] }

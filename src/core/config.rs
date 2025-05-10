@@ -315,8 +315,8 @@ impl Config {
     /// app config default
     fn default_config() -> Config {
         let mut config = Config::default();
-        config.port = DEFAULT_LISTENER_PORT;
-        config.ip_address = DEFAULT_LISTENER_IP_ADDRESS.to_owned();
+        config.port = LISTENER_DEFAULT_PORT;
+        config.ip_address = LISTENER_DEFAULT_IP_ADDRESS.to_owned();
         config.response_wait_millis = 0;
         config
     }
@@ -680,7 +680,9 @@ impl Config {
 
     /// validate user settings in app config
     fn validate(&self) {
-        if self.always.is_none() && (self.paths.is_none() || self.paths.clone().unwrap().len() == 0)
+        if self.always.is_none()
+            && (self.paths.is_none() || self.paths.clone().unwrap().len() == 0)
+            && self.dyn_data_dir.is_none()
         {
             panic!("paths not defined");
         }

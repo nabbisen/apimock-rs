@@ -10,7 +10,7 @@ use hyper::{
     Request, Response, StatusCode,
 };
 use json5;
-use serde_json::Value;
+use serde_json::{json, Map, Value};
 use std::{
     collections::HashMap,
     fs,
@@ -21,12 +21,17 @@ use std::{
 use tokio::sync::Mutex;
 use tokio::time;
 
+use crate::core::constant::server::CSV_RECORDS_DEFAULT_KEY;
+
 use super::{app_state::AppState, server_middleware};
 use super::{config::ConfigUrlPaths, util::jsonpath_value};
 use super::{
     config::{Config, HeaderConfig, HeaderId, JsonpathMatchingPattern, PathConfig, VerboseConfig},
     types::BoxBody,
 };
+
+const DEFAULT_PLAIN_TEXT_CONTENT_TYPE: &str = "text/plain";
+const JSON_EXTENSIONS: [&str; 2] = ["json", "json5"];
 
 /// entry point of http requests handler service
 pub async fn handle(
@@ -56,13 +61,13 @@ pub async fn handle(
 
     // middleware if activated
     if let Some(middleware) = shared_app_state.middleware {
-        let middleware_response_json_filepath = server_middleware::handle(
+        let middleware_response_filepath = server_middleware::handle(
             request_uri_path.as_str(),
             request_body_json_value.as_ref(),
             &middleware.engine,
             &middleware.ast,
         );
-        if let Some(middleware_response_json_filepath) = middleware_response_json_filepath {
+        if let Some(middleware_response_filepath) = middleware_response_filepath {
             log(
                 request_uri_path.as_str(),
                 &parts,
@@ -70,18 +75,7 @@ pub async fn handle(
                 shared_app_state.config.verbose,
             );
 
-            return match std::fs::read_to_string(middleware_response_json_filepath) {
-                Ok(content) => match json5::from_str::<Value>(&content) {
-                    Ok(json) => {
-                        let body = json.to_string();
-                        json_response_base(None, None)
-                            .status(StatusCode::OK)
-                            .body(Full::new(Bytes::from(body)).boxed())
-                    }
-                    _ => bad_request_response("Invalid json content"),
-                },
-                _ => not_found_response(),
-            };
+            return file_to_response(middleware_response_filepath.as_str(), None, None);
         }
     }
 
@@ -115,9 +109,9 @@ pub async fn handle(
                 config.update_paths(data_dir, old_data_dir.as_str());
                 shared_app_state.config = config.clone();
 
-                plain_text_response(data_dir)
+                plain_text_response(data_dir, None)
             } else {
-                plain_text_response(config.data_dir.clone().unwrap().as_str())
+                plain_text_response(config.data_dir.clone().unwrap().as_str(), None)
             };
 
             log(
@@ -298,7 +292,11 @@ async fn handle_static_path(
 
         response_wait(path_config.response_wait_more_millis).await;
 
-        let response = Some(static_path_response(&path_config, headers));
+        let response = Some(static_path_response(
+            &path_config,
+            headers,
+            request_uri_path,
+        ));
         return response;
     }
 
@@ -348,9 +346,10 @@ async fn match_jsonpath_patterns(
 fn static_path_response(
     path_config: &PathConfig,
     headers: Option<&HashMap<HeaderId, HeaderConfig>>,
+    request_uri_path: &str,
 ) -> Result<Response<BoxBody>, Error> {
     if let Some(_) = &path_config.data_src {
-        return static_path_data_src_reponse(path_config, headers);
+        return static_path_data_src_reponse(path_config, headers, request_uri_path);
     }
 
     if let Some(data_text) = &path_config.data_text {
@@ -368,66 +367,237 @@ fn static_path_response(
 fn static_path_data_src_reponse(
     path_config: &PathConfig,
     headers: Option<&HashMap<HeaderId, HeaderConfig>>,
+    request_uri_path: &str,
 ) -> Result<Response<BoxBody>, Error> {
-    match std::fs::read_to_string(path_config.data_src.as_ref().unwrap()) {
-        Ok(content) => match json5::from_str::<Value>(&content) {
-            Ok(json) => {
-                let json_text = json.to_string();
-                json_response_base(path_config.headers.as_ref(), headers)
-                    .status(path_config.code)
-                    .body(Full::new(Bytes::from(json_text)).boxed())
-            }
-            _ => bad_request_response("Invalid json content"),
-        },
-        _ => bad_request_response("Missing json file"),
+    match path_config.data_src.as_ref() {
+        Some(data_src) => {
+            file_to_response(data_src.as_str(), path_config.headers.as_ref(), headers)
+        }
+        None => internal_server_error_response(
+            format!("{}: data_src is missing", request_uri_path).as_str(),
+        ),
     }
 }
 
 /// handle on `dyn_data_dir` (dynamic json responses)
 fn handle_dyn_path(request_uri_path: &str, dyn_data_dir: &str) -> Result<Response<BoxBody>, Error> {
-    let p = Path::new(dyn_data_dir).join(request_uri_path.strip_prefix("/").unwrap_or_default());
+    let request_path =
+        Path::new(dyn_data_dir).join(request_uri_path.strip_prefix("/").unwrap_or_default());
 
-    let dir = p.parent().unwrap();
+    let dir = request_path.parent().unwrap();
     if !Path::new(dir).exists() {
         return not_found_response();
     }
 
-    let file_name = p.file_stem().unwrap();
+    let request_file_name = request_path.file_name().expect("failed to get file name");
 
-    let mut json_file = None;
+    let mut found = None;
     for entry in fs::read_dir(dir).unwrap() {
-        let p = entry.unwrap().path();
-        if p.file_stem().unwrap() != file_name {
-            continue;
-        }
+        let entry_path = entry.unwrap().path();
 
-        if p.file_name().unwrap().to_ascii_lowercase() == file_name.to_ascii_lowercase() {
-            json_file = Some(p.as_path().to_owned());
-            break;
-        }
-        let ext = p.extension().unwrap_or_default().to_ascii_lowercase();
-        if ["json", "json5"].contains(&ext.to_str().unwrap()) {
-            json_file = Some(p.as_path().to_owned());
+        if entry_path
+            .file_name()
+            .unwrap_or_default()
+            .to_ascii_lowercase()
+            == request_file_name.to_ascii_lowercase()
+        {
+            found = Some(entry_path.as_path().to_owned());
             break;
         }
     }
+    if found.is_none() && file_is_json(request_path.as_path()) {
+        for entry in fs::read_dir(dir).unwrap() {
+            let entry_path = entry.unwrap().path();
 
-    let response = match json_file {
-        Some(json_file) => match std::fs::read_to_string(json_file) {
-            Ok(content) => match json5::from_str::<Value>(&content) {
-                Ok(json) => {
-                    let body = json.to_string();
-                    json_response_base(None, None)
-                        .status(StatusCode::OK)
-                        .body(Full::new(Bytes::from(body)).boxed())
-                }
-                _ => bad_request_response("Invalid json content"),
-            },
-            _ => not_found_response(),
+            if is_equivalent_json_file(request_path.as_ref(), entry_path.as_ref()) {
+                found = Some(entry_path.as_path().to_owned());
+                break;
+            }
+        }
+    }
+
+    match found {
+        Some(found) => {
+            let filepath = found.to_str().unwrap_or_default();
+            file_to_response(filepath, None, None)
+        }
+        None => not_found_response(),
+    }
+}
+
+/// check if file is json
+fn file_is_json(p: &Path) -> bool {
+    JSON_EXTENSIONS.contains(
+        &p.extension()
+            .unwrap_or_default()
+            .to_ascii_lowercase()
+            .to_str()
+            .unwrap_or_default(),
+    )
+}
+
+/// check if two json files are equivalent to each
+fn is_equivalent_json_file(request_path: &Path, entry_path: &Path) -> bool {
+    let request_file_stem = request_path
+        .file_stem()
+        .expect("failed to get requestfile stem");
+    let request_ext = request_path
+        .extension()
+        .unwrap_or_default()
+        .to_ascii_lowercase();
+
+    let entry_file_stem = entry_path
+        .file_stem()
+        .expect("failed to get entry file stem");
+    let entry_ext = entry_path
+        .extension()
+        .unwrap_or_default()
+        .to_ascii_lowercase();
+
+    request_file_stem == entry_file_stem
+        && JSON_EXTENSIONS.contains(&request_ext.to_str().expect("failed to get requestfile ext"))
+        && JSON_EXTENSIONS.contains(&entry_ext.to_str().expect("failed to get entry file ext"))
+}
+
+/// response from file path
+fn file_to_response(
+    filepath: &str,
+    path_headers: Option<&Vec<String>>,
+    headers: Option<&HashMap<HeaderId, HeaderConfig>>,
+) -> Result<Response<BoxBody>, Error> {
+    if Path::new(filepath).is_dir() {
+        return bad_request_response(format!("{} is directory", filepath).as_str());
+    }
+
+    match std::fs::read_to_string(filepath) {
+        Ok(content) => text_file_to_response(content.as_str(), filepath, path_headers, headers),
+        Err(_) => match std::fs::read(filepath) {
+            Ok(content) => binary_file_to_response(content.as_ref()),
+            Err(err) => internal_server_error_response(
+                format!("{}: failed to read file - {}", filepath, err).as_str(),
+            ),
         },
-        _ => not_found_response(),
+    }
+}
+
+/// text file response
+fn text_file_to_response(
+    content: &str,
+    filepath: &str,
+    path_headers: Option<&Vec<String>>,
+    headers: Option<&HashMap<HeaderId, HeaderConfig>>,
+) -> Result<Response<BoxBody>, Error> {
+    match Path::new(filepath)
+        .extension()
+        .unwrap_or_default()
+        .to_ascii_lowercase()
+        .to_str()
+    {
+        Some(ext) => match ext {
+            "json" | "json5" => {
+                json_text_file_to_response(content, filepath, path_headers, headers)
+            }
+            "csv" => csv_text_file_to_response(content, filepath, path_headers, headers),
+            _ => plain_text_response(content, Some(text_file_content_type(ext).as_str())),
+        },
+        None => plain_text_response(content, None),
+    }
+}
+
+/// content type from text file extension
+fn text_file_content_type(ext: &str) -> String {
+    let ret = match ext {
+        "html" => "text/html",
+        "css" => "text/css",
+        "js" => "application/javascript",
+        _ => DEFAULT_PLAIN_TEXT_CONTENT_TYPE,
     };
-    response
+    ret.to_owned()
+}
+
+/// json file response
+fn json_text_file_to_response(
+    content: &str,
+    filepath: &str,
+    path_headers: Option<&Vec<String>>,
+    headers: Option<&HashMap<HeaderId, HeaderConfig>>,
+) -> Result<Response<BoxBody>, Error> {
+    match json5::from_str::<Value>(content) {
+        Ok(json) => {
+            let body = json.to_string();
+            json_response_base(path_headers, headers)
+                .status(StatusCode::OK)
+                .body(Full::new(Bytes::from(body)).boxed())
+        }
+        _ => internal_server_error_response(format!("{}: Invalid json content", filepath).as_str()),
+    }
+}
+
+/// csv file response
+fn csv_text_file_to_response(
+    content: &str,
+    filepath: &str,
+    path_headers: Option<&Vec<String>>,
+    headers: Option<&HashMap<HeaderId, HeaderConfig>>,
+) -> Result<Response<BoxBody>, Error> {
+    let mut rdr = csv::ReaderBuilder::new()
+        .has_headers(true)
+        .from_reader(content.as_bytes());
+
+    let csv_headers = if let Ok(csv_headers) = rdr.headers() {
+        csv_headers.clone()
+    } else {
+        return internal_server_error_response(
+            format!("{}: failed to analyze csv headers", filepath).as_str(),
+        );
+    };
+
+    let rows = rdr
+        .records()
+        .map(|result| {
+            let record = result?;
+            let obj = csv_headers
+                .iter()
+                .zip(record.iter())
+                .map(|(k, v)| (k.to_string(), Value::String(v.to_string())))
+                .collect::<Map<_, _>>();
+            Ok(Value::Object(obj))
+        })
+        .collect::<Result<Vec<Value>, csv::Error>>();
+
+    match rows {
+        Ok(rows) => {
+            let json_value = json!({ CSV_RECORDS_DEFAULT_KEY: &rows });
+            let body = serde_json::to_string(&json_value);
+            match body {
+                Ok(body) => json_response_base(path_headers, headers)
+                    .status(StatusCode::OK)
+                    .body(Full::new(Bytes::from(body)).boxed()),
+                Err(err) => internal_server_error_response(
+                    format!(
+                        "{}: failed to convert csv records to json response - {}",
+                        filepath, err
+                    )
+                    .as_str(),
+                ),
+            }
+        }
+        Err(err) => internal_server_error_response(
+            format!("{}: failed to analyze csv records - {}", filepath, err).as_str(),
+        ),
+    }
+}
+
+/// binary file response
+fn binary_file_to_response(content: &Vec<u8>) -> Result<Response<BoxBody>, Error> {
+    let content = content.to_owned();
+    response_base(None, None)
+        .status(StatusCode::OK)
+        .header(
+            CONTENT_TYPE,
+            HeaderValue::from_static("application/octet-stream"),
+        )
+        .body(Full::new(Bytes::from(content)).boxed())
 }
 
 /// response base on any
@@ -462,22 +632,40 @@ fn json_response_base(
 }
 
 /// plain text response
-fn plain_text_response(msg: &str) -> Result<Response<BoxBody>, Error> {
+fn plain_text_response(
+    content: &str,
+    content_type: Option<&str>,
+) -> Result<Response<BoxBody>, Error> {
+    let default_content_type = HeaderValue::from_static(DEFAULT_PLAIN_TEXT_CONTENT_TYPE);
+    let response_content_type = if let Some(content_type) = content_type {
+        HeaderValue::from_str(content_type).unwrap_or_else(|_| default_content_type)
+    } else {
+        default_content_type
+    };
+
     response_base(None, None)
         .status(StatusCode::OK)
+        .header(CONTENT_TYPE, response_content_type)
+        .body(Full::new(Bytes::from(content.to_owned())).boxed())
+}
+
+/// error response on http BAD_REQUEST (400)
+fn bad_request_response(msg: &str) -> Result<Response<BoxBody>, Error> {
+    response_base(None, None)
+        .status(StatusCode::BAD_REQUEST)
         .body(Full::new(Bytes::from(msg.to_owned())).boxed())
 }
 
-/// error response on http NOT_FOUND
+/// error response on http NOT_FOUND (404)
 fn not_found_response() -> Result<Response<BoxBody>, Error> {
     response_base(None, None)
         .status(StatusCode::NOT_FOUND)
         .body(Empty::new().boxed())
 }
 
-/// error response on http BAD_REQUEST
-fn bad_request_response(msg: &str) -> Result<Response<BoxBody>, Error> {
+/// error response on http INTERNAL_SERVER_ERROR (500)
+fn internal_server_error_response(msg: &str) -> Result<Response<BoxBody>, Error> {
     response_base(None, None)
-        .status(StatusCode::BAD_REQUEST)
+        .status(StatusCode::INTERNAL_SERVER_ERROR)
         .body(Full::new(Bytes::from(msg.to_owned())).boxed())
 }

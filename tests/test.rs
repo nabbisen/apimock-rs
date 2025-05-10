@@ -11,9 +11,9 @@ use std::{env, u16};
 use tokio::net::TcpStream;
 
 // todo: rename dir "config" -> "default" or something ?
-const TEST_WORKDIR: &str = "examples/config";
+const TEST_WORKDIR: &str = "examples/config/full";
 const CONFIG_FILEPATH: &str = "apimock.toml";
-const MIDDLEWARE_FILEPATH: &str = "middleware.rhai";
+const MIDDLEWARE_FILEPATH: &str = "apimock-middleware.rhai";
 
 #[tokio::test]
 async fn uri_root_as_empty() {
@@ -21,16 +21,28 @@ async fn uri_root_as_empty() {
     let response = http_response("", None, port).await;
 
     assert_eq!(response.status(), StatusCode::OK);
+
+    assert_eq!(
+        response.headers().get("content-type").unwrap(),
+        "application/json"
+    );
+
     let body_str = response_body_str(response).await;
     assert_eq!(body_str.as_str(), "{\"hello\":\"world\"}");
 }
 
 #[tokio::test]
-async fn uri_root() {
+async fn raw_path() {
     let port = setup().await;
     let response = http_response("/", None, port).await;
 
     assert_eq!(response.status(), StatusCode::OK);
+
+    assert_eq!(
+        response.headers().get("content-type").unwrap(),
+        "application/json"
+    );
+
     let body_str = response_body_str(response).await;
     assert_eq!(body_str.as_str(), "{\"hello\":\"world\"}");
 }
@@ -58,6 +70,11 @@ async fn api_home() {
 
     assert_eq!(response.status(), StatusCode::OK);
 
+    assert_eq!(
+        response.headers().get("content-type").unwrap(),
+        "application/json"
+    );
+
     let body_str = response_body_str(response).await;
     assert_eq!(body_str.as_str(), "{\"key\":\"value\"}");
 }
@@ -69,6 +86,11 @@ async fn matcher_object_1() {
     let response = http_response("/api/v1/some/path/w/matcher", Some(body), port).await;
 
     assert_eq!(response.status(), StatusCode::OK);
+
+    assert_eq!(
+        response.headers().get("content-type").unwrap(),
+        "application/json"
+    );
 
     let body_str = response_body_str(response).await;
     assert_eq!(body_str.as_str(), "{\"apikey\":\"apivalue\"}");
@@ -82,6 +104,11 @@ async fn matcher_object_2() {
 
     assert_eq!(response.status(), StatusCode::OK);
 
+    assert_eq!(
+        response.headers().get("content-type").unwrap(),
+        "application/json"
+    );
+
     let body_str = response_body_str(response).await;
     assert_eq!(body_str.as_str(), "{\"key\":\"value\"}");
 }
@@ -93,6 +120,11 @@ async fn matcher_object_3() {
     let response = http_response("/api/v1/some/path/w/matcher", Some(body), port).await;
 
     assert_eq!(response.status(), StatusCode::OK);
+
+    assert_eq!(
+        response.headers().get("content-type").unwrap(),
+        "application/json"
+    );
 
     let body_str = response_body_str(response).await;
     assert_eq!(body_str.as_str(), "{\"apikey\":\"apivalue\"}");
@@ -106,6 +138,11 @@ async fn matcher_data_type_insensitiveness() {
 
     assert_eq!(response.status(), StatusCode::OK);
 
+    assert_eq!(
+        response.headers().get("content-type").unwrap(),
+        "application/json"
+    );
+
     let body_str = response_body_str(response).await;
     assert_eq!(body_str.as_str(), "{\"apikey\":\"apivalue\"}");
 }
@@ -117,6 +154,11 @@ async fn matcher_object_missing() {
     let response = http_response("/api/v1/some/path/w/matcher", Some(body), port).await;
 
     assert_eq!(response.status(), StatusCode::OK);
+
+    assert_eq!(
+        response.headers().get("content-type").unwrap(),
+        "application/json"
+    );
 
     let body_str = response_body_str(response).await;
     assert_eq!(body_str.as_str(), "{\"key\":\"value\"}");
@@ -130,6 +172,11 @@ async fn matcher_array() {
 
     assert_eq!(response.status(), StatusCode::OK);
 
+    assert_eq!(
+        response.headers().get("content-type").unwrap(),
+        "application/json"
+    );
+
     let body_str = response_body_str(response).await;
     assert_eq!(body_str.as_str(), "{\"apikey\":\"apivalue\"}");
 }
@@ -142,6 +189,11 @@ async fn matcher_array_missing() {
 
     assert_eq!(response.status(), StatusCode::OK);
 
+    assert_eq!(
+        response.headers().get("content-type").unwrap(),
+        "application/json"
+    );
+
     let body_str = response_body_str(response).await;
     assert_eq!(body_str.as_str(), "{\"key\":\"value\"}");
 }
@@ -153,6 +205,11 @@ async fn matcher_empty_value() {
     let response = http_response("/api/v1/some/path/w/matcher", Some(body), port).await;
 
     assert_eq!(response.status(), StatusCode::OK);
+
+    assert_eq!(
+        response.headers().get("content-type").unwrap(),
+        "application/json"
+    );
 
     let body_str = response_body_str(response).await;
     assert_eq!(body_str.as_str(), "{\"apikey\":\"apivalue\"}");
@@ -182,6 +239,12 @@ async fn port_env_arg_overwrites() {
     let response = http_response("/", None, port).await;
 
     assert_eq!(response.status(), StatusCode::OK);
+
+    assert_eq!(
+        response.headers().get("content-type").unwrap(),
+        "application/json"
+    );
+
     let body_str = response_body_str(response).await;
     assert_eq!(body_str.as_str(), "{\"hello\":\"world\"}");
 }
@@ -192,6 +255,11 @@ async fn middleware_uri_path_handled() {
     let response = http_response("/middleware-test", None, port).await;
 
     assert_eq!(response.status(), StatusCode::OK);
+
+    assert_eq!(
+        response.headers().get("content-type").unwrap(),
+        "application/json"
+    );
 
     let body_str = response_body_str(response).await;
     assert_eq!(body_str.as_str(), "{\"thisIs\":\"missedByConfigToml\"}");
@@ -216,6 +284,11 @@ async fn middleware_body_handled() {
 
     assert_eq!(response.status(), StatusCode::OK);
 
+    assert_eq!(
+        response.headers().get("content-type").unwrap(),
+        "application/json"
+    );
+
     let body_str = response_body_str(response).await;
     assert_eq!(body_str.as_str(), "{\"thisIs\":\"missedByConfigToml\"}");
 }
@@ -230,6 +303,199 @@ async fn middleware_body_missed() {
 
     let body_str = response_body_str(response).await;
     assert_eq!(body_str.as_str(), "");
+}
+
+#[tokio::test]
+async fn dyn_data_dir_json_root_json() {
+    let port = setup().await;
+    let response = http_response("/root1.json", None, port).await;
+
+    assert_eq!(response.status(), StatusCode::OK);
+
+    assert_eq!(
+        response.headers().get("content-type").unwrap(),
+        "application/json"
+    );
+
+    let body_str = response_body_str(response).await;
+    assert_eq!(body_str.as_str(), "{\"name\":\"root1.json\"}");
+}
+
+#[tokio::test]
+async fn dyn_data_dir_json_root_json5() {
+    let port = setup().await;
+    let response = http_response("/root1.json5", None, port).await;
+
+    assert_eq!(response.status(), StatusCode::OK);
+
+    assert_eq!(
+        response.headers().get("content-type").unwrap(),
+        "application/json"
+    );
+
+    let body_str = response_body_str(response).await;
+    assert_eq!(body_str.as_str(), "{\"name\":\"root1.json5\"}");
+}
+
+#[tokio::test]
+async fn dyn_data_dir_json_root_multiple() {
+    let port = setup().await;
+    let response = http_response("/root2.json", None, port).await;
+
+    assert_eq!(response.status(), StatusCode::OK);
+
+    assert_eq!(
+        response.headers().get("content-type").unwrap(),
+        "application/json"
+    );
+
+    let body_str = response_body_str(response).await;
+    assert_eq!(body_str.as_str(), "{\"name\":\"root2.json\"}");
+}
+
+#[tokio::test]
+async fn dyn_data_dir_json_subdir() {
+    let port = setup().await;
+    let response = http_response("/json/subdir.json", None, port).await;
+
+    assert_eq!(response.status(), StatusCode::OK);
+
+    assert_eq!(
+        response.headers().get("content-type").unwrap(),
+        "application/json"
+    );
+
+    let body_str = response_body_str(response).await;
+    assert_eq!(body_str.as_str(), "{\"name\":\"subdir.json\"}");
+}
+
+#[tokio::test]
+async fn dyn_data_dir_json_depth() {
+    let port = setup().await;
+    let response = http_response("/json/another-dir/depth.json", None, port).await;
+
+    assert_eq!(response.status(), StatusCode::OK);
+
+    assert_eq!(
+        response.headers().get("content-type").unwrap(),
+        "application/json"
+    );
+
+    let body_str = response_body_str(response).await;
+    assert_eq!(body_str.as_str(), "{\"name\":\"depth.json\"}");
+}
+
+#[tokio::test]
+async fn dyn_data_dir_csv() {
+    let port = setup().await;
+    let response = http_response("/csv/records.csv", None, port).await;
+
+    assert_eq!(response.status(), StatusCode::OK);
+
+    assert_eq!(
+        response.headers().get("content-type").unwrap(),
+        "application/json"
+    );
+
+    let body_str = response_body_str(response).await;
+    assert_eq!(body_str.as_str(), "{\"records\":[{\"fieldA\":\"1\",\"fieldB\":\"2\",\"fieldC\":\"3\"},{\"fieldA\":\"a\",\"fieldB\":\"b\",\"fieldC\":\"c\"},{\"fieldA\":\"#\",\"fieldB\":\"\\\\,\",\"fieldC\":\"!!!\"}]}");
+}
+
+#[tokio::test]
+async fn dyn_data_dir_html() {
+    let port = setup().await;
+    let response = http_response("/html/index.html", None, port).await;
+
+    assert_eq!(response.status(), StatusCode::OK);
+
+    assert_eq!(response.headers().get("content-type").unwrap(), "text/html");
+
+    let body_str = response_body_str(response).await;
+    assert_eq!(
+        body_str.as_str(),
+        "<!DOCTYPE html>\nHello from API mock (apimock-rs)"
+    );
+}
+
+#[tokio::test]
+async fn dyn_data_dir_css() {
+    let port = setup().await;
+    let response = http_response("/css/style.css", None, port).await;
+
+    assert_eq!(response.status(), StatusCode::OK);
+
+    assert_eq!(response.headers().get("content-type").unwrap(), "text/css");
+
+    let body_str = response_body_str(response).await;
+    assert_eq!(
+        body_str.as_str(),
+        "html body::after {\n    content: \"Hello from API mock (apimock-rs)\";\n}"
+    );
+}
+
+#[tokio::test]
+async fn dyn_data_dir_js() {
+    let port = setup().await;
+    let response = http_response("/js/scripts.js", None, port).await;
+
+    assert_eq!(response.status(), StatusCode::OK);
+
+    assert_eq!(
+        response.headers().get("content-type").unwrap(),
+        "application/javascript"
+    );
+
+    let body_str = response_body_str(response).await;
+    assert_eq!(
+        body_str.as_str(),
+        "function hello() {\n    console.log(\"Hello from API mock (apimock-rs)\")\n}"
+    );
+}
+
+#[tokio::test]
+async fn dyn_data_dir_image() {
+    let port = setup().await;
+    let response = http_response("/img/image.png", None, port).await;
+
+    assert_eq!(response.status(), StatusCode::OK);
+
+    assert_eq!(
+        response.headers().get("content-type").unwrap(),
+        "application/octet-stream"
+    );
+
+    let body_str = response_body_bytes(response).await;
+    assert_eq!(
+        body_str.as_ref(),
+        b"\x89PNG\r\n\x1a\n\0\0\0\rIHDR\0\0\0 \0\0\0 \x01\x03\0\0\0I\xb4\xe8\xb7\0\0\0\x03PLTE\xea\xf22\xedR\xba\x13\0\0\0\x0cIDAT\x08\xd7c`\x18\xdc\0\0\0\xa0\0\x01a%}G\0\0\0\0IEND\xaeB`\x82"
+    );
+}
+
+#[tokio::test]
+async fn dyn_data_dir_txt() {
+    let port = setup().await;
+    let response = http_response("/txt/plain.txt", None, port).await;
+
+    assert_eq!(response.status(), StatusCode::OK);
+
+    assert_eq!(
+        response.headers().get("content-type").unwrap(),
+        "text/plain"
+    );
+
+    let body_str = response_body_str(response).await;
+    assert_eq!(body_str.as_str(), "Hello from API mock (apimock-rs)");
+}
+
+#[tokio::test]
+async fn dyn_data_dir_dir() {
+    let port = setup().await;
+    let response = http_response("/html", None, port).await;
+
+    assert_eq!(response.status(), StatusCode::BAD_REQUEST);
+
+    let body_str = response_body_str(response).await;
+    assert_eq!(body_str.as_str(), "apimock-dyn-data/html is directory");
 }
 
 // utils
@@ -314,13 +580,18 @@ async fn http_response(uri_path: &str, body: Option<&str>, port: u16) -> Respons
 
 /// convert response body bytes to string
 async fn response_body_str(response: Response<Incoming>) -> String {
-    let body_bytes = response
+    let body_bytes = response_body_bytes(response).await;
+    let body_str = String::from_utf8(body_bytes.into()).unwrap();
+    body_str
+}
+
+/// convert response body bytes to string
+async fn response_body_bytes(response: Response<Incoming>) -> Bytes {
+    response
         .into_body()
         .boxed()
         .collect()
         .await
         .unwrap()
-        .to_bytes();
-    let body_str = String::from_utf8(body_bytes.into()).unwrap();
-    body_str
+        .to_bytes()
 }

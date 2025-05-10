@@ -1,3 +1,6 @@
+# Configure:
+# https://github.com/nabbisen/apimock-rs/blob/main/docs/CONFIGURE.md
+
 [listener]
 ip_address = "127.0.0.1"
 port = 3001
@@ -17,7 +20,7 @@ path_prefix = "api/v1"
 cookie_1 = { key = "Set-Cookie", value = "a=b; c=d" }
 redirect_1 = { key = "Location", value = "/api/v1/home" }
 
-[url.paths]
+[url.paths] # under `data_dir`
 "home" = "home.json"
 # "some/path" = "api.json5"
 # custom header
@@ -36,5 +39,5 @@ redirect_1 = { key = "Location", value = "/api/v1/home" }
 [url.paths_patterns."some/path/w/matcher"."f"]
 "=" = "api.json5"
 
-[url.raw_paths]
+[url.raw_paths] # path from root
 "/" = { code = 200, text = "{\"hello\":\"world\"}" }

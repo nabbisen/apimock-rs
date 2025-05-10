@@ -192,7 +192,7 @@ default: see: [listener.port](#listenerport)
 ### `--middleware`
 
 Middleware file path.
-default: `middleware.rhai`
+default: `apimock-middleware.rhai`
 
 ## Middleware
 

@@ -78,9 +78,13 @@ jobs:
           RELEASE_ASSET_BASENAME=${{ env.PRODUCT_BASENAME }}@${{ matrix.name }}-${{ env.TAG }}
           RELEASE_SRC_DIR=${RELEASE_ASSET_BASENAME}
           RELEASE_ASSET_FILENAME=${RELEASE_ASSET_BASENAME}${{ matrix.archive_ext }}
+          
           mkdir "${{ env.JOB_WORKDIR }}"
-          mv "examples/config" "${{ env.JOB_WORKDIR }}/${RELEASE_SRC_DIR}"
-          mv "${BUILT_FILEPATH}" "${{ env.JOB_WORKDIR }}/${RELEASE_SRC_DIR}/"
+
+          cp "examples/config/default/apimock.toml" "${{ env.JOB_WORKDIR }}/${RELEASE_SRC_DIR}/"
+          cp "examples/config/default/apimock-middleware.rhai" "${{ env.JOB_WORKDIR }}/${RELEASE_SRC_DIR}/"
+          cp "${BUILT_FILEPATH}" "${{ env.JOB_WORKDIR }}/${RELEASE_SRC_DIR}/"
+          
           echo "RELEASE_SRC_DIR=${RELEASE_SRC_DIR}" >> $GITHUB_ENV
           echo "RELEASE_ASSET_FILENAME=${RELEASE_ASSET_FILENAME}" >> $GITHUB_ENV
 
