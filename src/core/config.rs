@@ -680,7 +680,9 @@ impl Config {
 
     /// validate user settings in app config
     fn validate(&self) {
-        if self.always.is_none() && (self.paths.is_none() || self.paths.clone().unwrap().len() == 0)
+        if self.always.is_none()
+            && (self.paths.is_none() || self.paths.clone().unwrap().len() == 0)
+            && self.dyn_data_dir.is_none()
         {
             panic!("paths not defined");
         }
