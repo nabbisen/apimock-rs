@@ -6,7 +6,7 @@ pub mod args {
     pub const MIDDLEWARE_FILEPATH_OPTION_NAMES: [&str; 1] = ["--middleware"];
 
     pub const DEFAULT_CONFIG_FILENAME: &str = "apimock.toml";
-    pub const DEFAULT_MIDDLEWARE_FILEPATH: &str = "./middleware.rhai";
+    pub const DEFAULT_MIDDLEWARE_FILEPATH: &str = "./apimock-middleware.rhai";
 }
 
 pub mod config {

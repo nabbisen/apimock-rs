@@ -1,9 +1,11 @@
 //! pre-defined variables are available:
 //! - uri_path: request uri path
 //! - body: request body json value defined only when exists
+//! 
+//! (ref) The Rhai Book: https://rhai.rs/book/language/statements.html
 
 // case `cargo run`:
-// let returned_json_filepath = "examples/config/apimock-data/middleware-test.json";
+// let returned_json_filepath = "examples/config/full/apimock-data/middleware-test.json";
 // case `cargo test`:
 let returned_json_filepath = "apimock-data/middleware-test.json";
 

@@ -11,9 +11,9 @@ use std::{env, u16};
 use tokio::net::TcpStream;
 
 // todo: rename dir "config" -> "default" or something ?
-const TEST_WORKDIR: &str = "examples/config";
+const TEST_WORKDIR: &str = "examples/config/full";
 const CONFIG_FILEPATH: &str = "apimock.toml";
-const MIDDLEWARE_FILEPATH: &str = "middleware.rhai";
+const MIDDLEWARE_FILEPATH: &str = "apimock-middleware.rhai";
 
 #[tokio::test]
 async fn uri_root_as_empty() {
@@ -32,7 +32,7 @@ async fn uri_root_as_empty() {
 }
 
 #[tokio::test]
-async fn uri_root() {
+async fn raw_path() {
     let port = setup().await;
     let response = http_response("/", None, port).await;
 
