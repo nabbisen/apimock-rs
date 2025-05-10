@@ -79,7 +79,7 @@ jobs:
           RELEASE_SRC_DIR=${RELEASE_ASSET_BASENAME}
           RELEASE_ASSET_FILENAME=${RELEASE_ASSET_BASENAME}${{ matrix.archive_ext }}
           
-          mkdir "${{ env.JOB_WORKDIR }}"
+          mkdir -p "${{ env.JOB_WORKDIR }}/${RELEASE_SRC_DIR}"
 
           cp "examples/config/default/apimock.toml" "${{ env.JOB_WORKDIR }}/${RELEASE_SRC_DIR}/"
           cp "examples/config/default/apimock-middleware.rhai" "${{ env.JOB_WORKDIR }}/${RELEASE_SRC_DIR}/"
