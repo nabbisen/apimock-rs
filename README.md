@@ -59,9 +59,10 @@ Middleware is available as `rhai` script:
 
 - Can [switch data directory paths](docs/CONFIGURE.md#urldata_dir_query_path) manually in testing via specific HTTP request to make json responses flexible
 
-### 6. spawn feature
+### 6. crate features
 
-- With `spawn` feature activated, the server is available as subprocess. The output will be returned via tokio mpsc queue.
+- `debug`: when activated, `Debug` trait is enabled on app structs.
+- `spawn`: when activated, the server is available as subprocess. The output will be returned via tokio mpsc queue.
 
 ### Reference
 
