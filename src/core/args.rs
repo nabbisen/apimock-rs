@@ -1,4 +1,4 @@
-use std::{env, path::Path};
+use std::{env, fs, path::Path};
 
 use super::constant::args;
 
@@ -20,6 +20,13 @@ impl EnvArgs {
 
         ret.default_config_filepath();
         ret.default_middleware_filepath();
+
+        let init_with_default_files =
+            args_option_value(args::INIT_WITH_DEFAULT_FILES_OPTION_NAMES.to_vec().as_ref())
+                .is_some();
+        if init_with_default_files {
+            ret.init_with_default_files();
+        }
 
         match ret.validate() {
             Ok(_) => ret,
@@ -75,6 +82,22 @@ impl EnvArgs {
         ret
     }
 
+    fn init_with_default_files(&mut self) {
+        if self.config_filepath.is_none() {
+            let filepath = args::DEFAULT_CONFIG_FILEPATH;
+            let content = include_str!("../../examples/config/default/apimock.toml");
+            let _ = fs::write(filepath, content);
+            self.config_filepath = Some(filepath.to_owned());
+        }
+
+        if self.middleware_filepath.is_none() {
+            let filepath = args::DEFAULT_MIDDLEWARE_FILEPATH;
+            let content = include_str!("../../examples/config/default/apimock-middleware.rhai");
+            let _ = fs::write(filepath, content);
+            self.middleware_filepath = Some(filepath.to_owned());
+        }
+    }
+
     /// app config file path
     ///
     /// - if specified in arguments, use it
@@ -84,11 +107,11 @@ impl EnvArgs {
         if self.config_filepath.is_some() {
             return;
         }
-        if !Path::new(args::DEFAULT_CONFIG_FILENAME).exists() {
+        if !Path::new(args::DEFAULT_CONFIG_FILEPATH).exists() {
             return;
         }
 
-        self.config_filepath = Some(args::DEFAULT_CONFIG_FILENAME.to_owned());
+        self.config_filepath = Some(args::DEFAULT_CONFIG_FILEPATH.to_owned());
     }
 
     /// app middleware file path
@@ -120,9 +143,10 @@ fn args_option_value(option_names: &Vec<&str>) -> Option<String> {
 
     if let Some(name_index) = name_index {
         let name_value = args.get(name_index + 1);
-        if let Some(name_value) = name_value {
-            return Some(name_value.to_owned());
-        }
+        return match name_value {
+            Some(name_value) if !name_value.starts_with("-") => Some(name_value.to_owned()),
+            _ => Some(String::new()),
+        };
     }
 
     None

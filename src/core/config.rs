@@ -1,4 +1,4 @@
-use crate::core::constant::args::DEFAULT_CONFIG_FILENAME;
+use crate::core::constant::args::DEFAULT_CONFIG_FILEPATH;
 
 use super::constant::config::*;
 use console::style;
@@ -84,7 +84,7 @@ impl Config {
                 config.always = Some(ALWAYS_DEFAULT_MESSAGES.to_owned());
                 log::warn!(
                     "config-less mode: `always` option is activated, because\nboth `{}` file and `{}/` directory are missing\n",
-                    DEFAULT_CONFIG_FILENAME, DEFAULT_DYN_DATA_DIR
+                    DEFAULT_CONFIG_FILEPATH, DEFAULT_DYN_DATA_DIR
                 );
                 config.print();
                 return config;
@@ -93,7 +93,7 @@ impl Config {
                 config.dyn_data_dir = Some(DEFAULT_DYN_DATA_DIR.to_owned());
                 log::warn!(
                     "config-less mode: `dyn_data_dir` is activated with `{}/`\n`{}` file is missing\n",
-                    DEFAULT_DYN_DATA_DIR, DEFAULT_CONFIG_FILENAME
+                    DEFAULT_DYN_DATA_DIR, DEFAULT_CONFIG_FILEPATH
                 );
                 config.print();
                 return config;
