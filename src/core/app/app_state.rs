@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use rhai::{Engine, AST};
 
-use super::config::Config;
+use crate::core::config::Config;
 
 #[derive(Clone)]
 pub struct AppState {

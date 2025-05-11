@@ -1,14 +1,19 @@
-use crate::core::constant::args::DEFAULT_CONFIG_FILEPATH;
-
-use super::constant::config::*;
 use console::style;
+use constant::*;
 use hyper::http::StatusCode;
 use json5;
 use serde_json;
+use toml;
+use util::{data_src_path, fullpath};
+
 use std::collections::HashMap;
 use std::fs;
 use std::path::Path;
-use toml;
+
+pub mod constant;
+mod util;
+
+use crate::core::args::constant::DEFAULT_CONFIG_FILEPATH;
 
 pub type UrlPath = String;
 pub type HeaderId = String;
@@ -702,35 +707,4 @@ impl Config {
             }
         }
     }
-}
-
-/// api url full path
-fn fullpath(path: &str, path_prefix: &Option<String>, is_raw_paths: bool) -> String {
-    let possibly_w_trailing_slash = if is_raw_paths {
-        format!("/{}/", path.to_string())
-    } else {
-        if let Some(path_prefix) = path_prefix {
-            format!("/{}/{}/", path_prefix, path.to_string())
-        } else {
-            format!("/{}/", path.to_string())
-        }
-    }
-    .replace("//", "/");
-
-    (&possibly_w_trailing_slash[..possibly_w_trailing_slash.len() - 1]).to_owned()
-}
-
-/// `data_src` path on static json responses
-fn data_src_path(file: &str, data_dir: &Option<String>) -> String {
-    let data_dir = if let Some(x) = data_dir.clone() {
-        x.to_owned()
-    } else {
-        String::new()
-    };
-    let path = Path::new(data_dir.as_str())
-        .join(file)
-        .display()
-        .to_string();
-    let _ = fs::metadata(&path).expect(format!("`{}` is missing", path).as_str());
-    path
 }

@@ -1,6 +1,8 @@
 use std::{env, fs, path::Path};
 
-use super::constant::args;
+pub mod constant;
+
+use constant::*;
 
 /// env args passed at startup
 #[derive(Clone)]
@@ -22,8 +24,7 @@ impl EnvArgs {
         ret.default_middleware_filepath();
 
         let init_with_default_files =
-            args_option_value(args::INIT_WITH_DEFAULT_FILES_OPTION_NAMES.to_vec().as_ref())
-                .is_some();
+            args_option_value(INIT_WITH_DEFAULT_FILES_OPTION_NAMES.to_vec().as_ref()).is_some();
         if init_with_default_files {
             ret.init_with_default_files();
         }
@@ -60,7 +61,7 @@ impl EnvArgs {
     fn init() -> Self {
         let port =
             if let Some(port) =
-                args_option_value(args::CONFIG_LISTENER_PORT_OPTION_NAMES.to_vec().as_ref())
+                args_option_value(CONFIG_LISTENER_PORT_OPTION_NAMES.to_vec().as_ref())
             {
                 Some(port.parse::<u16>().expect(
                     format!("env arg `port` is {} - specified but not number", port).as_str(),
@@ -70,12 +71,10 @@ impl EnvArgs {
             };
 
         let ret = EnvArgs {
-            config_filepath: args_option_value(
-                args::CONFIG_FILEPATH_OPTION_NAMES.to_vec().as_ref(),
-            ),
+            config_filepath: args_option_value(CONFIG_FILEPATH_OPTION_NAMES.to_vec().as_ref()),
             port,
             middleware_filepath: args_option_value(
-                args::MIDDLEWARE_FILEPATH_OPTION_NAMES.to_vec().as_ref(),
+                MIDDLEWARE_FILEPATH_OPTION_NAMES.to_vec().as_ref(),
             ),
         };
 
@@ -84,14 +83,14 @@ impl EnvArgs {
 
     fn init_with_default_files(&mut self) {
         if self.config_filepath.is_none() {
-            let filepath = args::DEFAULT_CONFIG_FILEPATH;
+            let filepath = DEFAULT_CONFIG_FILEPATH;
             let content = include_str!("../../examples/config/default/apimock.toml");
             let _ = fs::write(filepath, content);
             self.config_filepath = Some(filepath.to_owned());
         }
 
         if self.middleware_filepath.is_none() {
-            let filepath = args::DEFAULT_MIDDLEWARE_FILEPATH;
+            let filepath = DEFAULT_MIDDLEWARE_FILEPATH;
             let content = include_str!("../../examples/config/default/apimock-middleware.rhai");
             let _ = fs::write(filepath, content);
             self.middleware_filepath = Some(filepath.to_owned());
@@ -107,11 +106,11 @@ impl EnvArgs {
         if self.config_filepath.is_some() {
             return;
         }
-        if !Path::new(args::DEFAULT_CONFIG_FILEPATH).exists() {
+        if !Path::new(DEFAULT_CONFIG_FILEPATH).exists() {
             return;
         }
 
-        self.config_filepath = Some(args::DEFAULT_CONFIG_FILEPATH.to_owned());
+        self.config_filepath = Some(DEFAULT_CONFIG_FILEPATH.to_owned());
     }
 
     /// app middleware file path
@@ -123,11 +122,11 @@ impl EnvArgs {
         if self.middleware_filepath.is_some() {
             return;
         }
-        if !Path::new(args::DEFAULT_MIDDLEWARE_FILEPATH).exists() {
+        if !Path::new(DEFAULT_MIDDLEWARE_FILEPATH).exists() {
             return;
         }
 
-        self.middleware_filepath = Some(args::DEFAULT_MIDDLEWARE_FILEPATH.to_owned());
+        self.middleware_filepath = Some(DEFAULT_MIDDLEWARE_FILEPATH.to_owned());
     }
 }
 

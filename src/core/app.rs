@@ -1,7 +1,3 @@
-use std::net::{SocketAddr, ToSocketAddrs};
-use std::path::Path;
-use std::sync::Arc;
-
 use console::style;
 use hyper::body::Bytes;
 use hyper::{body, service::service_fn, Request, Response};
@@ -10,16 +6,23 @@ use hyper_util::{
     server::conn::auto::Builder,
 };
 use rhai::Engine;
-use std::convert::Infallible;
 use tokio::sync::mpsc::Sender;
 use tokio::{net::TcpListener, sync::Mutex};
 
-use super::app_state::{AppState, Middleware};
+use std::convert::Infallible;
+use std::net::{SocketAddr, ToSocketAddrs};
+use std::path::Path;
+use std::sync::Arc;
+
+pub mod app_state;
+mod constant;
+
 use super::args::EnvArgs;
 use super::config::{Config, ConfigUrlPaths, ConfigUrlPathsJsonpathPatterns};
-use super::constant::APP_NAME;
 use super::logger::init_logger;
 use super::server::handle;
+use app_state::{AppState, Middleware};
+use constant::APP_NAME;
 
 type BoxBody = http_body_util::combinators::BoxBody<Bytes, Infallible>;
 
