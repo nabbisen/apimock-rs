@@ -177,7 +177,7 @@ Not affected by `url.path_prefix`. Everything else is the same to `url.paths`.
 
 **Default**: None
 
-## Options
+## Executable arguments
 
 ### `-c` / `--config`
 
@@ -193,6 +193,11 @@ default: see: [listener.port](#listenerport)
 
 Middleware file path.
 default: `apimock-middleware.rhai`
+
+### `--init`
+
+When passed, initialize app files.    
+`./apimock.toml` and `./apimock-middleware.rhai` will be generated if missing.
 
 ## Middleware
 
@@ -235,3 +240,12 @@ return "some/path/response.json";
 let ret = "some/path/response.json";
 exit(ret);
 ```
+
+## Notes
+
+### After server started
+
+There are some modifiable settings on running server:
+
+- `.json` / `.json5` content of `src` in `paths`, `raw_paths`, and those in `dyn_data_dir`
+- `data_dir` in `paths` and `paths_patterns`

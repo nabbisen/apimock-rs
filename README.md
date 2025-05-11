@@ -10,9 +10,7 @@
 
 HTTP server generating REST/JSON responses. Aims to be mocking helper to develop microservices and APIs. Written in [Rust](https://www.rust-lang.org/) and based on [hyper](https://hyper.rs/).
 
-Run `./apimock` or `./apimock -c apimock.toml` to start the server. It is single small native binary. Multiple platforms are supported and no installation is required.
-
-- [Getting started](docs/GETTING-STARTED.md)
+Running `apimock` or `apimock -c apimock.toml` starts the server. Built as small single native binary. Supports cross-platform.
 
 ## Screenshots
 
@@ -28,46 +26,41 @@ Middleware is available as `rhai` script:
 
 ![server responds](docs/.assets/demo-03.png)
 
-## Features
-
-### 1. Basic
-
-- GET / POST methods
-- Multiple [`paths`](docs/CONFIGURE.md#urlpaths)
-- Multiple .json/.json5 files treated as JSON Response
-- based on hyper v1
-
-### 2. Customization
-
-- Custom HTTP response codes: 3xx as redirects, and 4xx and 5xx as errors
-- Custom response [headers](docs/CONFIGURE.md#urlheaders) which are reusable
-- Can specify response time on all or each API path
-- [Middleware](docs/CONFIGURE.md#middleware) as [`rhai`](https://github.com/rhaiscript/rhai) script (ref: [Rhai book](https://rhai.rs/book/language/statements.html) (Statements chapter)) is available to customize request routing and response handling
-
-### 3. Dynamic processing
-
-- Flexible responses with patterns and jsonpath queries. Even with the same API URL path, multiple responses can be returned. See [`url.paths_patterns`](docs/CONFIGURE.md#urlpaths_patterns)
-- Dynamic path resolution with [`dyn_data_dir`](docs/CONFIGURE.md#generaldyn_data_dir)
-
-### 4. Safe and observable usage
-
-- Validates configuration: Missing JSON files, duplicate paths etc.
-- Prints out routing at startup
-- Describes request content on both HTTP headers and body (json or plain text) when [`verbose`](docs/CONFIGURE.md#generalverbose) log is activated
-
-### 5. Test helper
-
-- Can [switch data directory paths](docs/CONFIGURE.md#urldata_dir_query_path) manually in testing via specific HTTP request to make json responses flexible
-
-### 6. crate features
-
-- `debug`: when activated, `Debug` trait is enabled on app structs.
-- `spawn`: when activated, the server is available as subprocess. The output will be returned via tokio mpsc queue.
-
 ### Reference
 
+- [Features](docs/FEATURES.md)
 - [Configuration and options](docs/CONFIGURE.md)
 - [Design and specification](docs/SPECS.md)
+
+## Usage
+
+### Executable
+
+[Assets](https://github.com/nabbisen/apimock-rs/releases/latest) in Releases offer executables for multiple platforms.
+
+```sh
+./apimock
+```
+
+At startup, [`--init`](docs/CONFIGURE.md#--init) option is available to gerenate app configuration and customization files:
+
+```sh
+./apimock --init
+```
+
+#### Customization
+
+- Able to customize by modifying config file (`./apimock.toml` by default) and restarting app.
+- Dynamic routing directory is also available (`./apimock-dyn-data/` by default) even without config file. App returns response by associating request URL path with relative file path under it.
+- When app runs without both `./apimock.toml` and `./apimock-dyn-data/` directory, [`always`](./CONFIGURE.md#configuration) option is automatically activated to return fixed response.
+
+### `cargo` install
+
+```sh
+cargo install apimock
+# after installed:
+apimock
+```
 
 ## Acknowledgements
 

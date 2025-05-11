@@ -79,21 +79,21 @@ impl Config {
 
         // config-less mode
         if config_filepath.is_none() {
-            // `always` only
-            if !Path::new(DEFAULT_DYN_DATA_DIR).exists() {
-                config.always = Some(ALWAYS_DEFAULT_MESSAGES.to_owned());
-                log::warn!(
-                    "config-less mode: `always` option is activated, because\nboth `{}` file and `{}/` directory are missing\n",
-                    DEFAULT_CONFIG_FILEPATH, DEFAULT_DYN_DATA_DIR
-                );
-                config.print();
-                return config;
             // `dyn_data_dir` is activated
-            } else {
+            if Path::new(DEFAULT_DYN_DATA_DIR).exists() {
                 config.dyn_data_dir = Some(DEFAULT_DYN_DATA_DIR.to_owned());
                 log::warn!(
                     "config-less mode: `dyn_data_dir` is activated with `{}/`\n`{}` file is missing\n",
                     DEFAULT_DYN_DATA_DIR, DEFAULT_CONFIG_FILEPATH
+                );
+                config.print();
+                return config;
+            // `always` only
+            } else {
+                config.always = Some(ALWAYS_DEFAULT_MESSAGES.to_owned());
+                log::warn!(
+                    "config-less mode: `always` option is activated, because\nboth `{}` file and `{}/` directory are missing\n",
+                    DEFAULT_CONFIG_FILEPATH, DEFAULT_DYN_DATA_DIR
                 );
                 config.print();
                 return config;
