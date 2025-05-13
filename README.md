@@ -6,6 +6,13 @@
 [![Releases Workflow](https://github.com/nabbisen/apimock-rs/actions/workflows/release-executable.yaml/badge.svg)](https://github.com/nabbisen/apimock-rs/actions/workflows/release-executable.yaml)
 [![License](https://img.shields.io/github/license/nabbisen/apimock-rs)](https://github.com/nabbisen/apimock-rs/blob/main/LICENSE)
 
+## 🛠️ App overhaul announcement
+
+### ⚠️ Major update in development (v4)
+
+v4 introduces a fundamental shift in design. Existing configuration files will no longer work as-is. Some features will be deprecated.
+In return: cleaner configs, dynamic resolution, and better extensibility.
+
 ## Summary
 
 HTTP server generating REST/JSON responses. Aims to be mocking helper to develop microservices and APIs. Written in [Rust](https://www.rust-lang.org/) and based on [hyper](https://hyper.rs/).
