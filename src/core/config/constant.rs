@@ -9,6 +9,6 @@ pub const CONFIG_SECTION_URL_RAW_PATH: &str = "raw_paths";
 pub const LISTENER_DEFAULT_IP_ADDRESS: &str = "127.0.0.1";
 pub const LISTENER_DEFAULT_PORT: u16 = 3001;
 
-pub const DEFAULT_DYN_DATA_DIR: &str = "apimock-dyn-data";
+pub const SERVICE_DEFAULT_DEFAULT_RESPONSE_DIR: &str = ".";
 
 pub const ALWAYS_DEFAULT_MESSAGES: &str = "Hello, world from API Mock.\n(Responses can be modified with either config toml file or dynamic data directory.)";

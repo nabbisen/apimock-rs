@@ -15,22 +15,18 @@ use std::path::Path;
 use std::sync::Arc;
 
 pub mod app_state;
-mod constant;
+pub mod constant;
 
 use super::args::EnvArgs;
-use super::config::{Config, ConfigUrlPaths, ConfigUrlPathsJsonpathPatterns};
+use super::config::Config;
 use super::logger::init_logger;
-use super::server::handle;
-use app_state::{AppState, Middleware};
-use constant::APP_NAME;
-
-type BoxBody = http_body_util::combinators::BoxBody<Bytes, Infallible>;
+use super::server::middleware::Middleware;
+use super::server::Server;
+use app_state::AppState;
 
 /// app
 pub struct App {
-    addr: SocketAddr,
-    listener: TcpListener,
-    app_state: AppState,
+    pub server: Server,
 }
 
 impl App {
@@ -46,103 +42,17 @@ impl App {
 
         let mut config = Config::new(env_args.config_filepath.as_ref());
 
+        // overwrite port if the arg is specified
         if let Some(port) = env_args.port {
             config.port = port;
         }
 
-        let addr = config
-            .listener_address()
-            .to_socket_addrs()
-            .expect("invalid listend address or port")
-            .next()
-            .expect("failed to resolve address");
-        let listener = TcpListener::bind(addr)
-            .await
-            .expect("tcp listener failed to bind address");
+        let middleware = Middleware::new(env_args.middleware_filepath.as_ref());
 
-        let middleware = match env_args.middleware_filepath {
-            Some(middleware_filepath) if Path::new(middleware_filepath.as_str()).exists() => {
-                let engine = Engine::new();
-                // todo: watch source file change - `notify` crate ?
-                let ast = engine
-                    .compile_file(middleware_filepath.clone().into())
-                    .expect(
-                        format!(
-                            "failed to compile middleware file to get ast: {}",
-                            middleware_filepath
-                        )
-                        .as_str(),
-                    );
-
-                let middleware = Middleware {
-                    engine: Arc::new(engine),
-                    filepath: middleware_filepath.to_owned(),
-                    ast,
-                };
-
-                log::info!("\nMiddleware is activated: {}", middleware_filepath);
-                Some(middleware)
-            }
-            _ => None,
-        };
         let app_state = AppState { config, middleware };
 
-        App {
-            addr,
-            listener,
-            app_state,
-        }
+        let server = Server::new(app_state).await;
+
+        Self { server }
     }
-
-    /// app start
-    pub async fn start(&self) {
-        log::info!(
-            "\nGreetings from {APP_NAME} !!\nListening on {} ...\n",
-            style(format!("http://{}", self.addr)).cyan()
-        );
-        let app_state = Arc::new(Mutex::new(self.app_state.clone()));
-        loop {
-            let (stream, _) = self
-                .listener
-                .accept()
-                .await
-                .expect("tcp listener failed to accept");
-            let io = TokioIo::new(stream);
-
-            let app_state = app_state.clone();
-            tokio::task::spawn(async move {
-                // Finally, we bind the incoming connection to our `hello` service
-                if let Err(err) = Builder::new(TokioExecutor::new())
-                    // `service_fn` converts our function in a `Service`
-                    .serve_connection(
-                        io,
-                        service_fn(move |req: Request<body::Incoming>| {
-                            service(req, app_state.clone())
-                        }),
-                    )
-                    .await
-                {
-                    log::error!("error serving connection: {:?}", err);
-                }
-            });
-        }
-    }
-
-    /// get [url.paths] in config
-    pub fn config_url_paths(&self) -> Option<ConfigUrlPaths> {
-        self.app_state.config.paths.clone()
-    }
-
-    /// get [url.paths_patterns] in config
-    pub fn config_url_paths_patterns(&self) -> Option<ConfigUrlPathsJsonpathPatterns> {
-        self.app_state.config.paths_jsonpath_patterns.clone()
-    }
-}
-
-/// handle http service
-async fn service(
-    req: Request<body::Incoming>,
-    app_state: Arc<Mutex<AppState>>,
-) -> Result<Response<BoxBody>, hyper::http::Error> {
-    handle(req, Arc::clone(&app_state)).await
 }

@@ -1,8 +1,8 @@
-use apimock::{core::args::EnvArgs, server};
+use apimock::core::args::EnvArgs;
 
 /// app entry point on executable
 #[tokio::main]
 async fn main() {
-    let server = server(EnvArgs::init_with_default()).await;
-    server.start().await
+    let app = apimock::run(EnvArgs::init_with_default()).await;
+    app.server.start().await
 }

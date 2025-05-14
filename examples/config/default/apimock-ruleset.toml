@@ -1,0 +1,28 @@
+[prefix]
+url_path = "b"
+response_dir = "a"
+
+# [guard.request.headers]
+
+[[rule]]
+[rule.when]
+url_path = "/a/b"
+[rule.when.request.headers]
+user = { op = "equal", value = "user1" }
+[rule.when.request.body.json]
+"a.b.c" = { op = "not_equal", value = "d" }
+[rule.respond]
+type = "file"
+file_path = "test/return.json"
+wait_milliseconds = 1000
+
+[[rule]]
+[rule.when]
+url_path = "/a/b"
+[rule.when.request.headers]
+user = { op = "equal", value = "user1" }
+[rule.when.request.body.json]
+"a.b.c" = { op = "equal", value = "d" }
+[rule.respond]
+file_path = "test/return.json"
+wait_milliseconds = 1000

@@ -1,6 +1,27 @@
+use tokio::time;
+
 use std::path::Path;
+use std::time::Duration;
 
 use super::constant::JSON_EXTENSIONS;
+
+/// format uri path
+///
+/// omit leading slash
+pub fn canonicalize_uri_path(uri_path: &str) -> String {
+    if uri_path.chars().filter(|&c| c == '/').count() == 1 {
+        uri_path.to_owned()
+    } else if uri_path.ends_with("/") {
+        uri_path[..uri_path.len() - 1].to_owned()
+    } else {
+        uri_path.to_owned()
+    }
+}
+
+/// sleep
+pub async fn delay_response(millis: u64) {
+    time::sleep(Duration::from_millis(millis)).await
+}
 
 /// check if file is json
 pub fn file_is_json(p: &Path) -> bool {
