@@ -8,12 +8,13 @@ use hyper::{
 
 use std::{fs, path::Path};
 
-use crate::core::server::{
-    types::BoxBody,
-    util::{file_is_json, is_equivalent_json_file},
+use crate::core::{
+    server::{
+        response::{error::not_found, file::file_content},
+        types::BoxBody,
+    },
+    util::file::{file_is_json, is_equivalent_json_file},
 };
-
-use super::{error::not_found, file::file_content};
 
 /// handle on `fallback_response_dir` (dynamic json responses)
 pub fn dyn_route_content(
