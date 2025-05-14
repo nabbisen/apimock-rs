@@ -4,6 +4,7 @@ use hyper_util::{
     rt::{TokioExecutor, TokioIo},
     server::conn::auto::Builder,
 };
+use routing::dyn_route::dyn_route_content;
 use tokio::net::TcpListener;
 use tokio::sync::Mutex;
 
@@ -11,17 +12,18 @@ use std::net::{SocketAddr, ToSocketAddrs};
 use std::sync::Arc;
 
 mod constant;
-mod jsonpath_pattern;
 pub mod middleware;
 mod parsed_request;
 mod response;
+pub mod routing;
+mod routing_analysis;
 mod types;
 mod util;
 
 use crate::core::app::app_state::AppState;
 use crate::core::app::constant::APP_NAME;
 use parsed_request::ParsedRequest;
-use response::{dyn_route::dyn_route_content, file::file_content};
+use response::file::file_content;
 use types::BoxBody;
 
 /// server

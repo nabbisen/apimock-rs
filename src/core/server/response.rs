@@ -12,7 +12,6 @@ use serde_json::{json, Map, Value};
 
 use std::{collections::HashMap, path::Path};
 
-pub mod dyn_route;
 pub mod error;
 pub mod file;
 mod text;

@@ -7,7 +7,7 @@ use toml;
 
 use std::fs;
 
-use super::routing::rule_set::RuleSet;
+use super::server::routing::rule_set::RuleSet;
 
 pub mod constant;
 pub mod listener_config;

@@ -1,6 +1,6 @@
 use serde::Deserialize;
 
-use crate::core::routing::rule_set::RuleSet;
+use crate::core::server::routing::rule_set::RuleSet;
 
 use super::constant::SERVICE_DEFAULT_FALLBACK_RESPONSE_DIR;
 
