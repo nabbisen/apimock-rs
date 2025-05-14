@@ -40,14 +40,14 @@ impl App {
     ) -> Self {
         let _ = init_logger(spawn_tx, includes_ansi_codes);
 
-        let mut config = Config::new(env_args.config_filepath.as_ref());
+        let mut config = Config::new(env_args.config_file_path.as_ref());
 
         // overwrite port if the arg is specified
         if let Some(port) = env_args.port {
-            config.port = port;
+            config.listener.port = port;
         }
 
-        let middleware = Middleware::new(env_args.middleware_filepath.as_ref());
+        let middleware = Middleware::new(env_args.middleware_file_path.as_ref());
 
         let app_state = AppState { config, middleware };
 

@@ -18,4 +18,5 @@ pub enum RuleOp {
     LessThan,
     LessThanEqual,
     Contains,
+    WildCars,
 }

@@ -4,9 +4,9 @@
 [listener]
 ip_address = "127.0.0.1"
 port = 3001
-[log.verbose]
-header = true
-body = true
+[log]
+verbose = { header = true, body = true }
 [service]
-default_response_dir = "."
+#rule_sets = ["apimock-ruleset.toml"]
 rule_sets = ["examples/config/default/apimock-ruleset.toml"]
+fallback_response_dir = "."

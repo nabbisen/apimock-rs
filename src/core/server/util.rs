@@ -19,8 +19,8 @@ pub fn canonicalize_uri_path(uri_path: &str) -> String {
 }
 
 /// sleep
-pub async fn delay_response(millis: u64) {
-    time::sleep(Duration::from_millis(millis)).await
+pub async fn delay_response(milliseconds: u64) {
+    time::sleep(Duration::from_millis(milliseconds)).await
 }
 
 /// check if file is json

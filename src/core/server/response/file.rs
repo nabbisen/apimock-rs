@@ -37,16 +37,16 @@ pub fn file_content(file_path: &str) -> Result<hyper::Response<BoxBody>, Error> 
 }
 
 /// text file response
-fn text_file_content(content: &str, filepath: &str) -> Result<hyper::Response<BoxBody>, Error> {
-    match Path::new(filepath)
+fn text_file_content(content: &str, file_path: &str) -> Result<hyper::Response<BoxBody>, Error> {
+    match Path::new(file_path)
         .extension()
         .unwrap_or_default()
         .to_ascii_lowercase()
         .to_str()
     {
         Some(ext) => match ext {
-            "json" | "json5" => json_file_content(content, filepath),
-            "csv" => csv_file_content(content, filepath),
+            "json" | "json5" => json_file_content(content, file_path),
+            "csv" => csv_file_content(content, file_path),
             _ => plain_text(content, Some(text_file_content_type(ext).as_str())),
         },
         None => plain_text(content, None),

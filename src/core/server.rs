@@ -98,7 +98,7 @@ pub async fn service(
     // app handle driven by config
     let config = shared_app_state.config;
 
-    request.capture_in_log(config.verbose);
+    request.capture_in_log(config.log.verbose);
 
     // todo: commands
     // // config update
@@ -136,10 +136,10 @@ pub async fn service(
 
     // middleware if activated
     if let Some(middleware) = shared_app_state.middleware {
-        let middleware_response_filepath =
+        let middleware_response_file_path =
             middleware.handle(request.uri_path.as_str(), request.body_json.as_ref());
-        if let Some(middleware_response_filepath) = middleware_response_filepath {
-            return file_content(middleware_response_filepath.as_str());
+        if let Some(middleware_response_file_path) = middleware_response_file_path {
+            return file_content(middleware_response_file_path.as_str());
         }
     }
 
@@ -147,6 +147,6 @@ pub async fn service(
 
     dyn_route_content(
         request.uri_path.as_str(),
-        config.default_response_dir.as_str(),
+        config.service.fallback_response_dir.as_str(),
     )
 }

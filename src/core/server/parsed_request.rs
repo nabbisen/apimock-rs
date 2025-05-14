@@ -6,7 +6,7 @@ use hyper::body::Incoming;
 use hyper::http::request::Parts;
 use serde_json::Value;
 
-use crate::core::config::Verbose;
+use crate::core::config::log_config::VerboseConfig;
 
 use super::util::canonicalize_uri_path;
 
@@ -41,7 +41,7 @@ impl ParsedRequest {
     }
 
     /// print out logs
-    pub fn capture_in_log(&self, verbose: Verbose) {
+    pub fn capture_in_log(&self, verbose: VerboseConfig) {
         let now = SystemTime::now()
             .duration_since(UNIX_EPOCH)
             .unwrap()

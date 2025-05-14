@@ -16,5 +16,5 @@ pub struct Respond {
     pub headers: Option<HashMap<String, Option<String>>>,
     pub code: Option<u16>,
     pub content: String,
-    pub wait_milliseconds: Option<u16>,
+    pub delay_response_milliseconds: Option<u16>,
 }

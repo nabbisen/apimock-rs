@@ -1,5 +1,3 @@
-use apimock::core::{app::App, args::EnvArgs};
-
 use http_body_util::{BodyExt, Empty, Full};
 use hyper::{
     body::{Bytes, Incoming},
@@ -9,14 +7,21 @@ use hyper_util::rt::TokioIo;
 use rand::Rng;
 use std::{env, u16};
 use tokio::net::TcpStream;
+use util::aaa;
+
+mod util;
+
+use apimock::core::{app::App, args::EnvArgs};
 
 // todo: rename dir "config" -> "default" or something ?
 const TEST_WORKDIR: &str = "examples/config/full";
-const CONFIG_FILEPATH: &str = "apimock.toml";
-const MIDDLEWARE_FILEPATH: &str = "apimock-middleware.rhai";
+const CONFIG_FILE_PATH: &str = "apimock.toml";
+const MIDDLEWARE_FILE_PATH: &str = "apimock-middleware.rhai";
 
 #[tokio::test]
 async fn uri_root_as_empty() {
+    aaa(); // todo: tests util module
+
     let port = setup().await;
     let response = http_response("", None, port).await;
 
@@ -306,9 +311,57 @@ async fn middleware_body_missed() {
 }
 
 #[tokio::test]
-async fn dyn_data_dir_json_root_json() {
+async fn dyn_data_dir_json_root_json_ext_none() {
+    let port = setup().await;
+    let response = http_response("/root1", None, port).await;
+
+    assert_eq!(response.status(), StatusCode::OK);
+
+    assert_eq!(
+        response.headers().get("content-type").unwrap(),
+        "application/json"
+    );
+
+    let body_str = response_body_str(response).await;
+    assert_eq!(body_str.as_str(), "{\"name\":\"root1.json\"}");
+}
+
+#[tokio::test]
+async fn dyn_data_dir_json_root_json_ext_json() {
     let port = setup().await;
     let response = http_response("/root1.json", None, port).await;
+
+    assert_eq!(response.status(), StatusCode::OK);
+
+    assert_eq!(
+        response.headers().get("content-type").unwrap(),
+        "application/json"
+    );
+
+    let body_str = response_body_str(response).await;
+    assert_eq!(body_str.as_str(), "{\"name\":\"root1.json\"}");
+}
+
+#[tokio::test]
+async fn dyn_data_dir_json_root_json_ext_json5() {
+    let port = setup().await;
+    let response = http_response("/root1.json5", None, port).await;
+
+    assert_eq!(response.status(), StatusCode::OK);
+
+    assert_eq!(
+        response.headers().get("content-type").unwrap(),
+        "application/json"
+    );
+
+    let body_str = response_body_str(response).await;
+    assert_eq!(body_str.as_str(), "{\"name\":\"root1.json\"}");
+}
+
+#[tokio::test]
+async fn dyn_data_dir_json_root_json_ext_csv() {
+    let port = setup().await;
+    let response = http_response("/root1.csv", None, port).await;
 
     assert_eq!(response.status(), StatusCode::OK);
 
@@ -511,8 +564,8 @@ async fn setup_with_port(port: u16) {
     let _ = env::set_current_dir(TEST_WORKDIR);
 
     tokio::spawn(async move {
-        let server = App::new(env_args(port), None, true).await;
-        server.start().await
+        let app = App::new(env_args(port), None, true).await;
+        app.server.start().await
     });
     // wait for server started
     tokio::time::sleep(std::time::Duration::from_millis(400)).await;
@@ -522,9 +575,9 @@ async fn setup_with_port(port: u16) {
 fn env_args(port: u16) -> EnvArgs {
     let mut ret = EnvArgs::init_with_default();
 
-    ret.config_filepath = Some(CONFIG_FILEPATH.to_owned());
+    ret.config_file_path = Some(CONFIG_FILE_PATH.to_owned());
     ret.port = Some(port);
-    ret.middleware_filepath = Some(MIDDLEWARE_FILEPATH.to_owned());
+    ret.middleware_file_path = Some(MIDDLEWARE_FILE_PATH.to_owned());
 
     match ret.validate() {
         Ok(_) => ret,

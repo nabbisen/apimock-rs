@@ -5,13 +5,13 @@
 //! (ref) The Rhai Book: https://rhai.rs/book/language/statements.html
 
 // // case `cargo run`:
-// // let returned_json_filepath = "examples/config/full/apimock-data/middleware-test.json";
+// // let returned_json_file_path = "examples/config/full/apimock-data/middleware-test.json";
 // // case `cargo test`:
-// let returned_json_filepath = "apimock-data/middleware-test.json";
+// let returned_json_file_path = "apimock-data/middleware-test.json";
 // 
 // // print(uri_path);
 // if uri_path == "/middleware-test" {
-//     return returned_json_filepath;
+//     return returned_json_file_path;
 // }
 // 
 // if is_def_var("body") {
@@ -19,7 +19,7 @@
 //     switch (uri_path) {
 //         "/middleware-test/dummy" if body.middleware == "isHere" => {
 //             // exit() is useful when run in fn (here, equivalent to return statement)
-//             exit(returned_json_filepath);
+//             exit(returned_json_file_path);
 //         },
 //         _ => ()
 //     }

@@ -6,7 +6,7 @@ use serde_json::Value;
 #[derive(Clone)]
 pub struct Middleware {
     pub engine: Arc<Engine>,
-    pub filepath: String,
+    pub file_path: String,
     pub ast: AST,
 }
 
@@ -26,7 +26,7 @@ impl Middleware {
 
                 let middleware = Middleware {
                     engine: Arc::new(engine),
-                    filepath: file_path.to_owned(),
+                    file_path: file_path.to_owned(),
                     ast,
                 };
 

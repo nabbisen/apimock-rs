@@ -1,28 +1,24 @@
-[prefix]
-url_path = "b"
-response_dir = "a"
+# [prefix]
+# url_path = ""
+# response_dir = ""
+
+# [default]
+# delay_response_milliseconds = 1000
 
 # [guard.request.headers]
 
-[[rule]]
-[rule.when]
-url_path = "/a/b"
-[rule.when.request.headers]
-user = { op = "equal", value = "user1" }
-[rule.when.request.body.json]
-"a.b.c" = { op = "not_equal", value = "d" }
-[rule.respond]
-type = "file"
-file_path = "test/return.json"
-wait_milliseconds = 1000
+[[rules]]
+when = { url_path = "/a/b/c" }
+respond = { content = "test/res.json" }
 
-[[rule]]
-[rule.when]
+[[rules]]
+[rules.when]
 url_path = "/a/b"
-[rule.when.request.headers]
-user = { op = "equal", value = "user1" }
-[rule.when.request.body.json]
-"a.b.c" = { op = "equal", value = "d" }
-[rule.respond]
-file_path = "test/return.json"
-wait_milliseconds = 1000
+# [rule.when.request.headers]
+# user = { op = "equal", value = "user1" }
+# [rule.when.request.body.json]
+# "a.b.c" = { op = "not_equal", value = "d" }
+[rules.respond]
+# type = "file"
+content = "test/return.json"
+# delay_response_milliseconds = 1000

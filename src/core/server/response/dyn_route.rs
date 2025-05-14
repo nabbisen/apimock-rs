@@ -15,21 +15,22 @@ use crate::core::server::{
 
 use super::{error::not_found, file::file_content};
 
-/// handle on `default_response_dir` (dynamic json responses)
+/// handle on `fallback_response_dir` (dynamic json responses)
 pub fn dyn_route_content(
     uri_path: &str,
-    default_response_dir: &str,
+    fallback_response_dir: &str,
 ) -> Result<hyper::Response<BoxBody>, Error> {
     let request_path =
-        Path::new(default_response_dir).join(uri_path.strip_prefix("/").unwrap_or_default());
+        Path::new(fallback_response_dir).join(uri_path.strip_prefix("/").unwrap_or_default());
 
     let dir = request_path.parent().unwrap();
-    if !Path::new(dir).exists() {
+    if !dir.exists() {
         return not_found();
     }
 
     let request_file_name = request_path.file_name().expect("failed to get file name");
 
+    // todo: path /a/b/c -> res /a/b/c.json ?
     let mut found = None;
     for entry in fs::read_dir(dir).unwrap() {
         let entry_path = entry.unwrap().path();
@@ -57,8 +58,8 @@ pub fn dyn_route_content(
 
     match found {
         Some(found) => {
-            let filepath = found.to_str().unwrap_or_default();
-            file_content(filepath)
+            let file_path = found.to_str().unwrap_or_default();
+            file_content(file_path)
         }
         None => not_found(),
     }

@@ -1,5 +1,8 @@
 use constant::*;
+use listener_config::ListenerConfig;
+use log_config::{LogConfig, VerboseConfig};
 use serde::Deserialize;
+use service_config::ServiceConfig;
 use toml;
 
 use std::fs;
@@ -7,6 +10,9 @@ use std::fs;
 use super::routing::rule_set::RuleSet;
 
 pub mod constant;
+pub mod listener_config;
+pub mod log_config;
+pub mod service_config;
 mod util;
 
 /// app config
@@ -15,55 +21,32 @@ pub struct Config {
     #[serde(skip)]
     file_path: Option<String>,
 
-    // [listener]
-    #[serde(default)]
-    pub ip_address: String,
-    #[serde(default)]
-    pub port: u16,
-
-    // [log]
-    #[serde(default)]
-    pub verbose: Verbose,
-
-    // [service]
-    #[serde(default)]
-    pub default_response_dir: String,
-
-    // [routing]
-    #[serde(default)]
-    #[serde(rename = "rule_sets")]
-    pub rule_sets_file_paths: Vec<String>,
-    #[serde(skip)]
-    pub rule_sets: Vec<RuleSet>,
-}
-
-/// verbose logs
-#[derive(Clone, Default, Deserialize)]
-pub struct Verbose {
-    pub header: bool,
-    pub body: bool,
+    pub listener: ListenerConfig,
+    pub log: LogConfig,
+    pub service: ServiceConfig,
 }
 
 /// app config
 impl Config {
     /// create new instance
-    pub fn new(config_filepath: Option<&String>) -> Self {
-        let config = if let Some(config_filepath) = config_filepath {
-            log::info!("[config] {}\n", config_filepath);
+    pub fn new(config_file_path: Option<&String>) -> Self {
+        let config = if let Some(config_file_path) = config_file_path {
+            log::info!("[config] {}\n", config_file_path);
 
-            let toml_string = fs::read_to_string(config_filepath.as_str()).unwrap();
+            let toml_string = fs::read_to_string(config_file_path.as_str()).unwrap();
             let mut config: Config = match toml::from_str(&toml_string) {
                 Ok(x) => x,
-                Err(err) => panic!("{}: Invalid toml content\n({})", config_filepath, err),
+                Err(err) => panic!("{}: Invalid toml content\n({})", config_file_path, err),
             };
 
-            config.rule_sets = config
+            config.service.rule_sets = config
+                .service
                 .rule_sets_file_paths
                 .iter()
                 .map(|x| RuleSet::new(x))
                 .collect();
 
-            config.file_path = Some(config_filepath.to_owned());
+            config.file_path = Some(config_file_path.to_owned());
 
             config
         } else {
@@ -78,11 +61,11 @@ impl Config {
 
     /// address listened to
     pub fn listener_address(&self) -> String {
-        format!("{}:{}", self.ip_address, self.port)
+        format!("{}:{}", self.listener.ip_address, self.listener.port)
     }
 
-    /// update `default_response_dir`
-    // pub fn update_default_response_dir(&mut self, data_dir: &str, old_data_dir: &str) {}
+    /// update `fallback_response_dir`
+    // pub fn update_fallback_response_dir(&mut self, data_dir: &str, old_data_dir: &str) {}
 
     /// validate settings in app config
     fn validate(&self) {
@@ -114,12 +97,12 @@ impl Default for Config {
     fn default() -> Self {
         Config {
             file_path: None,
-            ip_address: LISTENER_DEFAULT_IP_ADDRESS.to_owned(),
-            port: LISTENER_DEFAULT_PORT,
-            verbose: Verbose::default(),
-            default_response_dir: SERVICE_DEFAULT_DEFAULT_RESPONSE_DIR.to_owned(),
-            rule_sets_file_paths: vec![],
-            rule_sets: vec![],
+            listener: ListenerConfig {
+                ip_address: LISTENER_DEFAULT_IP_ADDRESS.to_owned(),
+                port: LISTENER_DEFAULT_PORT,
+            },
+            log: LogConfig::default(),
+            service: ServiceConfig::default(),
         }
     }
 }

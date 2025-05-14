@@ -49,9 +49,13 @@ pub fn print(config: &Config) {
     //     }
     // );
     log::info!(
-        "[verbose] header = {}, body = {}",
-        if config.verbose.header { "Yes" } else { "No" },
-        if config.verbose.body { "Yes" } else { "No" }
+        "[log.verbose] header = {}, body = {}",
+        if config.log.verbose.header {
+            "Yes"
+        } else {
+            "No"
+        },
+        if config.log.verbose.body { "Yes" } else { "No" }
     );
     log::info!("------");
     // if let Some(data_dir) = &config.data_dir {
@@ -95,8 +99,30 @@ pub fn print(config: &Config) {
     //     }
     //     _ => (),
     // };
-    log::info!(
-        "[default_response_dir] {}",
-        style(config.default_response_dir.as_str()).green()
-    );
+    let p = Path::new(config.service.fallback_response_dir.as_str());
+    let p = if p.is_relative() {
+        let absolute_path = fs::canonicalize(config.service.fallback_response_dir.as_str()).expect(
+            format!(
+                "{} does not exist",
+                config.service.fallback_response_dir.as_str()
+            )
+            .as_str(),
+        );
+        format!(
+            "{} ({})",
+            style(config.service.fallback_response_dir.as_str()).green(),
+            absolute_path.to_str().expect(
+                format!(
+                    "logger failed to print out: {}",
+                    config.service.fallback_response_dir.as_str()
+                )
+                .as_str()
+            )
+        )
+    } else {
+        style(config.service.fallback_response_dir.clone())
+            .green()
+            .to_string()
+    };
+    log::info!("[service.fallback_response_dir] {}", p);
 }
