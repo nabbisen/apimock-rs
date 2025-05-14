@@ -20,7 +20,7 @@ use super::{
 };
 
 /// response from file path
-pub fn file_content(file_path: &str) -> Result<hyper::Response<BoxBody>, Error> {
+pub fn file_content(file_path: &str) -> Result<hyper::Response<BoxBody>, hyper::http::Error> {
     if Path::new(file_path).is_dir() {
         return bad_request(format!("{} is directory", file_path).as_str());
     }
@@ -37,7 +37,10 @@ pub fn file_content(file_path: &str) -> Result<hyper::Response<BoxBody>, Error> 
 }
 
 /// text file response
-fn text_file_content(content: &str, file_path: &str) -> Result<hyper::Response<BoxBody>, Error> {
+fn text_file_content(
+    content: &str,
+    file_path: &str,
+) -> Result<hyper::Response<BoxBody>, hyper::http::Error> {
     match Path::new(file_path)
         .extension()
         .unwrap_or_default()
@@ -54,7 +57,10 @@ fn text_file_content(content: &str, file_path: &str) -> Result<hyper::Response<B
 }
 
 /// json file response
-fn json_file_content(content: &str, file_path: &str) -> Result<hyper::Response<BoxBody>, Error> {
+fn json_file_content(
+    content: &str,
+    file_path: &str,
+) -> Result<hyper::Response<BoxBody>, hyper::http::Error> {
     match json5::from_str::<Value>(content) {
         Ok(content) => {
             let body = content.to_string();
@@ -67,7 +73,10 @@ fn json_file_content(content: &str, file_path: &str) -> Result<hyper::Response<B
 }
 
 /// csv file response
-fn csv_file_content(content: &str, file_path: &str) -> Result<hyper::Response<BoxBody>, Error> {
+fn csv_file_content(
+    content: &str,
+    file_path: &str,
+) -> Result<hyper::Response<BoxBody>, hyper::http::Error> {
     let mut rdr = csv::ReaderBuilder::new()
         .has_headers(true)
         .from_reader(content.as_bytes());
@@ -117,7 +126,7 @@ fn csv_file_content(content: &str, file_path: &str) -> Result<hyper::Response<Bo
 }
 
 /// binary file response
-fn binary_file_content(content: &Vec<u8>) -> Result<hyper::Response<BoxBody>, Error> {
+fn binary_file_content(content: &Vec<u8>) -> Result<hyper::Response<BoxBody>, hyper::http::Error> {
     let content = content.to_owned();
     default()
         .status(StatusCode::OK)

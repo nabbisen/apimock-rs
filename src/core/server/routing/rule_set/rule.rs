@@ -61,7 +61,7 @@ pub struct Rule {
 //         &HashMap<String, HashMap<String, Vec<JsonpathMatchingPattern>>>,
 //     >,
 //     headers: Option<&HashMap<HeaderId, HeaderConfig>>,
-// ) -> Option<Result<Response<BoxBody>, Error>> {
+// ) -> Option<Result<Response<BoxBody>, hyper::http::Error>> {
 //     let path_config_hashmap = path_configs
 //         .iter()
 //         .find(|(key, _)| key.as_str() == request_uri_path);

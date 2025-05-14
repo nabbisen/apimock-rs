@@ -18,7 +18,7 @@ use crate::core::server::{
 pub fn dyn_route_content(
     uri_path: &str,
     fallback_response_dir: &str,
-) -> Result<hyper::Response<BoxBody>, Error> {
+) -> Result<hyper::Response<BoxBody>, hyper::http::Error> {
     let request_path =
         Path::new(fallback_response_dir).join(uri_path.strip_prefix("/").unwrap_or_default());
 

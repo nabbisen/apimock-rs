@@ -38,7 +38,7 @@ fn json() -> Builder {
 //     path_config: &PathConfig,
 //     headers: Option<&HashMap<HeaderId, HeaderConfig>>,
 //     request_uri_path: &str,
-// ) -> Result<hyper::Response<BoxBody>, Error> {
+// ) -> Result<hyper::Response<BoxBody>, hyper::http::Error> {
 //     if let Some(_) = &path_config.data_src {
 //         return static_path_data_src_reponse(path_config, headers, request_uri_path);
 //     }
@@ -59,7 +59,7 @@ fn json() -> Builder {
 //     path_config: &PathConfig,
 //     headers: Option<&HashMap<HeaderId, HeaderConfig>>,
 //     request_uri_path: &str,
-// ) -> Result<hyper::Response<BoxBody>, Error> {
+// ) -> Result<hyper::Response<BoxBody>, hyper::http::Error> {
 //     match path_config.data_src.as_ref() {
 //         Some(data_src) => {
 //             file_to_response(data_src.as_str(), path_config.headers.as_ref(), headers)

@@ -1,3 +1,4 @@
+use hyper::http::Error;
 use serde::Deserialize;
 
 use std::fs;
@@ -11,6 +12,8 @@ use guard::Guard;
 use prefix::Prefix;
 use rule::Rule;
 use rule_set_default::RuleSetDefault;
+
+use crate::core::server::types::BoxBody;
 
 #[derive(Clone, Deserialize, Debug)]
 pub struct RuleSet {
@@ -29,4 +32,12 @@ impl RuleSet {
             Err(err) => panic!("{}: Invalid toml content\n({})", ruleset_file_path, err),
         }
     }
+}
+
+/// handle on `rule_sets`
+pub fn rule_sets_content(
+    uri_path: &str,
+    rule_sets: &Vec<RuleSet>,
+) -> Result<Option<hyper::Response<BoxBody>>, hyper::http::Error> {
+    Ok(None)
 }

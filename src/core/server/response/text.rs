@@ -13,7 +13,7 @@ use crate::core::server::{constant::DEFAULT_PLAIN_TEXT_CONTENT_TYPE, types::BoxB
 pub fn plain_text(
     content: &str,
     content_type: Option<&str>,
-) -> Result<hyper::Response<BoxBody>, Error> {
+) -> Result<hyper::Response<BoxBody>, hyper::http::Error> {
     let default_content_type = HeaderValue::from_static(DEFAULT_PLAIN_TEXT_CONTENT_TYPE);
     let response_content_type = if let Some(content_type) = content_type {
         HeaderValue::from_str(content_type).unwrap_or_else(|_| default_content_type)

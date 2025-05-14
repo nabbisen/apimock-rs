@@ -4,7 +4,7 @@ use hyper_util::{
     rt::{TokioExecutor, TokioIo},
     server::conn::auto::Builder,
 };
-use routing::dyn_route::dyn_route_content;
+use routing::{dyn_route::dyn_route_content, rule_set::rule_sets_content};
 use tokio::net::TcpListener;
 use tokio::sync::Mutex;
 
@@ -145,7 +145,11 @@ pub async fn service(
         }
     }
 
-    // todo: rule_set response
+    match rule_sets_content(request.uri_path.as_str(), &config.service.rule_sets) {
+        Ok(x) if x.is_some() => return Ok(x.unwrap()),
+        Ok(_) => (),
+        Err(err) => return Err(err),
+    }
 
     dyn_route_content(
         request.uri_path.as_str(),
