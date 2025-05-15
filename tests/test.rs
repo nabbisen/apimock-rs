@@ -14,7 +14,7 @@ mod util;
 use apimock::core::{app::App, args::EnvArgs};
 
 // todo: rename dir "config" -> "default" or something ?
-const TEST_WORKDIR: &str = "examples/config/full";
+const TEST_WORKDIR: &str = "examples/config/default";
 const CONFIG_FILE_PATH: &str = "apimock.toml";
 const MIDDLEWARE_FILE_PATH: &str = "apimock-middleware.rhai";
 
