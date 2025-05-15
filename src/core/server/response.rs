@@ -6,10 +6,9 @@ use hyper::{
     http::response::Builder,
 };
 
-
-pub mod error;
-pub mod file;
-pub mod text;
+pub mod error_response;
+pub mod file_response;
+pub mod text_response;
 mod util;
 
 pub fn default_builder() -> Builder {

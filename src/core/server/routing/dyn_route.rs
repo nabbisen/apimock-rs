@@ -1,8 +1,7 @@
-
 use std::{fs, path::Path};
 
 use crate::core::server::{
-    response::{error::not_found_response, file::FileResponse},
+    response::{error_response::not_found_response, file_response::FileResponse},
     types::BoxBody,
     util::{file_is_json, is_equivalent_json_file},
 };

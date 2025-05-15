@@ -2,10 +2,8 @@ use serde::Deserialize;
 
 use std::collections::HashMap;
 
-mod util;
-
 use crate::core::server::{
-    response::{file::FileResponse, text::text_response},
+    response::{file_response::FileResponse, text_response::text_response},
     types::BoxBody,
     util::delay_response,
 };
