@@ -1,6 +1,6 @@
 use constant::*;
 use listener_config::ListenerConfig;
-use log_config::{LogConfig, VerboseConfig};
+use log_config::LogConfig;
 use serde::Deserialize;
 use service_config::ServiceConfig;
 use toml;

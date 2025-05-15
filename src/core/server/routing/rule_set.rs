@@ -13,7 +13,7 @@ use prefix::Prefix;
 use rule::Rule;
 
 use crate::core::server::{
-    parsed_request::ParsedRequest, response::error::not_found_response, types::BoxBody,
+    parsed_request::ParsedRequest, types::BoxBody,
 };
 
 #[derive(Clone, Deserialize, Debug)]

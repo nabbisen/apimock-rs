@@ -1,5 +1,5 @@
 use http_body_util::{BodyExt, Empty, Full};
-use hyper::{body::Bytes, http::Error, StatusCode};
+use hyper::{body::Bytes, StatusCode};
 
 use super::default_builder;
 use crate::core::server::types::BoxBody;

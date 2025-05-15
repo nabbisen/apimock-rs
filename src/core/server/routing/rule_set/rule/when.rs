@@ -1,4 +1,3 @@
-use hyper::header::{HeaderValue, CONTENT_TYPE};
 use serde::Deserialize;
 use util::{body_is_match, headers_is_match, url_path_is_match};
 
@@ -11,7 +10,7 @@ use request::Request;
 
 #[derive(Clone, Deserialize, PartialEq, Eq, Hash, Debug)]
 #[serde(rename_all = "snake_case")]
-enum BodyKind {
+pub enum BodyKind {
     Json,
 }
 

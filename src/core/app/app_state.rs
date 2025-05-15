@@ -1,6 +1,4 @@
-use std::{path::Path, sync::Arc};
 
-use rhai::{Engine, AST};
 
 use crate::core::{config::Config, server::middleware::Middleware};
 

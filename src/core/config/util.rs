@@ -5,7 +5,7 @@ use std::{fs, path::Path};
 use super::Config;
 
 /// api url full path
-pub fn fullpath(path: &str, path_prefix: &Option<String>, is_raw_paths: bool) -> String {
+pub fn full_path(path: &str, path_prefix: &Option<String>, is_raw_paths: bool) -> String {
     let possibly_w_trailing_slash = if is_raw_paths {
         format!("/{}/", path.to_string())
     } else {
