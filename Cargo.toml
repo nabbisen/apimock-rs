@@ -43,7 +43,6 @@ console = "0"
 log = "0"
 rhai = { version = "1", features = ["sync", "serde"] }
 csv = "1"
-globset = { version = "0", default-features = false }
 
 [dev-dependencies]
 hyper = { version = "1", features = ["client"] }
