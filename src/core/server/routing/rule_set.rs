@@ -40,30 +40,18 @@ impl RuleSet {
 }
 
 /// handle on `rule_sets`
-pub fn rule_sets_content(
+pub async fn rule_sets_content(
     request: &ParsedRequest,
     rule_sets: &Vec<RuleSet>,
 ) -> Option<Result<hyper::Response<BoxBody>, hyper::http::Error>> {
-    let ret = rule_sets
-        .iter()
-        .enumerate()
-        .find_map(|(rule_set_idx, rule_set)| {
-            rule_set
-                .rules
-                .iter()
-                .enumerate()
-                .find_map(|(rule_idx, rule)| {
-                    if rule.when.is_match(request, rule_idx, rule_set_idx) {
-                        Some(rule.respond.response())
-                    } else {
-                        None
-                    }
-                })
-        });
-
-    if ret.is_some() {
-        ret
-    } else {
-        None
+    for (rule_set_idx, rule_set) in rule_sets.iter().enumerate() {
+        for (rule_idx, rule) in rule_set.rules.iter().enumerate() {
+            if rule.when.is_match(request, rule_idx, rule_set_idx) {
+                let response = rule.respond.response().await;
+                return Some(response);
+            }
+        }
     }
+
+    None
 }

@@ -146,7 +146,7 @@ pub async fn service(
         }
     }
 
-    match rule_sets_content(&request, &config.service.rule_sets) {
+    match rule_sets_content(&request, &config.service.rule_sets).await {
         Some(x) => return x,
         None => (),
     }
