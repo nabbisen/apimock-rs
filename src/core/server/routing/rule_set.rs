@@ -1,24 +1,25 @@
-use hyper::http::Error;
+use default_respond::DefaultRespond;
 use serde::Deserialize;
 
 use std::fs;
 
+mod default_respond;
 mod guard;
 mod prefix;
 pub mod rule;
-mod rule_set_default;
 
 use guard::Guard;
 use prefix::Prefix;
 use rule::Rule;
-use rule_set_default::RuleSetDefault;
 
-use crate::core::server::types::BoxBody;
+use crate::core::server::{
+    parsed_request::ParsedRequest, response::error::not_found_response, types::BoxBody,
+};
 
 #[derive(Clone, Deserialize, Debug)]
 pub struct RuleSet {
     pub prefix: Option<Prefix>,
-    pub default: Option<RuleSetDefault>,
+    pub default: Option<DefaultRespond>,
     pub guard: Option<Guard>,
     pub rules: Vec<Rule>,
 }
@@ -32,12 +33,37 @@ impl RuleSet {
             Err(err) => panic!("{}: Invalid toml content\n({})", ruleset_file_path, err),
         }
     }
+
+    pub fn validate() -> bool {
+        true
+    }
 }
 
 /// handle on `rule_sets`
 pub fn rule_sets_content(
-    uri_path: &str,
+    request: &ParsedRequest,
     rule_sets: &Vec<RuleSet>,
-) -> Result<Option<hyper::Response<BoxBody>>, hyper::http::Error> {
-    Ok(None)
+) -> Option<Result<hyper::Response<BoxBody>, hyper::http::Error>> {
+    let ret = rule_sets
+        .iter()
+        .enumerate()
+        .find_map(|(rule_set_idx, rule_set)| {
+            rule_set
+                .rules
+                .iter()
+                .enumerate()
+                .find_map(|(rule_idx, rule)| {
+                    if rule.when.is_match(request, rule_idx, rule_set_idx) {
+                        Some(rule.respond.response())
+                    } else {
+                        None
+                    }
+                })
+        });
+
+    if ret.is_some() {
+        ret
+    } else {
+        None
+    }
 }

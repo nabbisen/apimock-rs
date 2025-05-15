@@ -4,6 +4,7 @@ use hyper_util::{
     rt::{TokioExecutor, TokioIo},
     server::conn::auto::Builder,
 };
+use response::file::FileResponse;
 use routing::{dyn_route::dyn_route_content, rule_set::rule_sets_content};
 use tokio::net::TcpListener;
 use tokio::sync::Mutex;
@@ -23,7 +24,6 @@ mod util;
 use crate::core::app::app_state::AppState;
 use crate::core::app::constant::APP_NAME;
 use parsed_request::ParsedRequest;
-use response::file::file_content;
 use types::BoxBody;
 
 /// server
@@ -141,14 +141,14 @@ pub async fn service(
         let middleware_response_file_path =
             middleware.handle(request.uri_path.as_str(), request.body_json.as_ref());
         if let Some(middleware_response_file_path) = middleware_response_file_path {
-            return file_content(middleware_response_file_path.as_str());
+            return FileResponse::new(middleware_response_file_path.as_str(), None)
+                .file_content_response();
         }
     }
 
-    match rule_sets_content(request.uri_path.as_str(), &config.service.rule_sets) {
-        Ok(x) if x.is_some() => return Ok(x.unwrap()),
-        Ok(_) => (),
-        Err(err) => return Err(err),
+    match rule_sets_content(&request, &config.service.rule_sets) {
+        Some(x) => return x,
+        None => (),
     }
 
     dyn_route_content(

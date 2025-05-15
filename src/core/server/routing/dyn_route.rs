@@ -9,7 +9,7 @@ use hyper::{
 use std::{fs, path::Path};
 
 use crate::core::server::{
-    response::{error::not_found, file::file_content},
+    response::{error::not_found_response, file::FileResponse},
     types::BoxBody,
     util::{file_is_json, is_equivalent_json_file},
 };
@@ -24,7 +24,7 @@ pub fn dyn_route_content(
 
     let dir = request_path.parent().unwrap();
     if !dir.exists() {
-        return not_found();
+        return not_found_response();
     }
 
     let request_file_name = request_path.file_name().expect("failed to get file name");
@@ -58,8 +58,8 @@ pub fn dyn_route_content(
     match found {
         Some(found) => {
             let file_path = found.to_str().unwrap_or_default();
-            file_content(file_path)
+            FileResponse::new(file_path, None).file_content_response()
         }
-        None => not_found(),
+        None => not_found_response(),
     }
 }

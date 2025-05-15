@@ -1,10 +1,7 @@
 use console::style;
 use hyper::body::Bytes;
 use hyper::{body, service::service_fn, Request, Response};
-use hyper_util::{
-    rt::{TokioExecutor, TokioIo},
-    server::conn::auto::Builder,
-};
+use hyper_util::rt::{TokioExecutor, TokioIo};
 use rhai::Engine;
 use tokio::sync::mpsc::Sender;
 use tokio::{net::TcpListener, sync::Mutex};

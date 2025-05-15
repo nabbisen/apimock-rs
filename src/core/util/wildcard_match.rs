@@ -1,15 +1,14 @@
 #[cfg(test)]
 mod tests;
 
-pub fn wildcard_match(pattern: &str, text: &str) -> bool {
-    let pat: Vec<char> = pattern.chars().collect();
+pub fn wildcard_match(text: &str, pattern: &str) -> bool {
     let txt: Vec<char> = text.chars().collect();
+    let pat: Vec<char> = pattern.chars().collect();
 
-    let mut pi = 0;
     let mut ti = 0;
+    let mut pi = 0;
     let mut star_idx = None;
     let mut match_idx = 0;
-
     while ti < txt.len() {
         if pi < pat.len() && (pat[pi] == '?' || pat[pi] == txt[ti]) {
             pi += 1;

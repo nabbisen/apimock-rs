@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use serde::Deserialize;
 
-use super::super::types::{ConditionKey, ConditionStatement};
+use crate::core::server::routing::rule_set::rule::types::{ConditionKey, ConditionStatement};
 
 #[derive(Clone, Deserialize, Debug)]
 pub struct BodyCondition {

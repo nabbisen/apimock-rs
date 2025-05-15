@@ -14,9 +14,10 @@ respond = { content = "test/res.json" }
 [[rules]]
 [rules.when]
 url_path = "/a/b"
-# [rule.when.request.headers]
+url_path_op = "equal"
+# [rules.when.request.headers]
 # user = { op = "equal", value = "user1" }
-# [rule.when.request.body.json]
+# [rules.when.request.body.json]
 # "a.b.c" = { op = "not_equal", value = "d" }
 [rules.respond]
 # type = "file"

@@ -69,6 +69,9 @@ impl Config {
 
     /// validate settings in app config
     fn validate(&self) {
+        // todo: validate rule_sets
+        // self.service.rule_sets.iter().for_each(|x| x.);
+
         // if self.always.is_none()
         //     && (self.paths.is_none() || self.paths.clone().unwrap().len() == 0)
         //     && self.dyn_data_dir.is_none()

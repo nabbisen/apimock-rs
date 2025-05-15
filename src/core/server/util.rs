@@ -1,9 +1,23 @@
+use hyper::header::HeaderValue;
 use tokio::time;
 
 use std::path::Path;
 use std::time::Duration;
 
 use super::constant::JSON_EXTENSIONS;
+
+/// check if content-type is application/json
+/// supporting case when "application/json; charset=utf-8"
+pub fn content_type_is_application_json(content_type: &HeaderValue) -> bool {
+    if let Ok(content_type) = content_type.to_str() {
+        content_type
+            .trim_start()
+            .to_ascii_lowercase()
+            .starts_with("application/json")
+    } else {
+        false
+    }
+}
 
 /// format uri path
 ///
@@ -19,8 +33,8 @@ pub fn canonicalize_uri_path(uri_path: &str) -> String {
 }
 
 /// sleep
-pub async fn delay_response(milliseconds: u64) {
-    time::sleep(Duration::from_millis(milliseconds)).await
+pub async fn delay_response(milliseconds: u16) {
+    time::sleep(Duration::from_millis(milliseconds.into())).await
 }
 
 /// check if file is json

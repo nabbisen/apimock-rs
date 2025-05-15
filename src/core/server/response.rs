@@ -2,7 +2,7 @@ use http_body_util::{BodyExt, Empty, Full};
 use hyper::{
     body::Bytes,
     header::{
-        HeaderValue, ACCESS_CONTROL_ALLOW_HEADERS, ACCESS_CONTROL_ALLOW_METHODS,
+        HeaderName, HeaderValue, ACCESS_CONTROL_ALLOW_HEADERS, ACCESS_CONTROL_ALLOW_METHODS,
         ACCESS_CONTROL_ALLOW_ORIGIN, CONTENT_TYPE,
     },
     http::{response::Builder, Error},
@@ -14,10 +14,10 @@ use std::{collections::HashMap, path::Path};
 
 pub mod error;
 pub mod file;
-mod text;
+pub mod text;
 mod util;
 
-fn default() -> Builder {
+pub fn default_builder() -> Builder {
     let builder = hyper::Response::builder()
         .header(ACCESS_CONTROL_ALLOW_ORIGIN, HeaderValue::from_static("*"))
         .header(ACCESS_CONTROL_ALLOW_HEADERS, HeaderValue::from_static("*"))
@@ -29,8 +29,8 @@ fn default() -> Builder {
 }
 
 /// response base on json response
-fn json() -> Builder {
-    default().header(CONTENT_TYPE, HeaderValue::from_static("application/json"))
+pub fn json_builder() -> Builder {
+    default_builder().header(CONTENT_TYPE, HeaderValue::from_static("application/json"))
 }
 
 // /// response on `data_dir` paths
