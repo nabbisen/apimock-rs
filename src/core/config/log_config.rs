@@ -22,12 +22,13 @@ pub struct VerboseConfig {
 
 impl std::fmt::Display for VerboseConfig {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let _ = write!(
+        let _ = writeln!(
             f,
             "[log.verbose] header = {}, body = {}",
             if self.header { "Yes" } else { "No" },
             if self.body { "Yes" } else { "No" }
         );
+
         Ok(())
     }
 }

@@ -30,7 +30,7 @@ impl Middleware {
                     ast,
                 };
 
-                log::info!("\nMiddleware is activated: {}", file_path);
+                log::info!("Middleware is activated: {}", file_path);
                 Some(middleware)
             }
             _ => None,

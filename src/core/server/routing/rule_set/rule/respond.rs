@@ -32,12 +32,14 @@ pub struct Respond {
 
 impl std::fmt::Display for Respond {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let _ = write!(f, "  [respond] ");
         let _ = match self.response_type {
             Some(ResponseType::Text) => writeln!(f, "(text)"),
             Some(ResponseType::File) | None => {
-                writeln!(f, "{}", style(self.content.as_str()).green())
+                write!(f, "{}", style(self.content.as_str()).green())
             }
         };
+        let _ = writeln!(f, "");
 
         Ok(())
     }

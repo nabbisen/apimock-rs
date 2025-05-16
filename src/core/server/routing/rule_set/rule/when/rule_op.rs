@@ -14,18 +14,18 @@ pub enum RuleOp {
 
 impl Default for RuleOp {
     fn default() -> Self {
-        RuleOp::Equal
+        Self::Equal
     }
 }
 
 impl std::fmt::Display for RuleOp {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            RuleOp::Equal => write!(f, " == "),
-            RuleOp::NotEqual => write!(f, " != "),
-            RuleOp::StartsWith => write!(f, " starts with "),
-            RuleOp::Contains => write!(f, " contains "),
-            RuleOp::WildCard => write!(f, " wild card matches "),
+            Self::Equal => write!(f, " == "),
+            Self::NotEqual => write!(f, " != "),
+            Self::StartsWith => write!(f, " starts with "),
+            Self::Contains => write!(f, " contains "),
+            Self::WildCard => write!(f, " wild card matches "),
         }
     }
 }

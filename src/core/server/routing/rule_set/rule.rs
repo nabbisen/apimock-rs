@@ -16,7 +16,7 @@ pub struct Rule {
 impl std::fmt::Display for Rule {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let _ = write!(f, "{}", self.when);
-        let _ = write!(f, " => {}", self.respond);
+        let _ = write!(f, "{}", self.respond);
         Ok(())
     }
 }

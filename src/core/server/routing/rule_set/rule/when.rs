@@ -20,7 +20,7 @@ pub enum BodyKind {
 impl std::fmt::Display for BodyKind {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            BodyKind::Json => write!(f, "JSON"),
+            Self::Json => write!(f, "JSON"),
         }
     }
 }
@@ -34,17 +34,27 @@ pub struct When {
 
 impl std::fmt::Display for When {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        if self.url_path_op.is_some() {
+        let has_written = self.url_path.is_some() || self.request.is_some();
+
+        if has_written {
+            let _ = write!(f, "[when] ");
+        }
+
+        if self.url_path.is_some() {
             let _ = write!(
                 f,
-                "[url_path]{}{}",
-                self.url_path_op.as_ref().unwrap(),
+                "url_path{}{}",
+                self.url_path_op.clone().unwrap_or_default(),
                 style(self.url_path.as_ref().unwrap()).yellow(),
             );
         }
 
         if self.request.is_some() {
             let _ = write!(f, "{}", self.request.as_ref().unwrap());
+        }
+
+        if has_written {
+            let _ = writeln!(f, " =>");
         }
 
         Ok(())

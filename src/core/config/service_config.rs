@@ -3,7 +3,9 @@ use serde::Deserialize;
 
 use std::{fs, path::Path};
 
-use super::constant::{SERVICE_DEFAULT_FALLBACK_RESPOND_DIR, SERVICE_DEFAULT_RULE_SET_FILE_PATH};
+use super::constant::{
+    PRINT_DELIMITER, SERVICE_DEFAULT_FALLBACK_RESPOND_DIR, SERVICE_DEFAULT_RULE_SET_FILE_PATH,
+};
 use crate::core::server::routing::rule_set::RuleSet;
 
 #[derive(Clone, Deserialize)]
@@ -14,6 +16,14 @@ pub enum Strategy {
 impl Default for Strategy {
     fn default() -> Self {
         Self::FirstMatch
+    }
+}
+
+impl std::fmt::Display for Strategy {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::FirstMatch => write!(f, "first_match"),
+        }
     }
 }
 
@@ -49,14 +59,32 @@ impl Default for ServiceConfig {
 
 impl std::fmt::Display for ServiceConfig {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        for rule_set in self.rule_sets.iter() {
-            let _ = writeln!(f, "{}", rule_set);
+        let has_rule_sets = 0 < self.rule_sets.iter().len();
+
+        if has_rule_sets {
+            let _ = writeln!(
+                f,
+                "@ rule sets strategy = {}",
+                self.strategy.clone().unwrap_or_default()
+            );
         }
-        let _ = write!(
+
+        for (idx, rule_set) in self.rule_sets.iter().enumerate() {
+            let _ = writeln!(f, "");
+            let _ = writeln!(f, "@ rule_set #{}\n", idx + 1);
+            let _ = write!(f, "{}", rule_set);
+        }
+
+        if has_rule_sets {
+            let _ = writeln!(f, "{}", PRINT_DELIMITER);
+        }
+
+        let _ = writeln!(
             f,
             "[fallback_respond_dir] {}",
             canonicalized_fallback_respond_dir(self.fallback_respond_dir.as_str())
         );
+
         Ok(())
     }
 }

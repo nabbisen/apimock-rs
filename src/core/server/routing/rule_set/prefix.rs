@@ -12,20 +12,26 @@ pub struct Prefix {
 
 impl std::fmt::Display for Prefix {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        if self.respond_dir_prefix.is_some() {
-            let _ = write!(
+        let has_written = self.url_path_prefix.is_some() || self.respond_dir_prefix.is_some();
+
+        if self.url_path_prefix.is_some() {
+            let _ = writeln!(
                 f,
-                "[[ dir_prefix ]] {}",
+                "[url_path_prefix] {}",
+                self.url_path_prefix.as_ref().unwrap()
+            );
+        }
+
+        if self.respond_dir_prefix.is_some() {
+            let _ = writeln!(
+                f,
+                "[respond_dir_prefix] {}",
                 self.respond_dir_prefix.as_ref().unwrap()
             );
         }
 
-        if self.url_path_prefix.is_some() {
-            let _ = write!(
-                f,
-                "[[ url_path_prefix ]] {}",
-                self.url_path_prefix.as_ref().unwrap()
-            );
+        if has_written {
+            let _ = writeln!(f, "");
         }
 
         Ok(())
