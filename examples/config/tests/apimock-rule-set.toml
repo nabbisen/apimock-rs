@@ -1,6 +1,6 @@
 [prefix]
 # url_path = ""
-response_dir = "apimock-data"
+respond_dir = "apimock-data"
 
 # [default]
 # delay_response_milliseconds = 1000
@@ -21,5 +21,5 @@ url_path_op = "equal"
 # "a.b.c" = { op = "not_equal", value = "d" }
 [rules.respond]
 # type = "file"
-content = "test/return.json"
+content = "api.json5"
 # delay_response_milliseconds = 1000

@@ -6,13 +6,13 @@ use crate::core::server::{
     util::{file_is_json, is_equivalent_json_file},
 };
 
-/// handle on `fallback_response_dir` (dynamic json responses)
+/// handle on `fallback_respond_dir` (dynamic json responses)
 pub fn dyn_route_content(
     uri_path: &str,
-    fallback_response_dir: &str,
+    fallback_respond_dir: &str,
 ) -> Result<hyper::Response<BoxBody>, hyper::http::Error> {
     let request_path =
-        Path::new(fallback_response_dir).join(uri_path.strip_prefix("/").unwrap_or_default());
+        Path::new(fallback_respond_dir).join(uri_path.strip_prefix("/").unwrap_or_default());
 
     let dir = request_path.parent().unwrap();
     if !dir.exists() {

@@ -1,6 +1,6 @@
 # [prefix]
 # url_path = ""
-# response_dir = ""
+# respond_dir = ""
 
 # [default]
 # delay_response_milliseconds = 1000

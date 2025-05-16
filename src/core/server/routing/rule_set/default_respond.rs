@@ -17,3 +17,10 @@ impl std::fmt::Display for DefaultRespond {
         Ok(())
     }
 }
+
+impl DefaultRespond {
+    /// validate
+    pub fn validate(&self) -> bool {
+        true
+    }
+}

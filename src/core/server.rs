@@ -159,6 +159,6 @@ pub async fn service(
 
     dyn_route_content(
         request.uri_path.as_str(),
-        config.service.fallback_response_dir.as_str(),
+        config.service.fallback_respond_dir.as_str(),
     )
 }

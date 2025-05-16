@@ -1,15 +1,23 @@
+use std::path::Path;
+
 use serde::Deserialize;
 
 #[derive(Clone, Default, Deserialize, Debug)]
 pub struct Prefix {
-    pub dir_prefix: Option<String>,
+    #[serde(rename = "url_path")]
     pub url_path_prefix: Option<String>,
+    #[serde(rename = "respond_dir")]
+    pub respond_dir_prefix: Option<String>,
 }
 
 impl std::fmt::Display for Prefix {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        if self.dir_prefix.is_some() {
-            let _ = write!(f, "[[ dir_prefix ]] {}", self.dir_prefix.as_ref().unwrap());
+        if self.respond_dir_prefix.is_some() {
+            let _ = write!(
+                f,
+                "[[ dir_prefix ]] {}",
+                self.respond_dir_prefix.as_ref().unwrap()
+            );
         }
 
         if self.url_path_prefix.is_some() {
@@ -21,5 +29,25 @@ impl std::fmt::Display for Prefix {
         }
 
         Ok(())
+    }
+}
+
+impl Prefix {
+    /// validate
+    pub fn validate(&self) -> bool {
+        let respond_dir_prefix_validate =
+            if let Some(respond_dir_prefix) = self.respond_dir_prefix.as_ref() {
+                let exists = Path::new(respond_dir_prefix.as_str()).exists();
+                if !exists {
+                    log::error!(
+                        "directory `{}` does not exist",
+                        self.respond_dir_prefix.clone().unwrap().as_str()
+                    );
+                }
+                exists
+            } else {
+                true
+            };
+        respond_dir_prefix_validate
     }
 }

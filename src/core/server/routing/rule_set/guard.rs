@@ -10,3 +10,10 @@ impl std::fmt::Display for Guard {
         Ok(())
     }
 }
+
+impl Guard {
+    /// validate
+    pub fn validate(&self) -> bool {
+        true
+    }
+}

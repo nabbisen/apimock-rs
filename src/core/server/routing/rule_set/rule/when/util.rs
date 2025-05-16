@@ -21,7 +21,7 @@ pub fn url_path_is_match(
     let matcher_url_path_op = if let Some(url_path_op) = matcher_url_path_op {
         url_path_op
     } else {
-        &RuleOp::Equal
+        &RuleOp::default()
     };
     if !matcher_url_path_op.is_match(request_uri_path, matcher_url_path) {
         return false;

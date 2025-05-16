@@ -9,4 +9,4 @@ verbose = { header = true, body = true }
 [service]
 #rule_sets = ["apimock-rule-set.toml"]
 rule_sets = ["examples/config/default/apimock-rule-set.toml"]
-fallback_response_dir = "."
+fallback_respond_dir = "."

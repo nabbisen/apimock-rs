@@ -58,6 +58,15 @@ impl RuleSet {
     pub fn validate(&self) -> bool {
         true
     }
+
+    /// dir_prefix as string possibly as empty
+    pub fn dir_prefix(&self) -> String {
+        if let Some(dir_prefix) = self.prefix.clone().unwrap_or_default().respond_dir_prefix {
+            dir_prefix
+        } else {
+            String::new()
+        }
+    }
 }
 
 /// handle on `rule_sets`
@@ -69,10 +78,9 @@ pub async fn rule_sets_content(
     for (rule_set_idx, rule_set) in rule_sets.iter().enumerate() {
         for (rule_idx, rule) in rule_set.rules.iter().enumerate() {
             if rule.when.is_match(request, rule_idx, rule_set_idx) {
-                let response = rule
-                    .respond
-                    .response(rule_set.prefix.clone().unwrap_or_default().dir_prefix)
-                    .await;
+                let dir_prefix = rule_set.dir_prefix();
+
+                let response = rule.respond.response(dir_prefix.as_str()).await;
 
                 // todo : last match in the future ?
                 match strategy {

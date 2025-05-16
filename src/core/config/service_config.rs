@@ -3,7 +3,7 @@ use serde::Deserialize;
 
 use std::{fs, path::Path};
 
-use super::constant::{SERVICE_DEFAULT_FALLBACK_RESPONSE_DIR, SERVICE_DEFAULT_RULE_SET_FILE_PATH};
+use super::constant::{SERVICE_DEFAULT_FALLBACK_RESPOND_DIR, SERVICE_DEFAULT_RULE_SET_FILE_PATH};
 use crate::core::server::routing::rule_set::RuleSet;
 
 #[derive(Clone, Deserialize)]
@@ -27,7 +27,7 @@ pub struct ServiceConfig {
     pub rule_sets: Vec<RuleSet>,
     pub strategy: Option<Strategy>,
 
-    pub fallback_response_dir: String,
+    pub fallback_respond_dir: String,
 }
 
 impl Default for ServiceConfig {
@@ -42,7 +42,7 @@ impl Default for ServiceConfig {
             rule_sets_file_paths,
             rule_sets: vec![],
             strategy: Some(Strategy::default()),
-            fallback_response_dir: SERVICE_DEFAULT_FALLBACK_RESPONSE_DIR.to_owned(),
+            fallback_respond_dir: SERVICE_DEFAULT_FALLBACK_RESPOND_DIR.to_owned(),
         }
     }
 }
@@ -54,27 +54,54 @@ impl std::fmt::Display for ServiceConfig {
         }
         let _ = write!(
             f,
-            "[fallback_response_dir] {}",
-            canonicalized_fallback_response_dir(self.fallback_response_dir.as_str())
+            "[fallback_respond_dir] {}",
+            canonicalized_fallback_respond_dir(self.fallback_respond_dir.as_str())
         );
         Ok(())
     }
 }
 
-/// canonicalized fallback_response_dir
-fn canonicalized_fallback_response_dir(fallback_response_dir: &str) -> String {
-    let p = Path::new(fallback_response_dir);
+impl ServiceConfig {
+    pub fn validate(&self) -> bool {
+        let rule_sets_validate = self.rule_sets.iter().all(|rule_set| {
+            let prefix_validate =
+                rule_set.prefix.is_none() || rule_set.prefix.as_ref().unwrap().validate();
+
+            let default_validate =
+                rule_set.default.is_none() || rule_set.default.as_ref().unwrap().validate();
+
+            let guard_validate =
+                rule_set.guard.is_none() || rule_set.guard.as_ref().unwrap().validate();
+
+            let dir_prefix = rule_set.dir_prefix();
+            let rules_validate = rule_set
+                .rules
+                .iter()
+                .all(|rule| rule.when.validate() && rule.respond.validate(dir_prefix.as_str()));
+
+            prefix_validate && default_validate && guard_validate && rules_validate
+        });
+
+        let fallback_respond_dir_validate = Path::new(self.fallback_respond_dir.as_str()).exists();
+
+        rule_sets_validate && fallback_respond_dir_validate
+    }
+}
+
+/// canonicalized fallback_respond_dir
+fn canonicalized_fallback_respond_dir(fallback_respond_dir: &str) -> String {
+    let p = Path::new(fallback_respond_dir);
     if p.is_relative() {
-        let absolute_path = fs::canonicalize(fallback_response_dir)
-            .expect(format!("{} does not exist", fallback_response_dir).as_str());
+        let absolute_path = fs::canonicalize(fallback_respond_dir)
+            .expect(format!("{} does not exist", fallback_respond_dir).as_str());
         format!(
             "{} ({})",
-            style(fallback_response_dir).green(),
+            style(fallback_respond_dir).green(),
             absolute_path
                 .to_str()
-                .expect(format!("logger failed to print out: {}", fallback_response_dir).as_str())
+                .expect(format!("logger failed to print out: {}", fallback_respond_dir).as_str())
         )
     } else {
-        format!("{}", style(fallback_response_dir).green().to_string())
+        format!("{}", style(fallback_respond_dir).green().to_string())
     }
 }

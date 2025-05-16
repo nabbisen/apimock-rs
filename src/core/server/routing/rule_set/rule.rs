@@ -20,3 +20,9 @@ impl std::fmt::Display for Rule {
         Ok(())
     }
 }
+
+impl Rule {
+    pub fn validate(&self, dir_prefix: &str) -> bool {
+        self.when.validate() && self.respond.validate(dir_prefix)
+    }
+}

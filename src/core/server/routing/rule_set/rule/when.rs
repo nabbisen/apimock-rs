@@ -88,15 +88,11 @@ impl When {
 
     /// validate
     pub fn validate(&self) -> bool {
-        if (self.url_path.is_some() || self.url_path_op.is_none())
-            || (self.url_path.is_none() || self.url_path_op.is_some())
-        {
-            return false;
-        }
-
-        match self.request.as_ref() {
+        let request_validate = match self.request.as_ref() {
             Some(request) => request.headers.is_some() || request.body.is_some(),
-            None => false,
-        }
+            None => true,
+        };
+
+        request_validate
     }
 }

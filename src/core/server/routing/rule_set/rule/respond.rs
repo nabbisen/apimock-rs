@@ -2,7 +2,7 @@ use console::style;
 use serde::Deserialize;
 use util::full_file_path;
 
-use std::collections::HashMap;
+use std::{collections::HashMap, path::Path};
 
 mod util;
 
@@ -47,7 +47,7 @@ impl Respond {
     /// generate response
     pub async fn response(
         &self,
-        path_prefix: Option<String>,
+        dir_prefix: &str,
     ) -> Result<hyper::Response<BoxBody>, hyper::http::Error> {
         if let Some(delay_response_milliseconds) = self.delay_response_milliseconds {
             delay_response(delay_response_milliseconds).await;
@@ -58,17 +58,12 @@ impl Respond {
                 text_response(self.content.as_str(), None, self.headers.as_ref())
             }
             Some(ResponseType::File) | None => {
-                let path_prefix = if let Some(path_prefix) = path_prefix {
-                    path_prefix
-                } else {
-                    String::new()
-                };
-                let file_path = full_file_path(self.content.as_str(), path_prefix.as_str());
+                let file_path = full_file_path(self.content.as_str(), dir_prefix);
                 if file_path.is_none() {
                     log::error!(
                         "{} (prefix = {}) is missing",
                         self.content.as_str(),
-                        path_prefix.as_str()
+                        dir_prefix
                     );
                     return internal_server_error_response("failed to get response file");
                 }
@@ -77,4 +72,44 @@ impl Respond {
             }
         }
     }
+
+    /// validate
+    pub fn validate(&self, dir_prefix: &str) -> bool {
+        let content_validate: bool = content_validate(
+            self.content.as_str(),
+            self.response_type.as_ref(),
+            dir_prefix,
+        );
+        let code_validate = self.code.is_none() || code_validate(self.code.as_ref().unwrap());
+
+        content_validate && code_validate
+    }
+}
+
+/// validate on content with response type
+fn content_validate(content: &str, response_type: Option<&ResponseType>, dir_prefix: &str) -> bool {
+    match response_type {
+        Some(ResponseType::Text) => true,
+        Some(ResponseType::File) | None => {
+            let ret = Path::new(dir_prefix).join(content).exists();
+            if !ret {
+                let p = if !dir_prefix.is_empty() {
+                    format!("{}/{}", dir_prefix, content)
+                } else {
+                    String::from(content)
+                };
+                log::error!("`{}` does not exist", p.as_str());
+            }
+            ret
+        }
+    }
+}
+
+/// validate on http status code
+fn code_validate(code: &u16) -> bool {
+    let ret = (100..=599).contains(code);
+    if !ret {
+        log::error!("{} is out of http status code range", code);
+    }
+    ret
 }

@@ -61,7 +61,9 @@ impl Config {
             .map(|x| RuleSet::new(x))
             .collect();
 
-        config.validate();
+        if !config.validate() {
+            panic!("failed to start up due to invalid config");
+        }
 
         log::info!("{}", config);
 
@@ -73,35 +75,15 @@ impl Config {
         format!("{}:{}", self.listener.ip_address, self.listener.port)
     }
 
-    /// update `fallback_response_dir`
-    // pub fn update_fallback_response_dir(&mut self, data_dir: &str, old_data_dir: &str) {}
+    /// update `fallback_respond_dir`
+    // pub fn update_fallback_respond_dir(&mut self, data_dir: &str, old_data_dir: &str) {}
 
     /// validate settings in app config
-    fn validate(&self) {
-        // todo: validate rule_sets
-        // self.service.rule_sets.iter().for_each(|x| x.);
-
-        // if self.always.is_none()
-        //     && (self.paths.is_none() || self.paths.clone().unwrap().len() == 0)
-        //     && self.dyn_data_dir.is_none()
-        // {
-        //     panic!("paths not defined");
-        // }
-
-        // let _ = match self.data_dir_query_path.clone() {
-        //     Some(data_dir_query_path) if data_dir_query_path == "" => {
-        //         panic!("data_dir_query_path is set but empty");
-        //     }
-        //     _ => (),
-        // };
-
-        // if let Some(paths) = &self.paths {
-        //     for (path, path_config) in paths {
-        //         if !path_config.data_src.is_none() && !path_config.data_text.is_none() {
-        //             panic!("can't define src and text on path: {}", path);
-        //         }
-        //     }
-        // }
+    ///
+    /// note: as to ListenerConfig validation, tcp listener is expected to run afterward instead
+    /// note: none requires validation in LogConfig
+    fn validate(&self) -> bool {
+        self.service.validate()
     }
 }
 

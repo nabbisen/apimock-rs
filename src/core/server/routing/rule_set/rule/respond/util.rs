@@ -1,9 +1,9 @@
 use std::path::Path;
 
 /// full file path by joining path prefix to file path
-pub fn full_file_path(path: &str, path_prefix: &str) -> Option<String> {
-    let p = if !path_prefix.is_empty() {
-        Path::new(path_prefix).join(path)
+pub fn full_file_path(path: &str, dir_prefix: &str) -> Option<String> {
+    let p = if !dir_prefix.is_empty() {
+        Path::new(dir_prefix).join(path)
     } else {
         Path::new(path).to_path_buf()
     };
@@ -18,7 +18,7 @@ pub fn full_file_path(path: &str, path_prefix: &str) -> Option<String> {
             log::error!(
                 "faild to get str from canonicalized url path: {} (prefix = {})",
                 path,
-                path_prefix
+                dir_prefix
             );
             None
         }
