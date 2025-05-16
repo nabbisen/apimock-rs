@@ -1,6 +1,6 @@
 [prefix]
 # url_path = ""
-respond_dir = "apimock-data"
+respond_dir = "apimock-rule-set-data"
 
 # [default]
 # delay_response_milliseconds = 1000

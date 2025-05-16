@@ -9,7 +9,7 @@ verbose = { header = true, body = true }
 [service]
 rule_sets = ["apimock-rule-set.toml"]
 #rule_sets = ["examples/config/default/apimock-rule-set.toml"]
-fallback_respond_dir = "."
+fallback_respond_dir = "apimock-dyn-route"
 
 # # Configure:
 # # https://github.com/nabbisen/apimock-rs/blob/main/docs/CONFIGURE.md
