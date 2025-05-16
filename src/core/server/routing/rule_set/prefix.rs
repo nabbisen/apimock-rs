@@ -6,17 +6,20 @@ pub struct Prefix {
     pub url_path_prefix: Option<String>,
 }
 
-impl Prefix {
-    pub fn print(&self) {
+impl std::fmt::Display for Prefix {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         if self.dir_prefix.is_some() {
-            log::info!("[[ dir_prefix ]] {}", self.dir_prefix.as_ref().unwrap());
+            let _ = write!(f, "[[ dir_prefix ]] {}", self.dir_prefix.as_ref().unwrap());
         }
 
         if self.url_path_prefix.is_some() {
-            log::info!(
+            let _ = write!(
+                f,
                 "[[ url_path_prefix ]] {}",
                 self.url_path_prefix.as_ref().unwrap()
             );
         }
+
+        Ok(())
     }
 }

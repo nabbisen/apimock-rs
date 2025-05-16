@@ -15,22 +15,20 @@ pub struct Request {
     pub body: Option<HashMap<BodyKind, BodyCondition>>,
 }
 
-impl Request {
-    pub fn print(&self) {
+impl std::fmt::Display for Request {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         if self.headers.is_some() {
-            // todo: print()
-            // for (key, value) in self.headers.as_ref().unwrap().iter() {
-            //     log::info!("[[key]] {}", key);
-            //     log::info!("[[value]] {}", value);
-            // }
+            for (header_key, header_statement) in self.headers.as_ref().unwrap().iter() {
+                let _ = write!(f, "{}{}", header_key, header_statement);
+            }
         }
 
         if self.body.is_some() {
-            // todo: print()
-            // for (key, value) in self.body.as_ref().unwrap().iter() {
-            //     log::info!("[[key]] {}", key);
-            //     log::info!("[[value]] {}", value);
-            // }
+            for (body_kind, body_condition) in self.body.as_ref().unwrap() {
+                let _ = write!(f, "[{}] {}", body_kind, body_condition);
+            }
         }
+
+        Ok(())
     }
 }

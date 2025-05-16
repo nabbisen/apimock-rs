@@ -25,6 +25,15 @@ pub struct Config {
     pub service: ServiceConfig,
 }
 
+impl std::fmt::Display for Config {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let _ = writeln!(f, "{}", self.log);
+        let _ = writeln!(f, "------");
+        let _ = writeln!(f, "{}", self.service);
+        Ok(())
+    }
+}
+
 /// app config
 impl Config {
     /// create new instance
@@ -54,7 +63,7 @@ impl Config {
 
         config.validate();
 
-        config.print();
+        log::info!("{}", config);
 
         config
     }
@@ -93,12 +102,6 @@ impl Config {
         //         }
         //     }
         // }
-    }
-
-    fn print(&self) {
-        self.log.print();
-        log::info!("------");
-        self.service.print();
     }
 }
 

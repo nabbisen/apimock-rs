@@ -25,7 +25,26 @@ pub struct RuleSet {
     pub rules: Vec<Rule>,
 }
 
+impl std::fmt::Display for RuleSet {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        if self.prefix.is_some() {
+            let _ = write!(f, "{}", self.prefix.as_ref().unwrap());
+        }
+        if self.default.is_some() {
+            let _ = write!(f, "{}", self.default.as_ref().unwrap());
+        }
+        if self.guard.is_some() {
+            let _ = write!(f, "{}", self.guard.as_ref().unwrap());
+        }
+        for rule in self.rules.iter() {
+            let _ = write!(f, "{}", rule);
+        }
+        Ok(())
+    }
+}
+
 impl RuleSet {
+    /// create instance
     pub fn new(rule_set_file_path: &str) -> Self {
         let toml_string = fs::read_to_string(rule_set_file_path).unwrap();
         let deserialized = toml::from_str(&toml_string);
@@ -35,23 +54,9 @@ impl RuleSet {
         }
     }
 
+    /// validate
     pub fn validate(&self) -> bool {
         true
-    }
-
-    pub fn print(&self) {
-        if self.prefix.is_some() {
-            self.prefix.as_ref().unwrap().print();
-        }
-        if self.guard.is_some() {
-            self.guard.as_ref().unwrap().print();
-        }
-        if self.default.is_some() {
-            self.default.as_ref().unwrap().print();
-        }
-        for rule in self.rules.iter().as_ref() {
-            rule.print();
-        }
     }
 }
 

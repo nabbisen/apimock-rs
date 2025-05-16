@@ -11,14 +11,14 @@ pub struct BodyCondition {
     pub json_condition: Option<HashMap<ConditionKey, ConditionStatement>>,
 }
 
-impl BodyCondition {
-    pub fn print(&self) {
-        if self.json_condition.is_some() {
-            // todo: print()
-            // for (key, value) in self.json_condition.as_ref().unwrap().iter() {
-            //     log::info!("[[body.json.key]]", key);
-            //     log::info!("[[body.json.statement]]", value);
-            // }
+impl std::fmt::Display for BodyCondition {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        if self.json_condition.is_none() {
+            return Ok(());
         }
+        for (key, statement) in self.json_condition.as_ref().unwrap().iter() {
+            let _ = write!(f, "{} {}", key, statement);
+        }
+        Ok(())
     }
 }

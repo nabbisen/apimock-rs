@@ -1,3 +1,4 @@
+use console::style;
 use rule_op::RuleOp;
 use serde::Deserialize;
 use util::{body_is_match, headers_is_match, url_path_is_match};
@@ -16,6 +17,14 @@ pub enum BodyKind {
     Json,
 }
 
+impl std::fmt::Display for BodyKind {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            BodyKind::Json => write!(f, "JSON"),
+        }
+    }
+}
+
 #[derive(Clone, Deserialize, Debug)]
 pub struct When {
     pub url_path: Option<String>,
@@ -23,7 +32,27 @@ pub struct When {
     pub request: Option<Request>,
 }
 
+impl std::fmt::Display for When {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        if self.url_path_op.is_some() {
+            let _ = write!(
+                f,
+                "[url_path]{}{}",
+                self.url_path_op.as_ref().unwrap(),
+                style(self.url_path.as_ref().unwrap()).yellow(),
+            );
+        }
+
+        if self.request.is_some() {
+            let _ = write!(f, "{}", self.request.as_ref().unwrap());
+        }
+
+        Ok(())
+    }
+}
+
 impl When {
+    /// match with condition
     pub fn is_match(&self, request: &ParsedRequest, rule_idx: usize, rule_set_idx: usize) -> bool {
         if let Some(matcher_url_path) = self.url_path.as_ref() {
             if !url_path_is_match(
@@ -57,31 +86,17 @@ impl When {
         true
     }
 
+    /// validate
     pub fn validate(&self) -> bool {
-        if self.url_path.is_some() {
-            return true;
+        if (self.url_path.is_some() || self.url_path_op.is_none())
+            || (self.url_path.is_none() || self.url_path_op.is_some())
+        {
+            return false;
         }
 
         match self.request.as_ref() {
             Some(request) => request.headers.is_some() || request.body.is_some(),
             None => false,
-        }
-    }
-
-    pub fn print(&self) {
-        // todo: print()
-        // if self.url_path.is_some() {
-        //     log::info!("[[rule.when.url_path]] {}", self.url_path.as_ref().unwrap());
-        // }
-        // if self.url_path_op.is_some() {
-        //     log::info!(
-        //         "[[rule.when.url_path]] {}",
-        //         self.url_path_op.as_ref().unwrap()
-        //     );
-        // }
-
-        if self.request.is_some() {
-            self.request.as_ref().unwrap().print();
         }
     }
 }

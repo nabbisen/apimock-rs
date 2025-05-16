@@ -1,3 +1,4 @@
+use console::style;
 use serde::Deserialize;
 use util::full_file_path;
 
@@ -23,13 +24,27 @@ pub enum ResponseType {
 #[derive(Clone, Deserialize, Debug)]
 pub struct Respond {
     pub response_type: Option<ResponseType>,
-    pub headers: Option<HashMap<String, Option<String>>>,
-    pub code: Option<u16>,
     pub content: String,
+    pub code: Option<u16>,
+    pub headers: Option<HashMap<String, Option<String>>>,
     pub delay_response_milliseconds: Option<u16>,
 }
 
+impl std::fmt::Display for Respond {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let _ = match self.response_type {
+            Some(ResponseType::Text) => writeln!(f, "(text)"),
+            Some(ResponseType::File) | None => {
+                writeln!(f, "{}", style(self.content.as_str()).green())
+            }
+        };
+
+        Ok(())
+    }
+}
+
 impl Respond {
+    /// generate response
     pub async fn response(
         &self,
         path_prefix: Option<String>,
@@ -61,9 +76,5 @@ impl Respond {
                     .file_content_response()
             }
         }
-    }
-
-    pub fn print(&self) {
-        // todo: print()
     }
 }

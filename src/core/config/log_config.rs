@@ -6,9 +6,10 @@ pub struct LogConfig {
     pub verbose: VerboseConfig,
 }
 
-impl LogConfig {
-    pub fn print(&self) {
-        self.verbose.print();
+impl std::fmt::Display for LogConfig {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let _ = write!(f, "{}", self.verbose);
+        Ok(())
     }
 }
 
@@ -19,12 +20,14 @@ pub struct VerboseConfig {
     pub body: bool,
 }
 
-impl VerboseConfig {
-    pub fn print(&self) {
-        log::info!(
+impl std::fmt::Display for VerboseConfig {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let _ = write!(
+            f,
             "[log.verbose] header = {}, body = {}",
             if self.header { "Yes" } else { "No" },
             if self.body { "Yes" } else { "No" }
         );
+        Ok(())
     }
 }

@@ -1,5 +1,3 @@
-
-
 use crate::core::{config::Config, server::middleware::Middleware};
 
 #[derive(Clone)]

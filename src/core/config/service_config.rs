@@ -1,9 +1,7 @@
+use console::style;
 use serde::Deserialize;
-use util::{fallback_response_dir_print, rule_sets_print};
 
-use std::path::Path;
-
-mod util;
+use std::{fs, path::Path};
 
 use super::constant::{SERVICE_DEFAULT_FALLBACK_RESPONSE_DIR, SERVICE_DEFAULT_RULE_SET_FILE_PATH};
 use crate::core::server::routing::rule_set::RuleSet;
@@ -49,9 +47,34 @@ impl Default for ServiceConfig {
     }
 }
 
-impl ServiceConfig {
-    pub fn print(&self) {
-        rule_sets_print(self.rule_sets.as_ref());
-        fallback_response_dir_print(self.fallback_response_dir.as_str());
+impl std::fmt::Display for ServiceConfig {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        for rule_set in self.rule_sets.iter() {
+            let _ = writeln!(f, "{}", rule_set);
+        }
+        let _ = write!(
+            f,
+            "[fallback_response_dir] {}",
+            canonicalized_fallback_response_dir(self.fallback_response_dir.as_str())
+        );
+        Ok(())
+    }
+}
+
+/// canonicalized fallback_response_dir
+fn canonicalized_fallback_response_dir(fallback_response_dir: &str) -> String {
+    let p = Path::new(fallback_response_dir);
+    if p.is_relative() {
+        let absolute_path = fs::canonicalize(fallback_response_dir)
+            .expect(format!("{} does not exist", fallback_response_dir).as_str());
+        format!(
+            "{} ({})",
+            style(fallback_response_dir).green(),
+            absolute_path
+                .to_str()
+                .expect(format!("logger failed to print out: {}", fallback_response_dir).as_str())
+        )
+    } else {
+        format!("{}", style(fallback_response_dir).green().to_string())
     }
 }

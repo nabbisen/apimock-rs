@@ -124,13 +124,3 @@ pub fn body_is_match(
 
     true
 }
-
-pub fn print_condition(key: &str, op: &RuleOp, value: &str, log_title: &str) {
-    match op {
-        RuleOp::Equal => log::info!("[[[{}]]] {} == {}", log_title, key, value),
-        RuleOp::NotEqual => log::info!("[[[{}]]] {} != {}", log_title, key, value),
-        RuleOp::StartsWith => log::info!("[[[{}]]] {} starts with {}", log_title, key, value),
-        RuleOp::Contains => log::info!("[[[{}]]] {} contains {}", log_title, key, value),
-        RuleOp::WildCard => log::info!("[[[{}]]] {} wild card matched {}", log_title, key, value),
-    }
-}
