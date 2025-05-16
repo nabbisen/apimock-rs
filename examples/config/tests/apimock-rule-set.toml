@@ -1,0 +1,25 @@
+[prefix]
+# url_path = ""
+response_dir = "apimock-data"
+
+# [default]
+# delay_response_milliseconds = 1000
+
+# [guard.request.headers]
+
+[[rules]]
+when = { url_path = "home" }
+respond = { content = "home.json" }
+
+[[rules]]
+[rules.when]
+url_path = "/a/b"
+url_path_op = "equal"
+# [rules.when.request.headers]
+# user = { op = "equal", value = "user1" }
+# [rules.when.request.body.json]
+# "a.b.c" = { op = "not_equal", value = "d" }
+[rules.respond]
+# type = "file"
+content = "test/return.json"
+# delay_response_milliseconds = 1000

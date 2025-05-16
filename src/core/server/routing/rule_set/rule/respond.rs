@@ -1,9 +1,15 @@
 use serde::Deserialize;
+use util::full_file_path;
 
 use std::collections::HashMap;
 
+mod util;
+
 use crate::core::server::{
-    response::{file_response::FileResponse, text_response::text_response},
+    response::{
+        error_response::internal_server_error_response, file_response::FileResponse,
+        text_response::text_response,
+    },
     types::BoxBody,
     util::delay_response,
 };
@@ -24,7 +30,10 @@ pub struct Respond {
 }
 
 impl Respond {
-    pub async fn response(&self) -> Result<hyper::Response<BoxBody>, hyper::http::Error> {
+    pub async fn response(
+        &self,
+        path_prefix: Option<String>,
+    ) -> Result<hyper::Response<BoxBody>, hyper::http::Error> {
         if let Some(delay_response_milliseconds) = self.delay_response_milliseconds {
             delay_response(delay_response_milliseconds).await;
         }
@@ -34,9 +43,27 @@ impl Respond {
                 text_response(self.content.as_str(), None, self.headers.as_ref())
             }
             Some(ResponseType::File) | None => {
-                FileResponse::new(self.content.as_str(), self.headers.as_ref())
+                let path_prefix = if let Some(path_prefix) = path_prefix {
+                    path_prefix
+                } else {
+                    String::new()
+                };
+                let file_path = full_file_path(self.content.as_str(), path_prefix.as_str());
+                if file_path.is_none() {
+                    log::error!(
+                        "{} (prefix = {}) is missing",
+                        self.content.as_str(),
+                        path_prefix.as_str()
+                    );
+                    return internal_server_error_response("failed to get response file");
+                }
+                FileResponse::new(file_path.unwrap().as_str(), self.headers.as_ref())
                     .file_content_response()
             }
         }
+    }
+
+    pub fn print(&self) {
+        // todo: print()
     }
 }

@@ -1,0 +1,57 @@
+# Configure:
+# https://github.com/nabbisen/apimock-rs/blob/main/docs/CONFIGURE.md
+
+[listener]
+ip_address = "127.0.0.1"
+port = 3001
+[log]
+verbose = { header = true, body = true }
+[service]
+rule_sets = ["apimock-rule-set.toml"]
+#rule_sets = ["examples/config/default/apimock-rule-set.toml"]
+fallback_response_dir = "."
+
+# # Configure:
+# # https://github.com/nabbisen/apimock-rs/blob/main/docs/CONFIGURE.md
+# 
+# [listener]
+# ip_address = "127.0.0.1"
+# port = 3001
+# 
+# [general]
+# dyn_data_dir = "apimock-dyn-data"
+# # always = "{ greetings: \"Hello, world.\" }"
+# response_wait = 100
+# # verbose = { header = true, body = true }
+# 
+# [url]
+# data_dir = "apimock-data"
+# data_dir_query_path = "@@"
+# path_prefix = "api/v1"
+# 
+# [url.headers]
+# cookie_1 = { key = "Set-Cookie", value = "a=b; c=d" }
+# redirect_1 = { key = "Location", value = "/api/v1/home" }
+# 
+# [url.paths] # under `data_dir`
+# "home" = "home.json"
+# # "some/path" = "api.json5"
+# # custom header
+# "some/path/w/header" = { src = "home.json", headers = ["cookie_1"] }
+# "some/path/w/matcher" = "home.json"
+# # errors / redirects * code must be unsigned integer
+# "error/401" = { code = 401 }
+# "error/api-403" = { code = 403 }
+# "redirect/302" = { code = 302, headers = ["redirect_1"] }
+# 
+# [url.paths_patterns."some/path/w/matcher"."a.b.c"]
+# "=1" = "api.json5"
+# "=0" = "home.json"
+# [url.paths_patterns."some/path/w/matcher"."d.2.e"]
+# "=x=" = "api.json5"
+# [url.paths_patterns."some/path/w/matcher"."f"]
+# "=" = "api.json5"
+# 
+# [url.raw_paths] # path from root
+# "/" = { code = 200, text = "{\"hello\":\"world\"}" }
+# 

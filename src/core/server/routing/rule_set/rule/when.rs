@@ -1,10 +1,12 @@
+use rule_op::RuleOp;
 use serde::Deserialize;
 use util::{body_is_match, headers_is_match, url_path_is_match};
 
+mod condition_statement;
 mod request;
+mod rule_op;
 mod util;
 
-use super::types::RuleOp;
 use crate::core::server::parsed_request::ParsedRequest;
 use request::Request;
 
@@ -22,17 +24,6 @@ pub struct When {
 }
 
 impl When {
-    pub fn validate(&self) -> bool {
-        if self.url_path.is_some() {
-            return true;
-        }
-
-        match self.request.as_ref() {
-            Some(request) => request.headers.is_some() || request.body.is_some(),
-            None => false,
-        }
-    }
-
     pub fn is_match(&self, request: &ParsedRequest, rule_idx: usize, rule_set_idx: usize) -> bool {
         if let Some(matcher_url_path) = self.url_path.as_ref() {
             if !url_path_is_match(
@@ -64,5 +55,33 @@ impl When {
         }
 
         true
+    }
+
+    pub fn validate(&self) -> bool {
+        if self.url_path.is_some() {
+            return true;
+        }
+
+        match self.request.as_ref() {
+            Some(request) => request.headers.is_some() || request.body.is_some(),
+            None => false,
+        }
+    }
+
+    pub fn print(&self) {
+        // todo: print()
+        // if self.url_path.is_some() {
+        //     log::info!("[[rule.when.url_path]] {}", self.url_path.as_ref().unwrap());
+        // }
+        // if self.url_path_op.is_some() {
+        //     log::info!(
+        //         "[[rule.when.url_path]] {}",
+        //         self.url_path_op.as_ref().unwrap()
+        //     );
+        // }
+
+        if self.request.is_some() {
+            self.request.as_ref().unwrap().print();
+        }
     }
 }

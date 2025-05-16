@@ -5,13 +5,12 @@ use hyper::{
     HeaderMap,
 };
 
-use crate::core::server::{
-    parsed_request::ParsedRequest,
-    routing::rule_set::rule::types::{ConditionStatement, RuleOp},
-    util::content_type_is_application_json,
-};
+use crate::core::server::{parsed_request::ParsedRequest, util::content_type_is_application_json};
 
-use super::{request::body_condition::BodyCondition, BodyKind};
+use super::{
+    condition_statement::ConditionStatement, request::body_condition::BodyCondition,
+    rule_op::RuleOp, BodyKind,
+};
 
 /// check if `url_path` in `when`` matches
 pub fn url_path_is_match(
@@ -124,4 +123,14 @@ pub fn body_is_match(
     }
 
     true
+}
+
+pub fn print_condition(key: &str, op: &RuleOp, value: &str, log_title: &str) {
+    match op {
+        RuleOp::Equal => log::info!("[[[{}]]] {} == {}", log_title, key, value),
+        RuleOp::NotEqual => log::info!("[[[{}]]] {} != {}", log_title, key, value),
+        RuleOp::StartsWith => log::info!("[[[{}]]] {} starts with {}", log_title, key, value),
+        RuleOp::Contains => log::info!("[[[{}]]] {} contains {}", log_title, key, value),
+        RuleOp::WildCard => log::info!("[[[{}]]] {} wild card matched {}", log_title, key, value),
+    }
 }

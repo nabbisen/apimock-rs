@@ -3,13 +3,62 @@ use serde::Deserialize;
 use when::When;
 
 pub mod respond;
-mod types;
 pub mod when;
+
+type ConditionKey = String;
 
 #[derive(Clone, Deserialize, Debug)]
 pub struct Rule {
     pub when: When,
     pub respond: Respond,
+}
+
+impl Rule {
+    pub fn print(&self) {
+        self.when.print();
+        self.respond.print();
+        // if let Some(data_dir) = &config.data_dir {
+        //     log::info!("[data_dir] {}", data_dir);
+        // }
+        // if let Some(data_dir_query_path) = &config.data_dir_query_path {
+        //     log::info!(
+        //         "[data_dir_query_url] http://{}/{}",
+        //         &config.listener_address(),
+        //         data_dir_query_path
+        //     );
+        // }
+        // if let Some(path_prefix) = &config.path_prefix {
+        //     log::info!("[path_prefix] {}", path_prefix);
+        // }
+        // let _ = match &config.headers {
+        //     Some(headers) if 0 < headers.len() => {
+        //         log::info!("------");
+        //         let mut keys: Vec<_> = headers.keys().collect();
+        //         keys.sort();
+        //         for key in keys {
+        //             log::info!(
+        //                 "[header] {} = {}{}",
+        //                 style(headers.get_key_value(key).unwrap().0).magenta(),
+        //                 headers.get(key).unwrap().key.clone(),
+        //                 if let Some(value) = headers.get(key).unwrap().value.clone() {
+        //                     format!(": {}", value)
+        //                 } else {
+        //                     String::new()
+        //                 }
+        //             );
+        //         }
+        //     }
+        //     _ => (),
+        // };
+        // let _ = match &config.paths {
+        //     Some(paths) if 0 < paths.len() => {
+        //         log::info!("------");
+        //         config.print_paths();
+        //         log::info!("------");
+        //     }
+        //     _ => (),
+        // };
+    }
 }
 
 // // response with static paths routing

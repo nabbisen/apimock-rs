@@ -1,3 +1,5 @@
+use core::fmt;
+
 use serde::Deserialize;
 
 use crate::core::util::glob::glob_match;
@@ -10,14 +12,6 @@ pub enum RuleOp {
     StartsWith,
     Contains,
     WildCard,
-}
-
-pub type ConditionKey = String;
-
-#[derive(Clone, Deserialize, Debug)]
-pub struct ConditionStatement {
-    pub op: RuleOp,
-    pub value: String,
 }
 
 impl RuleOp {

@@ -13,7 +13,6 @@ pub mod constant;
 pub mod listener_config;
 pub mod log_config;
 pub mod service_config;
-mod util;
 
 /// app config
 #[derive(Clone, Deserialize)]
@@ -30,7 +29,7 @@ pub struct Config {
 impl Config {
     /// create new instance
     pub fn new(config_file_path: Option<&String>) -> Self {
-        let config = if let Some(config_file_path) = config_file_path {
+        let mut config = if let Some(config_file_path) = config_file_path {
             log::info!("[config] {}\n", config_file_path);
 
             let toml_string = fs::read_to_string(config_file_path.as_str()).unwrap();
@@ -39,13 +38,6 @@ impl Config {
                 Err(err) => panic!("{}: Invalid toml content\n({})", config_file_path, err),
             };
 
-            config.service.rule_sets = config
-                .service
-                .rule_sets_file_paths
-                .iter()
-                .map(|x| RuleSet::new(x))
-                .collect();
-
             config.file_path = Some(config_file_path.to_owned());
 
             config
@@ -53,9 +45,17 @@ impl Config {
             Config::default()
         };
 
+        config.service.rule_sets = config
+            .service
+            .rule_sets_file_paths
+            .iter()
+            .map(|x| RuleSet::new(x))
+            .collect();
+
         config.validate();
 
-        util::print(&config);
+        config.print();
+
         config
     }
 
@@ -93,6 +93,12 @@ impl Config {
         //         }
         //     }
         // }
+    }
+
+    fn print(&self) {
+        self.log.print();
+        log::info!("------");
+        self.service.print();
     }
 }
 
