@@ -1,8 +1,6 @@
 use hyper::StatusCode;
 
-mod util;
-
-use util::{http_response, setup};
+use crate::util::{http_response, setup};
 
 #[tokio::test]
 async fn error401() {

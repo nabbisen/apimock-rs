@@ -1,8 +1,6 @@
 use hyper::StatusCode;
 
-mod util;
-
-use util::{http_response, response_body_bytes, response_body_str, setup, DYN_ROUTE_DIR};
+use crate::util::{http_response, response_body_bytes, response_body_str, setup, DYN_ROUTE_DIR};
 
 #[tokio::test]
 async fn dyn_data_dir_json_root_json_ext_none() {

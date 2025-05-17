@@ -1,8 +1,6 @@
 use hyper::StatusCode;
 
-mod util;
-
-use util::{http_response, response_body_str, setup};
+use crate::util::{http_response, response_body_str, setup};
 
 #[tokio::test]
 async fn middleware_url_path_handled() {

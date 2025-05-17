@@ -9,19 +9,18 @@ use hyper::{
     Request, Response, Uri,
 };
 use hyper_util::rt::TokioIo;
+use rand::Rng;
 use tokio::net::TcpStream;
+
+use std::env;
+
+use apimock::core::{app::App, args::EnvArgs};
 
 const TEST_WORKDIR: &str = "examples/config/tests";
 const CONFIG_FILE_PATH: &str = "apimock.toml";
 pub const DYN_ROUTE_DIR: &str = "apimock-dyn-route";
 const MIDDLEWARE_FILE_PATH: &str = "apimock-middleware.rhai";
 
-use std::env;
-
-use apimock::core::{app::App, args::EnvArgs};
-use rand::Rng;
-
-// utils
 /// test initial setup: start up mock server
 pub async fn setup() -> u16 {
     let port = dynamic_port();
