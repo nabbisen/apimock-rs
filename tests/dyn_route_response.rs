@@ -1,3 +1,6 @@
+use hyper::StatusCode;
+use util::{http_response, response_body_bytes, response_body_str, setup};
+
 #[cfg(test)]
 mod util;
 
