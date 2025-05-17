@@ -4,6 +4,7 @@ use hyper::{
     header::{HeaderValue, CONTENT_TYPE},
     HeaderMap,
 };
+use serde_json::Value;
 
 use crate::core::server::{parsed_request::ParsedRequest, util::content_type_is_application_json};
 
@@ -105,21 +106,37 @@ pub fn body_is_match(
     if let Some(matcher_json_condition) = &matcher_body_json.condition {
         if matcher_json_condition.iter().any(
             |(matcher_json_condition_key, matcher_json_condition_statement)| {
-                let request_body_json_value = request_body_json.get(matcher_json_condition_key);
-                if request_body_json_value.is_none() {
-                    return true;
-                }
-                let request_body_json_value = request_body_json_value.unwrap();
+                let request_body_json_value =
+                    json_value_by_jsonpath(&request_body_json, matcher_json_condition_key);
 
-                matcher_json_condition_statement.op.is_match(
-                    request_body_json_value.to_string().as_str(),
-                    &matcher_json_condition_statement.value,
-                )
+                if request_body_json_value.is_none() {
+                    return false;
+                }
+
+                let request_body_json_value = request_body_json_value.unwrap();
+                match request_body_json_value.as_str() {
+                    Some(request_body_json_value) => matcher_json_condition_statement.op.is_match(
+                        request_body_json_value,
+                        &matcher_json_condition_statement.value,
+                    ),
+                    None => false,
+                }
             },
         ) {
-            return false;
+            return true;
         }
     }
 
-    true
+    false
+}
+
+/// get json value by jsonpath key
+fn json_value_by_jsonpath<'a>(value: &'a Value, jsonpath: &str) -> Option<&'a Value> {
+    jsonpath.split('.').fold(Some(value), |current, key| {
+        if let Some(current) = current {
+            current.get(key)
+        } else {
+            None
+        }
+    })
 }

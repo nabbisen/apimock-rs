@@ -2,7 +2,7 @@ use serde::Deserialize;
 
 use super::rule_op::RuleOp;
 
-#[derive(Clone, Deserialize, Debug)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct ConditionStatement {
     pub op: RuleOp,
     pub value: String,
