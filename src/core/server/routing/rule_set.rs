@@ -28,7 +28,8 @@ pub struct RuleSet {
 impl RuleSet {
     /// create instance
     pub fn new(rule_set_file_path: &str, rule_set_idx: usize) -> Self {
-        let toml_string = fs::read_to_string(rule_set_file_path).unwrap();
+        let toml_string = fs::read_to_string(rule_set_file_path)
+            .expect(format!("failed to read rule set toml `{}`", rule_set_file_path).as_str());
         let deserialized = toml::from_str::<Self>(&toml_string);
         let mut ret = match deserialized {
             Ok(x) => x,
