@@ -1,10 +1,5 @@
 use http_body_util::{BodyExt, Full};
-use hyper::{
-    body::Bytes,
-    header::{HeaderValue, CONTENT_TYPE},
-    http::response::Builder,
-    StatusCode,
-};
+use hyper::body::Bytes;
 use serde_json::{json, Map, Value};
 
 use std::{collections::HashMap, path::Path};
@@ -12,11 +7,9 @@ use std::{collections::HashMap, path::Path};
 use crate::core::server::{constant::CSV_RECORDS_DEFAULT_KEY, types::BoxBody};
 
 use super::{
-    default_builder,
     error_response::{bad_request_response, internal_server_error_response},
-    json_builder,
     text_response::text_response,
-    util::text_file_content_type,
+    util::{binary_content_builder, json_content_builder, text_file_content_type},
 };
 
 pub struct FileResponse {
@@ -163,37 +156,4 @@ impl FileResponse {
         binary_content_builder(self.custom_headers.as_ref())
             .body(Full::new(Bytes::from(content)).boxed())
     }
-}
-
-/// generate response builder for json compatible file
-fn json_content_builder(custom_headers: Option<&HashMap<String, Option<String>>>) -> Builder {
-    let mut builder = json_builder().status(StatusCode::OK);
-
-    if let Some(headers) = custom_headers {
-        builder = headers
-            .iter()
-            .fold(builder, |builder, (header_name, header_value)| {
-                builder.header(header_name, header_value.clone().unwrap_or_default())
-            });
-    }
-
-    builder
-}
-
-/// generate response builder for binary file
-fn binary_content_builder(custom_headers: Option<&HashMap<String, Option<String>>>) -> Builder {
-    let mut builder = default_builder().status(StatusCode::OK).header(
-        CONTENT_TYPE,
-        HeaderValue::from_static("application/octet-stream"),
-    );
-
-    if let Some(headers) = custom_headers {
-        builder = headers
-            .iter()
-            .fold(builder, |builder, (header_name, header_value)| {
-                builder.header(header_name, header_value.clone().unwrap_or_default())
-            });
-    }
-
-    builder
 }

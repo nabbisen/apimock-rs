@@ -1,4 +1,5 @@
 use default_respond::DefaultRespond;
+use hyper::StatusCode;
 use serde::Deserialize;
 
 use std::fs;
@@ -13,7 +14,7 @@ use prefix::Prefix;
 use rule::Rule;
 
 use crate::core::{
-    config::service_config::Strategy,
+    config::service_config::strategy::Strategy,
     server::{parsed_request::ParsedRequest, types::BoxBody},
 };
 
@@ -47,11 +48,37 @@ impl RuleSet {
     /// create instance
     pub fn new(rule_set_file_path: &str) -> Self {
         let toml_string = fs::read_to_string(rule_set_file_path).unwrap();
-        let deserialized = toml::from_str(&toml_string);
-        match deserialized {
+        let deserialized = toml::from_str::<Self>(&toml_string);
+        let mut ret = match deserialized {
             Ok(x) => x,
             Err(err) => panic!("{}: Invalid toml content\n({})", rule_set_file_path, err),
-        }
+        };
+
+        ret.rules = ret
+            .rules
+            .iter()
+            .enumerate()
+            .map(|(rule_idx, rule)| {
+                if let Some(code) = rule.respond.code {
+                    let status_code = Some(
+                        StatusCode::from_u16(code).expect(
+                            format!(
+                                "failed to get status code from code {}\n(rule #{}, rule set {})",
+                                code, rule_idx, rule_set_file_path
+                            )
+                            .as_str(),
+                        ),
+                    );
+                    let mut ret = rule.to_owned();
+                    ret.respond.status_code = status_code;
+                    ret
+                } else {
+                    rule.to_owned()
+                }
+            })
+            .collect();
+
+        ret
     }
 
     /// validate
@@ -77,7 +104,16 @@ pub async fn rule_sets_content(
 ) -> Option<Result<hyper::Response<BoxBody>, hyper::http::Error>> {
     for (rule_set_idx, rule_set) in rule_sets.iter().enumerate() {
         for (rule_idx, rule) in rule_set.rules.iter().enumerate() {
-            if rule.when.is_match(request, rule_idx, rule_set_idx) {
+            let url_path_prefix = if let Some(prefix) = rule_set.prefix.as_ref() {
+                prefix.url_path_prefix.as_ref()
+            } else {
+                None
+            };
+            let is_match = rule
+                .when
+                .is_match(request, url_path_prefix, rule_idx, rule_set_idx);
+
+            if is_match {
                 let dir_prefix = rule_set.dir_prefix();
 
                 let response = rule.respond.response(dir_prefix.as_str()).await;

@@ -1,11 +1,14 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, path::Path};
 
 use hyper::{
     header::{HeaderValue, CONTENT_TYPE},
     HeaderMap,
 };
 
-use crate::core::server::{parsed_request::ParsedRequest, util::content_type_is_application_json};
+use crate::core::server::{
+    parsed_request::ParsedRequest,
+    util::{canonicalize_uri_path, content_type_is_application_json},
+};
 
 use super::{
     condition_statement::ConditionStatement, request::body_condition::BodyCondition,
@@ -16,17 +19,23 @@ use super::{
 pub fn url_path_is_match(
     request_uri_path: &str,
     matcher_url_path: &str,
+    matcher_url_path_prefix: Option<&String>,
     matcher_url_path_op: Option<&RuleOp>,
 ) -> bool {
+    let matcher_url_path = if let Some(matcher_url_path_prefix) = matcher_url_path_prefix {
+        let p = Path::new(matcher_url_path_prefix).join(matcher_url_path);
+        canonicalize_uri_path(p.to_str().unwrap_or_default())
+    } else {
+        matcher_url_path.to_owned()
+    };
+
     let matcher_url_path_op = if let Some(url_path_op) = matcher_url_path_op {
         url_path_op
     } else {
         &RuleOp::default()
     };
-    if !matcher_url_path_op.is_match(request_uri_path, matcher_url_path) {
-        return false;
-    }
-    true
+
+    matcher_url_path_op.is_match(request_uri_path, matcher_url_path.as_str())
 }
 
 /// check if `headers` in `when` matches

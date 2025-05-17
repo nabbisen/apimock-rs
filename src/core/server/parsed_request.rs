@@ -1,14 +1,13 @@
-use std::time::{SystemTime, UNIX_EPOCH};
-
 use console::style;
 use http_body_util::BodyExt;
 use hyper::body::Incoming;
 use hyper::http::request::Parts;
 use serde_json::Value;
 
-use crate::core::config::log_config::VerboseConfig;
+use std::time::{SystemTime, UNIX_EPOCH};
 
 use super::util::canonicalize_uri_path;
+use crate::core::config::log_config::verbose_config::VerboseConfig;
 
 pub struct ParsedRequest {
     pub uri_path: String,

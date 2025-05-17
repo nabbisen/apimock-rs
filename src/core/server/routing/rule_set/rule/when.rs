@@ -32,48 +32,25 @@ pub struct When {
     pub request: Option<Request>,
 }
 
-impl std::fmt::Display for When {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let has_written = self.url_path.is_some() || self.request.is_some();
-
-        if has_written {
-            let _ = write!(f, "[when] ");
-        }
-
-        if self.url_path.is_some() {
-            let _ = write!(
-                f,
-                "url_path{}{}",
-                self.url_path_op.clone().unwrap_or_default(),
-                style(self.url_path.as_ref().unwrap()).yellow(),
-            );
-        }
-
-        if self.request.is_some() {
-            let _ = write!(f, "{}", self.request.as_ref().unwrap());
-        }
-
-        if has_written {
-            let _ = writeln!(f, " =>");
-        }
-
-        Ok(())
-    }
-}
-
 impl When {
     /// match with condition
-    pub fn is_match(&self, request: &ParsedRequest, rule_idx: usize, rule_set_idx: usize) -> bool {
+    pub fn is_match(
+        &self,
+        request: &ParsedRequest,
+        path_prefix: Option<&String>,
+        rule_idx: usize,
+        rule_set_idx: usize,
+    ) -> bool {
         if let Some(matcher_url_path) = self.url_path.as_ref() {
             if !url_path_is_match(
                 request.uri_path.as_str(),
                 matcher_url_path,
+                path_prefix,
                 self.url_path_op.as_ref(),
             ) {
                 return false;
             }
         }
-
         if let Some(matcher) = self.request.as_ref() {
             if let Some(matcher_headers) = matcher.headers.as_ref() {
                 if !headers_is_match(
@@ -104,5 +81,34 @@ impl When {
         };
 
         request_validate
+    }
+}
+
+impl std::fmt::Display for When {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let has_written = self.url_path.is_some() || self.request.is_some();
+
+        if has_written {
+            let _ = write!(f, "[when] ");
+        }
+
+        if self.url_path.is_some() {
+            let _ = write!(
+                f,
+                "url_path{}{}",
+                self.url_path_op.clone().unwrap_or_default(),
+                style(self.url_path.as_ref().unwrap()).yellow(),
+            );
+        }
+
+        if self.request.is_some() {
+            let _ = write!(f, "{}", self.request.as_ref().unwrap());
+        }
+
+        if has_written {
+            let _ = writeln!(f, " =>");
+        }
+
+        Ok(())
     }
 }

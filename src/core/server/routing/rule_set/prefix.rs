@@ -10,6 +10,26 @@ pub struct Prefix {
     pub respond_dir_prefix: Option<String>,
 }
 
+impl Prefix {
+    /// validate
+    pub fn validate(&self) -> bool {
+        let respond_dir_prefix_validate =
+            if let Some(respond_dir_prefix) = self.respond_dir_prefix.as_ref() {
+                let exists = Path::new(respond_dir_prefix.as_str()).exists();
+                if !exists {
+                    log::error!(
+                        "directory `{}` does not exist",
+                        self.respond_dir_prefix.clone().unwrap().as_str()
+                    );
+                }
+                exists
+            } else {
+                true
+            };
+        respond_dir_prefix_validate
+    }
+}
+
 impl std::fmt::Display for Prefix {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let has_written = self.url_path_prefix.is_some() || self.respond_dir_prefix.is_some();
@@ -35,25 +55,5 @@ impl std::fmt::Display for Prefix {
         }
 
         Ok(())
-    }
-}
-
-impl Prefix {
-    /// validate
-    pub fn validate(&self) -> bool {
-        let respond_dir_prefix_validate =
-            if let Some(respond_dir_prefix) = self.respond_dir_prefix.as_ref() {
-                let exists = Path::new(respond_dir_prefix.as_str()).exists();
-                if !exists {
-                    log::error!(
-                        "directory `{}` does not exist",
-                        self.respond_dir_prefix.clone().unwrap().as_str()
-                    );
-                }
-                exists
-            } else {
-                true
-            };
-        respond_dir_prefix_validate
     }
 }

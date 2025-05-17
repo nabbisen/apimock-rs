@@ -1,0 +1,16 @@
+[prefix]
+url_path = "/api/v1/"
+respond_dir = "apimock-rule-set-data"
+
+# [default]
+# delay_response_milliseconds = 1000
+
+# [guard.request.headers]
+
+[[rules]]
+when = { url_path = "error/401" }
+respond = { code = 401, response_type = "custom_code" }
+
+[[rules]]
+when = { url_path = "error/api-403" }
+respond = { code = 403, response_type = "custom_code" }

@@ -1,28 +1,21 @@
-use http_body_util::{BodyExt, Empty, Full};
-use hyper::{body::Bytes, StatusCode};
+use hyper::StatusCode;
 
-use super::default_builder;
+use super::status_code_response::{status_code_response, status_code_response_with_message};
 use crate::core::server::types::BoxBody;
 
 /// error response on http BAD_REQUEST (400)
-pub fn bad_request_response(msg: &str) -> Result<hyper::Response<BoxBody>, hyper::http::Error> {
-    default_builder()
-        .status(StatusCode::BAD_REQUEST)
-        .body(Full::new(Bytes::from(msg.to_owned())).boxed())
+pub fn bad_request_response(message: &str) -> Result<hyper::Response<BoxBody>, hyper::http::Error> {
+    status_code_response_with_message(&StatusCode::BAD_REQUEST, message)
 }
 
 /// error response on http NOT_FOUND (404)
 pub fn not_found_response() -> Result<hyper::Response<BoxBody>, hyper::http::Error> {
-    default_builder()
-        .status(StatusCode::NOT_FOUND)
-        .body(Empty::new().boxed())
+    status_code_response(&StatusCode::NOT_FOUND)
 }
 
 /// error response on http INTERNAL_SERVER_ERROR (500)
 pub fn internal_server_error_response(
-    msg: &str,
+    message: &str,
 ) -> Result<hyper::Response<BoxBody>, hyper::http::Error> {
-    default_builder()
-        .status(StatusCode::INTERNAL_SERVER_ERROR)
-        .body(Full::new(Bytes::from(msg.to_owned())).boxed())
+    status_code_response_with_message(&StatusCode::INTERNAL_SERVER_ERROR, message)
 }

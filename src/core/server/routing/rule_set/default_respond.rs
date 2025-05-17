@@ -5,6 +5,13 @@ pub struct DefaultRespond {
     pub delay_response_milliseconds: Option<u16>,
 }
 
+impl DefaultRespond {
+    /// validate
+    pub fn validate(&self) -> bool {
+        true
+    }
+}
+
 impl std::fmt::Display for DefaultRespond {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         if self.delay_response_milliseconds.is_some() {
@@ -15,12 +22,5 @@ impl std::fmt::Display for DefaultRespond {
             );
         }
         Ok(())
-    }
-}
-
-impl DefaultRespond {
-    /// validate
-    pub fn validate(&self) -> bool {
-        true
     }
 }

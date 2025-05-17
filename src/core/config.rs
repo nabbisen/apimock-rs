@@ -25,29 +25,6 @@ pub struct Config {
     pub service: ServiceConfig,
 }
 
-impl Default for Config {
-    fn default() -> Self {
-        Config {
-            file_path: None,
-            listener: ListenerConfig {
-                ip_address: LISTENER_DEFAULT_IP_ADDRESS.to_owned(),
-                port: LISTENER_DEFAULT_PORT,
-            },
-            log: LogConfig::default(),
-            service: ServiceConfig::default(),
-        }
-    }
-}
-
-impl std::fmt::Display for Config {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let _ = write!(f, "{}", self.log);
-        let _ = writeln!(f, "{}", PRINT_DELIMITER);
-        let _ = write!(f, "{}", self.service);
-        Ok(())
-    }
-}
-
 /// app config
 impl Config {
     /// create new instance
@@ -98,5 +75,28 @@ impl Config {
     /// note: none requires validation in LogConfig
     fn validate(&self) -> bool {
         self.service.validate()
+    }
+}
+
+impl Default for Config {
+    fn default() -> Self {
+        Config {
+            file_path: None,
+            listener: ListenerConfig {
+                ip_address: LISTENER_DEFAULT_IP_ADDRESS.to_owned(),
+                port: LISTENER_DEFAULT_PORT,
+            },
+            log: LogConfig::default(),
+            service: ServiceConfig::default(),
+        }
+    }
+}
+
+impl std::fmt::Display for Config {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let _ = write!(f, "{}", self.log);
+        let _ = writeln!(f, "{}", PRINT_DELIMITER);
+        let _ = write!(f, "{}", self.service);
+        Ok(())
     }
 }

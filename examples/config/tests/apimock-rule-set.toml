@@ -8,6 +8,10 @@ respond_dir = "apimock-rule-set-data"
 # [guard.request.headers]
 
 [[rules]]
+when = { url_path = "" }
+respond = { content = "home.json" }
+
+[[rules]]
 when = { url_path = "home" }
 respond = { content = "home.json" }
 
