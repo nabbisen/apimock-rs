@@ -9,6 +9,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use super::util::normalize_url_path;
 use crate::core::config::log_config::verbose_config::VerboseConfig;
 
+#[derive(Debug)]
 pub struct ParsedRequest {
     pub url_path: String,
     pub component_parts: Parts,

@@ -10,7 +10,7 @@ respond_dir = "apimock-rule-set-data"
 [[rules]]
 [rules.when]
 url_path = ""
-[rules.when.body]
-"a.b.c" = "1"
+[rules.when.request.body.json.condition]
+"a.b.c" = { value = "1", op = "equal" }
 [rules.respond]
 file_path = "api.json5"

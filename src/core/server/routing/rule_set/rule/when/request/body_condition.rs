@@ -8,15 +8,15 @@ use crate::core::server::routing::rule_set::rule::{
 
 #[derive(Clone, Deserialize, Debug)]
 pub struct BodyCondition {
-    pub json_condition: Option<HashMap<ConditionKey, ConditionStatement>>,
+    pub condition: Option<HashMap<ConditionKey, ConditionStatement>>,
 }
 
 impl std::fmt::Display for BodyCondition {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        if self.json_condition.is_none() {
+        if self.condition.is_none() {
             return Ok(());
         }
-        for (key, statement) in self.json_condition.as_ref().unwrap().iter() {
+        for (key, statement) in self.condition.as_ref().unwrap().iter() {
             let _ = write!(f, "{} {}", key, statement);
         }
         Ok(())

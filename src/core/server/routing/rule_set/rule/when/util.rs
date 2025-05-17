@@ -102,7 +102,7 @@ pub fn body_is_match(
     }
     let matcher_body_json = matcher_body_json.unwrap();
 
-    if let Some(matcher_json_condition) = &matcher_body_json.json_condition {
+    if let Some(matcher_json_condition) = &matcher_body_json.condition {
         if matcher_json_condition.iter().any(
             |(matcher_json_condition_key, matcher_json_condition_statement)| {
                 let request_body_json_value = request_body_json.get(matcher_json_condition_key);
