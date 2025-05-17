@@ -2,7 +2,7 @@ use hyper::StatusCode;
 
 mod util;
 
-use util::core::{http_response, response_body_str, setup};
+use util::{http_response, response_body_str, setup};
 
 #[tokio::test]
 async fn middleware_uri_path_handled() {

@@ -4,7 +4,7 @@ use std::u16;
 
 mod util;
 
-use util::core::{http_response, response_body_str, setup_with_port};
+use util::{http_response, response_body_str, setup_with_port};
 
 #[tokio::test]
 async fn port_env_arg_overwrites() {
