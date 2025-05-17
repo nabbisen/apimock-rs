@@ -1,8 +1,8 @@
 use hyper::StatusCode;
-use util::{http_response, response_body_str, setup};
 
-#[cfg(test)]
 mod util;
+
+use util::core::{http_response, response_body_str, setup};
 
 #[tokio::test]
 async fn uri_root_as_empty() {

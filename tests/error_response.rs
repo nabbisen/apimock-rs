@@ -1,9 +1,8 @@
 use hyper::StatusCode;
 
-#[cfg(test)]
 mod util;
 
-use util::{http_response, setup};
+use util::core::{http_response, setup};
 
 #[tokio::test]
 async fn error401() {
