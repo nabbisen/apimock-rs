@@ -1,5 +1,5 @@
 [prefix]
-url_path = "/api/v1/"
+url_path = "body"
 respond_dir = "apimock-rule-set-data"
 
 # [default]
@@ -8,5 +8,9 @@ respond_dir = "apimock-rule-set-data"
 # [guard.request.headers]
 
 [[rules]]
-when = { url_path = "" }
-respond = { file_path = "home.json" }
+[rules.when]
+url_path = ""
+[rules.when.body]
+"a.b.c" = "1"
+[rules.respond]
+file_path = "api.json5"

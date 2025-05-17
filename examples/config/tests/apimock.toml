@@ -9,6 +9,7 @@ verbose = { header = false, body = false }
 [service]
 rule_sets = [
     "apimock-rule-set.toml",
+    "apimock-rule-set-when-url-path-condition.toml",
     "apimock-rule-set-when-headers-condition.toml",
     "apimock-rule-set-when-body-condition.toml",
     "apimock-rule-set-error-response.toml",

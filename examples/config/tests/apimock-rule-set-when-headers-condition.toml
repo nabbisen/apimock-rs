@@ -1,5 +1,5 @@
 [prefix]
-# url_path = ""
+url_path = "/headers"
 respond_dir = "apimock-rule-set-data"
 
 # [default]

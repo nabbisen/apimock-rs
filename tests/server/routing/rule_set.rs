@@ -1,2 +1,2 @@
-#[path = "rule_set/test.rs"]
-mod test;
+#[path = "rule_set/rule.rs"]
+mod rule;
