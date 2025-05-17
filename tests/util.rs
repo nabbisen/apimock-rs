@@ -113,3 +113,14 @@ pub async fn response_body_bytes(response: Response<Incoming>) -> Bytes {
         .unwrap()
         .to_bytes()
 }
+
+/// dummy fn suppresses unused warns for pub fns
+/// as test mods are compiled separately and therefore the compiler doesn’t consider external calls
+#[tokio::test]
+async fn dummy_to_suppress_compiler_warn_fn_is_never_used() {
+    let port = setup().await;
+    let response = http_response("", None, port).await;
+    let _ = response_body_str(response);
+    let response = http_response("", None, port).await;
+    let _ = response_body_bytes(response);
+}
