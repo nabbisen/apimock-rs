@@ -2,6 +2,7 @@ use hyper::StatusCode;
 
 use std::u16;
 
+#[cfg(test)]
 mod util;
 
 use util::{http_response, response_body_str, setup, setup_with_port};
