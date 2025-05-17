@@ -15,7 +15,7 @@ use super::{
 
 /// check if `url_path` in `when`` matches
 pub fn url_path_is_match(
-    request_uri_path: &str,
+    request_url_path: &str,
     matcher_url_path_with_prefix: &str,
     matcher_url_path_op: Option<&RuleOp>,
 ) -> bool {
@@ -25,7 +25,7 @@ pub fn url_path_is_match(
         &RuleOp::default()
     };
 
-    matcher_url_path_op.is_match(request_uri_path, matcher_url_path_with_prefix)
+    matcher_url_path_op.is_match(request_url_path, matcher_url_path_with_prefix)
 }
 
 /// check if `headers` in `when` matches

@@ -19,7 +19,7 @@ fallback_respond_dir = "apimock-dyn-route"
 # port = 3001
 # 
 # [general]
-# dyn_data_dir = "apimock-dyn-data"
+# dyn_data_dir = "apimock-dyn-route"
 # # always = "{ greetings: \"Hello, world.\" }"
 # response_wait = 100
 # # verbose = { header = true, body = true }

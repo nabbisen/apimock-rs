@@ -2,7 +2,7 @@ use hyper::StatusCode;
 
 mod util;
 
-use util::{http_response, response_body_bytes, response_body_str, setup};
+use util::{http_response, response_body_bytes, response_body_str, setup, DYN_ROUTE_DIR};
 
 #[tokio::test]
 async fn dyn_data_dir_json_root_json_ext_none() {
@@ -49,23 +49,7 @@ async fn dyn_data_dir_json_root_json_ext_json5() {
     );
 
     let body_str = response_body_str(response).await;
-    assert_eq!(body_str.as_str(), "{\"name\":\"root1.json\"}");
-}
-
-#[tokio::test]
-async fn dyn_data_dir_json_root_json_ext_csv() {
-    let port = setup().await;
-    let response = http_response("/root1.csv", None, port).await;
-
-    assert_eq!(response.status(), StatusCode::OK);
-
-    assert_eq!(
-        response.headers().get("content-type").unwrap(),
-        "application/json"
-    );
-
-    let body_str = response_body_str(response).await;
-    assert_eq!(body_str.as_str(), "{\"name\":\"root1.json\"}");
+    assert_eq!(body_str.as_str(), "{\"name\":\"root1.json5\"}");
 }
 
 #[tokio::test]
@@ -136,6 +120,22 @@ async fn dyn_data_dir_json_depth() {
 async fn dyn_data_dir_csv() {
     let port = setup().await;
     let response = http_response("/csv/records.csv", None, port).await;
+
+    assert_eq!(response.status(), StatusCode::OK);
+
+    assert_eq!(
+        response.headers().get("content-type").unwrap(),
+        "application/json"
+    );
+
+    let body_str = response_body_str(response).await;
+    assert_eq!(body_str.as_str(), "{\"records\":[{\"fieldA\":\"1\",\"fieldB\":\"2\",\"fieldC\":\"3\"},{\"fieldA\":\"a\",\"fieldB\":\"b\",\"fieldC\":\"c\"},{\"fieldA\":\"#\",\"fieldB\":\"\\\\,\",\"fieldC\":\"!!!\"}]}");
+}
+
+#[tokio::test]
+async fn dyn_data_dir_csv_wo_ext() {
+    let port = setup().await;
+    let response = http_response("/csv/records", None, port).await;
 
     assert_eq!(response.status(), StatusCode::OK);
 
@@ -242,5 +242,8 @@ async fn dyn_data_dir_dir() {
     assert_eq!(response.status(), StatusCode::BAD_REQUEST);
 
     let body_str = response_body_str(response).await;
-    assert_eq!(body_str.as_str(), "apimock-dyn-data/html is directory");
+    assert_eq!(
+        body_str.as_str(),
+        format!("{}/html is directory", DYN_ROUTE_DIR).as_str()
+    );
 }

@@ -4,7 +4,7 @@ use hyper_util::{
     rt::{TokioExecutor, TokioIo},
     server::conn::auto::Builder,
 };
-use response::file_response::FileResponse;
+use response::{error_response::internal_server_error_response, file_response::FileResponse};
 use routing::{dyn_route::dyn_route_content, rule_set::rule_sets_content};
 use tokio::net::TcpListener;
 use tokio::sync::Mutex;
@@ -93,7 +93,10 @@ pub async fn service(
     request: hyper::Request<body::Incoming>,
     app_state: Arc<Mutex<AppState>>,
 ) -> Result<hyper::Response<BoxBody>, hyper::http::Error> {
-    let request = ParsedRequest::from(request).await;
+    let request = match ParsedRequest::from(request).await {
+        Ok(x) => x,
+        Err(err) => return internal_server_error_response(err.as_str()),
+    };
 
     let shared_app_state = { app_state.lock().await.clone() };
 
@@ -108,7 +111,7 @@ pub async fn service(
     //     let mut shared_app_state = { app_state.lock().await.clone() };
     //     let mut config = shared_app_state.config;
 
-    //     if let Some(x) = handle_data_dir_query_path(&config, request_uri_path.as_str()) {
+    //     if let Some(x) = handle_data_dir_query_path(&config, request_url_path.as_str()) {
     //         let res = if !x.is_empty() {
     //             let old_data_dir = config.data_dir.clone().unwrap();
     //             let data_dir = x.strip_prefix("/").unwrap();
@@ -123,7 +126,7 @@ pub async fn service(
     //         };
 
     //         request::capture_in_log(
-    //             request_uri_path.as_str(),
+    //             request_url_path.as_str(),
     //             &parts,
     //             None,
     //             config.verbose.clone(),
@@ -139,7 +142,7 @@ pub async fn service(
     // middleware if activated
     if let Some(middleware) = shared_app_state.middleware {
         let middleware_response_file_path =
-            middleware.handle(request.uri_path.as_str(), request.body_json.as_ref());
+            middleware.handle(request.url_path.as_str(), request.body_json.as_ref());
         if let Some(middleware_response_file_path) = middleware_response_file_path {
             return FileResponse::new(middleware_response_file_path.as_str(), None)
                 .file_content_response();
@@ -158,7 +161,7 @@ pub async fn service(
     }
 
     dyn_route_content(
-        request.uri_path.as_str(),
+        request.url_path.as_str(),
         config.service.fallback_respond_dir.as_str(),
     )
 }

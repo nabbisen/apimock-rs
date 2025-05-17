@@ -58,8 +58,8 @@ At startup, [`--init`](docs/CONFIGURE.md#--init) option is available to gerenate
 #### Customization
 
 - Able to customize by modifying [config file](docs/CONFIGURE.md) (`./apimock.toml` by default) and restarting app.
-- [Dynamic routing directory](docs/CONFIGURE.md#generaldyn_data_dir) is also available (`./apimock-dyn-data/` by default) even without config file. App returns response by associating request URL path with relative file path under it.
-- When app runs without both `./apimock.toml` and `./apimock-dyn-data/` directory, [`always`](./CONFIGURE.md#configuration) option is automatically activated to return fixed response.
+- [Dynamic routing directory](docs/CONFIGURE.md#generaldyn_data_dir) is also available (`./apimock-dyn-route/` by default) even without config file. App returns response by associating request URL path with relative file path under it.
+- When app runs without both `./apimock.toml` and `./apimock-dyn-route/` directory, [`always`](./CONFIGURE.md#configuration) option is automatically activated to return fixed response.
 
 ### `cargo` install
 

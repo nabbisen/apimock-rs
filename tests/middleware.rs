@@ -5,7 +5,7 @@ mod util;
 use util::{http_response, response_body_str, setup};
 
 #[tokio::test]
-async fn middleware_uri_path_handled() {
+async fn middleware_url_path_handled() {
     let port = setup().await;
     let response = http_response("/middleware-test", None, port).await;
 
@@ -21,7 +21,7 @@ async fn middleware_uri_path_handled() {
 }
 
 #[tokio::test]
-async fn middleware_uri_path_missed() {
+async fn middleware_url_path_missed() {
     let port = setup().await;
     let response = http_response("/middleware-test/dummy", None, port).await;
 

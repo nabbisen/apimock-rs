@@ -4,7 +4,7 @@ use tokio::time;
 use std::path::Path;
 use std::time::Duration;
 
-use super::constant::JSON_EXTENSIONS;
+use super::constant::JSON_COMPATIBLE_EXTENSIONS;
 
 /// check if content-type is application/json
 /// supporting case when "application/json; charset=utf-8"
@@ -19,17 +19,21 @@ pub fn content_type_is_application_json(content_type: &HeaderValue) -> bool {
     }
 }
 
-/// format uri path
-///
-/// omit leading slash
-pub fn canonicalize_uri_path(uri_path: &str) -> String {
-    if uri_path.chars().filter(|&c| c == '/').count() == 1 {
-        uri_path.to_owned()
-    } else if uri_path.ends_with("/") {
-        uri_path[..uri_path.len() - 1].to_owned()
-    } else {
-        uri_path.to_owned()
-    }
+/// normalize url path
+pub fn normalize_url_path(url_path: &str, url_path_prefix: Option<&str>) -> String {
+    let url_path_prefix = match url_path_prefix {
+        Some(prefix) if !prefix.is_empty() => prefix.strip_suffix("/").unwrap_or_else(|| prefix),
+        _ => "",
+    };
+
+    let url_path = url_path.strip_prefix("/").unwrap_or_else(|| url_path);
+
+    let merged = format!("{}/{}", url_path_prefix, url_path);
+
+    let mut ret: &str = merged.as_str();
+    ret = ret.strip_suffix("/").unwrap_or_else(|| ret);
+    ret = ret.strip_prefix("/").unwrap_or_else(|| ret);
+    format!("/{}", ret)
 }
 
 /// sleep
@@ -39,7 +43,7 @@ pub async fn delay_response(milliseconds: u16) {
 
 /// check if file is json
 pub fn file_is_json(p: &Path) -> bool {
-    JSON_EXTENSIONS.contains(
+    JSON_COMPATIBLE_EXTENSIONS.contains(
         &p.extension()
             .unwrap_or_default()
             .to_ascii_lowercase()
@@ -67,6 +71,8 @@ pub fn is_equivalent_json_file(request_path: &Path, entry_path: &Path) -> bool {
         .to_ascii_lowercase();
 
     request_file_stem == entry_file_stem
-        && JSON_EXTENSIONS.contains(&request_ext.to_str().expect("failed to get requestfile ext"))
-        && JSON_EXTENSIONS.contains(&entry_ext.to_str().expect("failed to get entry file ext"))
+        && JSON_COMPATIBLE_EXTENSIONS
+            .contains(&request_ext.to_str().expect("failed to get requestfile ext"))
+        && JSON_COMPATIBLE_EXTENSIONS
+            .contains(&entry_ext.to_str().expect("failed to get entry file ext"))
 }

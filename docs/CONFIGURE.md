@@ -10,7 +10,7 @@ address = "127.0.0.1"
 port = 3001
 
 [general]
-dyn_data_dir = "apimock-dyn-data"
+dyn_data_dir = "apimock-dyn-route"
 # always = "{ greetings: \"Hello, world.\" }"
 response_wait = 100
 # verbose = { header = true, body = true }
@@ -203,16 +203,16 @@ When passed, initialize app files.
 
 ### Pre-defined variables available in `.rhai`
 
-- `uri_path`: Request URI path.
+- `url_path`: Request URL path.
 - `body`: Request Body JSON value defined only when exists.
 
 ### Request routing
 
-#### URI path
+#### URL path
 
 ```js
-// print(uri_path); // debug
-if uri_path == "/middleware-test" { ... }
+// print(url_path); // debug
+if url_path == "/middleware-test" { ... }
 ```
 
 #### Body
@@ -223,7 +223,7 @@ if is_def_var("body") {
     // matches on json value dealed with as map
     if body.middleware == "isHere" { ... }
     // alternatively, case matching is available. if guard may be combined with
-    switch (uri_path) {
+    switch (url_path) {
         "/middleware-test/dummy" if body.middleware == "isHere" => { ... },
         _ => ()
     }

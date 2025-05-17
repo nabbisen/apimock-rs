@@ -11,9 +11,9 @@ use hyper::{
 use hyper_util::rt::TokioIo;
 use tokio::net::TcpStream;
 
-// todo: rename dir "config" -> "default" or something ?
 const TEST_WORKDIR: &str = "examples/config/tests";
 const CONFIG_FILE_PATH: &str = "apimock.toml";
+pub const DYN_ROUTE_DIR: &str = "apimock-dyn-route";
 const MIDDLEWARE_FILE_PATH: &str = "apimock-middleware.rhai";
 
 use std::env;
@@ -61,16 +61,16 @@ fn dynamic_port() -> u16 {
 }
 
 /// get http response from mock server
-pub async fn http_response(uri_path: &str, body: Option<&str>, port: u16) -> Response<Incoming> {
-    let uri: Uri = Uri::builder()
+pub async fn http_response(url_path: &str, body: Option<&str>, port: u16) -> Response<Incoming> {
+    let url: Uri = Uri::builder()
         .scheme("http")
         .authority(format!("127.0.0.1:{}", port.to_string()))
-        .path_and_query(uri_path)
+        .path_and_query(url_path)
         .build()
         .unwrap();
 
-    let host = uri.host().expect("uri has no host");
-    let port = uri.port_u16().expect("some problem around port");
+    let host = url.host().expect("url has no host");
+    let port = url.port_u16().expect("some problem around port");
     let addr = format!("{}:{}", host, port);
     let stream = TcpStream::connect(addr)
         .await
@@ -84,9 +84,9 @@ pub async fn http_response(uri_path: &str, body: Option<&str>, port: u16) -> Res
         }
     });
 
-    let authority = uri.authority().unwrap().clone();
+    let authority = url.authority().unwrap().clone();
 
-    let path = uri.path();
+    let path = url.path();
     let body = if body.is_none() {
         Empty::new().boxed()
     } else {

@@ -40,11 +40,11 @@ impl Middleware {
     /// return string if middleware returns
     pub fn handle(
         &self,
-        request_uri_path: &str,
+        request_url_path: &str,
         request_body_json_value: Option<&Value>,
     ) -> Option<String> {
         let mut scope = Scope::new();
-        scope.push("uri_path", request_uri_path.to_owned());
+        scope.push("url_path", request_url_path.to_owned());
         if let Some(request_body_json_value) = request_body_json_value {
             scope.push(
                 "body",

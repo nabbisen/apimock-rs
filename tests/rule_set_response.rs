@@ -5,7 +5,7 @@ mod util;
 use util::{http_response, response_body_str, setup};
 
 #[tokio::test]
-async fn uri_root_as_empty() {
+async fn url_root_as_empty() {
     let port = setup().await;
     let response = http_response("", None, port).await;
 

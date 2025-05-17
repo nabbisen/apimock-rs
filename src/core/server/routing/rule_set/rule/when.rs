@@ -25,7 +25,7 @@ impl When {
     pub fn is_match(&self, request: &ParsedRequest, rule_idx: usize, rule_set_idx: usize) -> bool {
         if let Some(matcher_url_path_with_prefix) = self.url_path_with_prefix.as_ref() {
             if !url_path_is_match(
-                request.uri_path.as_str(),
+                request.url_path.as_str(),
                 matcher_url_path_with_prefix,
                 self.url_path_op.as_ref(),
             ) {

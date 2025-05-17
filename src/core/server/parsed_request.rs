@@ -6,37 +6,47 @@ use serde_json::Value;
 
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use super::util::canonicalize_uri_path;
+use super::util::normalize_url_path;
 use crate::core::config::log_config::verbose_config::VerboseConfig;
 
 pub struct ParsedRequest {
-    pub uri_path: String,
+    pub url_path: String,
     pub component_parts: Parts,
     pub body_json: Option<Value>,
 }
 
 impl ParsedRequest {
-    pub async fn from(request: hyper::Request<Incoming>) -> Self {
+    pub async fn from(request: hyper::Request<Incoming>) -> Result<Self, String> {
         let (component_parts, body) = request.into_parts();
-        let uri_path = canonicalize_uri_path(component_parts.uri.path());
 
-        let body_bytes = body
-            .boxed()
-            .collect()
-            .await
-            .expect("failed to collect request incoming body")
-            .to_bytes();
+        let url_path = normalize_url_path(component_parts.uri.path(), None);
+
+        let body_bytes = match body.boxed().collect().await {
+            Ok(x) => x.to_bytes(),
+            Err(err) => {
+                return Err(format!("failed to collect request incoming body: {}", err));
+            }
+        };
+
         let body_json: Option<Value> = if 0 < body_bytes.len() {
-            serde_json::from_slice(&body_bytes).expect("failed to get json value from request body")
+            match serde_json::from_slice(&body_bytes) {
+                Ok(x) => x,
+                Err(err) => {
+                    return Err(format!(
+                        "failed to get json value from request body: {}",
+                        err
+                    ))
+                }
+            }
         } else {
             None
         };
 
-        ParsedRequest {
-            uri_path,
+        Ok(ParsedRequest {
+            url_path,
             component_parts,
             body_json,
-        }
+        })
     }
 
     /// print out logs
@@ -50,10 +60,10 @@ impl ParsedRequest {
         let seconds = now % 60;
         let timestamp = format!("{:02}:{:02}:{:02}", hours, minutes, seconds);
 
-        // uri and timestamp (base)
+        // url and timestamp (base)
         let mut printed = format!(
             "<- {} (request got at {} UTC)",
-            style(self.uri_path.as_str()).yellow(),
+            style(self.url_path.as_str()).yellow(),
             timestamp
         );
 

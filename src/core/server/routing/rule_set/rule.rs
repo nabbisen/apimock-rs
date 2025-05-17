@@ -1,13 +1,13 @@
 use hyper::StatusCode;
 use respond::Respond;
 use serde::Deserialize;
+use util::url_path_with_prefix;
 use when::When;
-
-use crate::core::server::util::canonicalize_uri_path;
 
 use super::RuleSet;
 
 pub mod respond;
+mod util;
 pub mod when;
 
 type ConditionKey = String;
@@ -29,16 +29,10 @@ impl Rule {
 
         // - url_path_with_prefix
         if let Some(url_path) = ret.when.url_path.as_ref() {
-            let mut url_path = format!("/{}", url_path);
-
-            if let Some(prefix) = rule_set.prefix.as_ref() {
-                if let Some(url_path_prefix) = prefix.url_path_prefix.as_ref() {
-                    url_path = format!("{}{}", url_path_prefix, url_path);
-                }
-            }
-
-            let url_path_with_prefix = canonicalize_uri_path(url_path.as_str());
-            ret.when.url_path_with_prefix = Some(url_path_with_prefix);
+            ret.when.url_path_with_prefix = Some(url_path_with_prefix(
+                url_path.as_str(),
+                rule_set.prefix.as_ref(),
+            ));
         }
 
         // - status_code
