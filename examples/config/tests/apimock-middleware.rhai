@@ -5,9 +5,9 @@
 //! (ref) The Rhai Book: https://rhai.rs/book/language/statements.html
 
 // case `cargo run`:
-// let returned_json_file_path = "examples/config/full/apimock-data/middleware-test.json";
+// let returned_json_file_path = "examples/config/full/apimock-rule-set-data/middleware-test.json";
 // case `cargo test`:
-let returned_json_file_path = "apimock-data/middleware-test.json";
+let returned_json_file_path = "apimock-rule-set-data/middleware-test.json";
 
 // print(uri_path);
 if uri_path == "/middleware-test" {
