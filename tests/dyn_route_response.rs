@@ -2,7 +2,7 @@ use hyper::StatusCode;
 
 mod util;
 
-use util::core::{http_response, response_body_bytes, response_body_str, setup};
+use util::{http_response, response_body_bytes, response_body_str, setup};
 
 #[tokio::test]
 async fn dyn_data_dir_json_root_json_ext_none() {
