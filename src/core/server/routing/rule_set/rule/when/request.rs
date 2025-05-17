@@ -1,12 +1,14 @@
+use body_kind::BodyKind;
 use serde::Deserialize;
 
 use std::collections::HashMap;
 
 pub mod body_condition;
+pub mod body_kind;
 
 use crate::core::server::routing::rule_set::rule::ConditionKey;
 
-use super::{condition_statement::ConditionStatement, BodyKind};
+use super::condition_statement::ConditionStatement;
 use body_condition::BodyCondition;
 
 #[derive(Clone, Deserialize, Debug)]

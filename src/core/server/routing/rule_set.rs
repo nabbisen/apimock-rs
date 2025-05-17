@@ -1,5 +1,4 @@
 use default_respond::DefaultRespond;
-use hyper::StatusCode;
 use serde::Deserialize;
 
 use std::fs;
@@ -28,7 +27,7 @@ pub struct RuleSet {
 
 impl RuleSet {
     /// create instance
-    pub fn new(rule_set_file_path: &str) -> Self {
+    pub fn new(rule_set_file_path: &str, rule_set_idx: usize) -> Self {
         let toml_string = fs::read_to_string(rule_set_file_path).unwrap();
         let deserialized = toml::from_str::<Self>(&toml_string);
         let mut ret = match deserialized {
@@ -40,24 +39,7 @@ impl RuleSet {
             .rules
             .iter()
             .enumerate()
-            .map(|(rule_idx, rule)| {
-                if let Some(code) = rule.respond.code {
-                    let status_code = Some(
-                        StatusCode::from_u16(code).expect(
-                            format!(
-                                "failed to get status code from code {}\n(rule #{}, rule set {})",
-                                code, rule_idx, rule_set_file_path
-                            )
-                            .as_str(),
-                        ),
-                    );
-                    let mut ret = rule.to_owned();
-                    ret.respond.status_code = status_code;
-                    ret
-                } else {
-                    rule.to_owned()
-                }
-            })
+            .map(|(rule_idx, rule)| rule.compute_derived_fields(&ret, rule_idx, rule_set_idx))
             .collect();
 
         ret
@@ -104,15 +86,7 @@ pub async fn rule_sets_content(
 ) -> Option<Result<hyper::Response<BoxBody>, hyper::http::Error>> {
     for (rule_set_idx, rule_set) in rule_sets.iter().enumerate() {
         for (rule_idx, rule) in rule_set.rules.iter().enumerate() {
-            let url_path_prefix = if let Some(prefix) = rule_set.prefix.as_ref() {
-                prefix.url_path_prefix.as_ref()
-            } else {
-                None
-            };
-            let is_match = rule
-                .when
-                .is_match(request, url_path_prefix, rule_idx, rule_set_idx);
-
+            let is_match = rule.when.is_match(request, rule_idx, rule_set_idx);
             if is_match {
                 let dir_prefix = rule_set.dir_prefix();
 

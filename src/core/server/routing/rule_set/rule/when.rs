@@ -11,41 +11,22 @@ mod util;
 use crate::core::server::parsed_request::ParsedRequest;
 use request::Request;
 
-#[derive(Clone, Deserialize, PartialEq, Eq, Hash, Debug)]
-#[serde(rename_all = "snake_case")]
-pub enum BodyKind {
-    Json,
-}
-
-impl std::fmt::Display for BodyKind {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Json => write!(f, "JSON"),
-        }
-    }
-}
-
 #[derive(Clone, Deserialize, Debug)]
 pub struct When {
     pub url_path: Option<String>,
+    #[serde(skip)]
+    pub url_path_with_prefix: Option<String>,
     pub url_path_op: Option<RuleOp>,
     pub request: Option<Request>,
 }
 
 impl When {
     /// match with condition
-    pub fn is_match(
-        &self,
-        request: &ParsedRequest,
-        path_prefix: Option<&String>,
-        rule_idx: usize,
-        rule_set_idx: usize,
-    ) -> bool {
-        if let Some(matcher_url_path) = self.url_path.as_ref() {
+    pub fn is_match(&self, request: &ParsedRequest, rule_idx: usize, rule_set_idx: usize) -> bool {
+        if let Some(matcher_url_path_with_prefix) = self.url_path_with_prefix.as_ref() {
             if !url_path_is_match(
                 request.uri_path.as_str(),
-                matcher_url_path,
-                path_prefix,
+                matcher_url_path_with_prefix,
                 self.url_path_op.as_ref(),
             ) {
                 return false;

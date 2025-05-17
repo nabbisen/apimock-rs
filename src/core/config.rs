@@ -49,7 +49,10 @@ impl Config {
             .service
             .rule_sets_file_paths
             .iter()
-            .map(|x| RuleSet::new(x))
+            .enumerate()
+            .map(|(rule_set_idx, rule_set_file_path)| {
+                RuleSet::new(rule_set_file_path, rule_set_idx)
+            })
             .collect();
 
         if !config.validate() {
