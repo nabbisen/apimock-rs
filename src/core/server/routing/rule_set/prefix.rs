@@ -1,6 +1,7 @@
-use std::path::Path;
-
+use console::style;
 use serde::Deserialize;
+
+use std::path::Path;
 
 #[derive(Clone, Default, Deserialize, Debug)]
 pub struct Prefix {
@@ -38,7 +39,7 @@ impl std::fmt::Display for Prefix {
             let _ = writeln!(
                 f,
                 "[url_path_prefix] {}",
-                self.url_path_prefix.as_ref().unwrap()
+                style(self.url_path_prefix.as_ref().unwrap()).yellow()
             );
         }
 

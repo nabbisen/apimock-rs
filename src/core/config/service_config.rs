@@ -88,10 +88,10 @@ impl std::fmt::Display for ServiceConfig {
                 "@ rule sets strategy = {}",
                 self.strategy.clone().unwrap_or_default()
             );
+            let _ = writeln!(f, "");
         }
 
         for (idx, rule_set) in self.rule_sets.iter().enumerate() {
-            let _ = writeln!(f, "");
             let _ = writeln!(f, "@ rule_set #{}\n", idx + 1);
             let _ = write!(f, "{}", rule_set);
         }

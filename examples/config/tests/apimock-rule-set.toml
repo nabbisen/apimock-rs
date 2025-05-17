@@ -9,11 +9,11 @@ respond_dir = "apimock-rule-set-data"
 
 [[rules]]
 when = { url_path = "" }
-respond = { content = "home.json" }
+respond = { file_path = "home.json" }
 
 [[rules]]
 when = { url_path = "home" }
-respond = { content = "home.json" }
+respond = { file_path = "home.json" }
 
 [[rules]]
 [rules.when]
@@ -24,6 +24,5 @@ url_path_op = "equal"
 # [rules.when.request.body.json]
 # "a.b.c" = { op = "not_equal", value = "d" }
 [rules.respond]
-# type = "file"
-content = "api.json5"
+file_path = "api.json5"
 # delay_response_milliseconds = 1000

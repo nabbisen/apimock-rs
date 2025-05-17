@@ -9,8 +9,8 @@ respond_dir = "apimock-rule-set-data"
 
 [[rules]]
 when = { url_path = "error/401" }
-respond = { code = 401, response_type = "custom_code" }
+respond = { code = 401 }
 
 [[rules]]
 when = { url_path = "error/api-403" }
-respond = { code = 403, response_type = "custom_code" }
+respond = { code = 403 }

@@ -9,25 +9,19 @@ mod util;
 
 use crate::core::server::{
     response::{
-        error_response::internal_server_error_response, file_response::FileResponse,
-        status_code_response::status_code_response_with_message, text_response::text_response,
+        error_response::internal_server_error_response,
+        file_response::FileResponse,
+        status_code_response::{status_code_response, status_code_response_with_message},
+        text_response::text_response,
     },
     types::BoxBody,
     util::delay_response,
 };
 
 #[derive(Clone, Deserialize, Debug)]
-#[serde(rename_all = "snake_case")]
-pub enum ResponseType {
-    File,
-    Text,
-    CustomCode,
-}
-
-#[derive(Clone, Deserialize, Debug)]
 pub struct Respond {
-    pub response_type: Option<ResponseType>,
-    pub content: Option<String>,
+    pub file_path: Option<String>,
+    pub text: Option<String>,
     pub code: Option<u16>,
     #[serde(skip)]
     pub status_code: Option<StatusCode>,
@@ -45,74 +39,84 @@ impl Respond {
             delay_response(delay_response_milliseconds).await;
         }
 
-        match self.response_type {
-            Some(ResponseType::Text) => text_response(
-                self.content.clone().unwrap_or_default().as_str(),
-                None,
-                self.headers.as_ref(),
-            ),
-            Some(ResponseType::CustomCode) => {
-                if let Some(status_code) = self.status_code.as_ref() {
-                    status_code_response_with_message(
-                        status_code,
-                        self.content.clone().unwrap_or_default().as_str(),
-                    )
-                } else {
-                    internal_server_error_response("respond status code is missing")
-                }
-            }
-            Some(ResponseType::File) | None => {
-                let file_path = full_file_path(
-                    self.content.clone().unwrap_or_default().as_str(),
-                    dir_prefix,
+        if let Some(file_path) = self.file_path.as_ref() {
+            let full_file_path = full_file_path(file_path.as_str(), dir_prefix);
+            if full_file_path.is_none() {
+                log::error!(
+                    "{} (prefix = {}) is missing",
+                    self.file_path.clone().unwrap_or_default().as_str(),
+                    dir_prefix
                 );
-                if file_path.is_none() {
-                    log::error!(
-                        "{} (prefix = {}) is missing",
-                        self.content.clone().unwrap_or_default().as_str(),
-                        dir_prefix
-                    );
-                    return internal_server_error_response("failed to get response file");
-                }
-                FileResponse::new(file_path.unwrap().as_str(), self.headers.as_ref())
-                    .file_content_response()
+                return internal_server_error_response("failed to get response file");
             }
+            FileResponse::new(full_file_path.unwrap().as_str(), self.headers.as_ref())
+                .file_content_response()
+        } else if let Some(text) = self.text.as_ref() {
+            if let Some(status_code) = self.status_code.as_ref() {
+                status_code_response_with_message(status_code, text.as_str())
+            } else {
+                text_response(text.as_str(), None, self.headers.as_ref())
+            }
+        } else if let Some(status_code) = self.status_code.as_ref() {
+            status_code_response(status_code)
+        } else {
+            internal_server_error_response("invalid respond def")
         }
     }
 
     /// validate
     pub fn validate(&self, dir_prefix: &str, rule_idx: usize, rule_set_idx: usize) -> bool {
-        let validate = if let Some(content) = self.content.as_ref() {
-            content_validate(
-                content.as_str(),
-                self.response_type.as_ref(),
-                dir_prefix,
-                rule_idx,
-                rule_set_idx,
-            )
-        } else {
-            code_validate(self.status_code.as_ref(), rule_idx, rule_set_idx)
-        };
+        let all_missing_of_file_path_text_code =
+            self.file_path.is_none() && self.text.is_none() && self.code.is_none();
+        if all_missing_of_file_path_text_code {
+            log::error!(
+                "require at least either of file_path, text or code (rule #{} in rule set #{})",
+                rule_idx + 1,
+                rule_set_idx + 1
+            );
+            return false;
+        }
 
-        validate
+        let duplicate_file_path_text = self.file_path.is_some() && self.text.is_some();
+        if duplicate_file_path_text {
+            log::error!(
+                "cannot set at both file_path and text (rule #{} in rule set #{})",
+                rule_idx + 1,
+                rule_set_idx + 1
+            );
+            return false;
+        }
+
+        let file_path_with_code = self.file_path.is_some() && self.code.is_some();
+        if file_path_with_code {
+            log::error!(
+                "code only supports text. file_path is not (rule #{} in rule set #{})",
+                rule_idx + 1,
+                rule_set_idx + 1
+            );
+            return false;
+        }
+
+        if let Some(file_path) = self.file_path.as_ref() {
+            file_path_validate(file_path.as_str(), dir_prefix, rule_idx, rule_set_idx)
+        } else {
+            true
+        }
     }
 }
 
 impl std::fmt::Display for Respond {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let _ = write!(f, "  [respond] ");
-        let _ = match self.response_type {
-            Some(ResponseType::Text) => writeln!(f, "(text)"),
-            Some(ResponseType::CustomCode) => {
-                writeln!(f, "{} Statsu code", self.status_code.unwrap_or_default())
-            }
-            Some(ResponseType::File) | None => {
-                if let Some(content) = self.content.as_ref() {
-                    let _ = write!(f, "{}", style(content).green());
-                }
-                Ok(())
-            }
-        };
+        let _ = write!(f, "  [respond]");
+        if let Some(status_code) = self.status_code {
+            let _ = writeln!(f, " status code = {}", style(status_code).magenta());
+        }
+        if let Some(text) = self.text.as_ref() {
+            let _ = writeln!(f, " text = `{}`", text);
+        }
+        if let Some(file_path) = self.file_path.as_ref() {
+            let _ = writeln!(f, " file_path = `{}`", style(file_path).green());
+        }
         let _ = writeln!(f, "");
 
         Ok(())
@@ -120,40 +124,18 @@ impl std::fmt::Display for Respond {
 }
 
 /// validate on content with response type
-fn content_validate(
-    content: &str,
-    response_type: Option<&ResponseType>,
+fn file_path_validate(
+    file_path: &str,
     dir_prefix: &str,
     rule_idx: usize,
     rule_set_idx: usize,
 ) -> bool {
-    match response_type {
-        Some(ResponseType::Text) | Some(ResponseType::CustomCode) => true,
-        Some(ResponseType::File) | None => {
-            let ret = Path::new(dir_prefix).join(content).exists();
-            if !ret {
-                let p = if !dir_prefix.is_empty() {
-                    format!("{}/{}", dir_prefix, content)
-                } else {
-                    String::from(content)
-                };
-                log::error!(
-                    "`{}` does not exist (rule #{} in rule set #{})",
-                    p.as_str(),
-                    rule_idx + 1,
-                    rule_set_idx + 1
-                );
-            }
-            ret
-        }
-    }
-}
-
-fn code_validate(code: Option<&StatusCode>, rule_idx: usize, rule_set_idx: usize) -> bool {
-    let ret = code.is_some();
+    let p = Path::new(dir_prefix).join(file_path);
+    let ret = p.exists();
     if !ret {
         log::error!(
-            "status code is required (rule #{} in rule set #{})",
+            "`{}` does not exist (rule #{} in rule set #{})",
+            p.to_str().unwrap_or_default(),
             rule_idx + 1,
             rule_set_idx + 1
         );

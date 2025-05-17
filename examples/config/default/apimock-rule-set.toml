@@ -9,7 +9,7 @@
 
 [[rules]]
 when = { url_path = "/a/b/c" }
-respond = { content = "test/res.json" }
+respond = { file_path = "test/res.json" }
 
 [[rules]]
 [rules.when]
@@ -20,6 +20,5 @@ url_path_op = "equal"
 # [rules.when.request.body.json]
 # "a.b.c" = { op = "not_equal", value = "d" }
 [rules.respond]
-# type = "file"
-content = "test/return.json"
+file_path = "test/return.json"
 # delay_response_milliseconds = 1000

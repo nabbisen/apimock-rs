@@ -26,24 +26,6 @@ pub struct RuleSet {
     pub rules: Vec<Rule>,
 }
 
-impl std::fmt::Display for RuleSet {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        if self.prefix.is_some() {
-            let _ = write!(f, "{}", self.prefix.as_ref().unwrap());
-        }
-        if self.default.is_some() {
-            let _ = write!(f, "{}", self.default.as_ref().unwrap());
-        }
-        if self.guard.is_some() {
-            let _ = write!(f, "{}", self.guard.as_ref().unwrap());
-        }
-        for rule in self.rules.iter() {
-            let _ = write!(f, "{}", rule);
-        }
-        Ok(())
-    }
-}
-
 impl RuleSet {
     /// create instance
     pub fn new(rule_set_file_path: &str) -> Self {
@@ -93,6 +75,24 @@ impl RuleSet {
         } else {
             String::new()
         }
+    }
+}
+
+impl std::fmt::Display for RuleSet {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        if self.prefix.is_some() {
+            let _ = write!(f, "{}", self.prefix.as_ref().unwrap());
+        }
+        if self.default.is_some() {
+            let _ = write!(f, "{}", self.default.as_ref().unwrap());
+        }
+        if self.guard.is_some() {
+            let _ = write!(f, "{}", self.guard.as_ref().unwrap());
+        }
+        for rule in self.rules.iter() {
+            let _ = write!(f, "{}", rule);
+        }
+        Ok(())
     }
 }
 
