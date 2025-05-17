@@ -21,6 +21,7 @@ use crate::core::server::{
 #[derive(Clone, Deserialize, Debug)]
 pub struct Respond {
     pub file_path: Option<String>,
+    pub csv_records_key: Option<String>,
     pub text: Option<String>,
     pub code: Option<u16>,
     #[serde(skip)]
@@ -49,8 +50,12 @@ impl Respond {
                 );
                 return internal_server_error_response("failed to get response file");
             }
-            FileResponse::new(full_file_path.unwrap().as_str(), self.headers.as_ref())
-                .file_content_response()
+            FileResponse::new_with_csv_records_jsonpath(
+                full_file_path.unwrap().as_str(),
+                self.headers.as_ref(),
+                self.csv_records_key.clone(),
+            )
+            .file_content_response()
         } else if let Some(text) = self.text.as_ref() {
             if let Some(status_code) = self.status_code.as_ref() {
                 status_code_response_with_message(status_code, text.as_str())

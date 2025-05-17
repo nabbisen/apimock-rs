@@ -3,6 +3,7 @@ use hyper::{
     http::response::Builder,
     StatusCode,
 };
+use serde_json::{Map, Value};
 
 use std::collections::HashMap;
 
@@ -51,4 +52,20 @@ pub fn binary_content_builder(custom_headers: Option<&HashMap<String, Option<Str
     }
 
     builder
+}
+
+/// json value with jsonpath as key
+pub fn json_value_with_jsonpath_key(jsonpath_key: &str, value: Value) -> Value {
+    let mut keys: Vec<&str> = jsonpath_key.split('.').collect();
+    keys.reverse();
+
+    let mut ret = value;
+
+    for key in keys {
+        let mut map = Map::new();
+        map.insert(key.to_string(), ret);
+        ret = Value::Object(map);
+    }
+
+    ret
 }

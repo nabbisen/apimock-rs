@@ -1,6 +1,6 @@
 use http_body_util::{BodyExt, Full};
 use hyper::body::Bytes;
-use serde_json::{json, Map, Value};
+use serde_json::{Map, Value};
 
 use std::{collections::HashMap, path::Path};
 
@@ -9,11 +9,15 @@ use crate::core::server::{constant::CSV_RECORDS_DEFAULT_KEY, types::BoxBody};
 use super::{
     error_response::{bad_request_response, internal_server_error_response},
     text_response::text_response,
-    util::{binary_content_builder, json_content_builder, text_file_content_type},
+    util::{
+        binary_content_builder, json_content_builder, json_value_with_jsonpath_key,
+        text_file_content_type,
+    },
 };
 
 pub struct FileResponse {
     file_path: String,
+    csv_records_key: Option<String>,
     text_content: Option<String>,
     binary_content: Option<Vec<u8>>,
     custom_headers: Option<HashMap<String, Option<String>>>,
@@ -24,10 +28,22 @@ impl FileResponse {
     pub fn new(file_path: &str, custom_headers: Option<&HashMap<String, Option<String>>>) -> Self {
         FileResponse {
             file_path: file_path.to_owned(),
+            csv_records_key: None,
             text_content: None,
             binary_content: None,
             custom_headers: custom_headers.cloned(),
         }
+    }
+
+    /// create instance
+    pub fn new_with_csv_records_jsonpath(
+        file_path: &str,
+        custom_headers: Option<&HashMap<String, Option<String>>>,
+        csv_records_key: Option<String>,
+    ) -> Self {
+        let mut ret = FileResponse::new(file_path, custom_headers);
+        ret.csv_records_key = csv_records_key;
+        ret
     }
 
     /// response from file path
@@ -124,7 +140,13 @@ impl FileResponse {
 
         match rows {
             Ok(rows) => {
-                let json_value = json!({ CSV_RECORDS_DEFAULT_KEY: &rows });
+                let jsonpath_key = if let Some(csv_records_key) = self.csv_records_key.as_ref() {
+                    csv_records_key.as_str()
+                } else {
+                    CSV_RECORDS_DEFAULT_KEY
+                };
+                let json_value = json_value_with_jsonpath_key(jsonpath_key, Value::from(rows));
+
                 let body = serde_json::to_string(&json_value);
                 match body {
                     Ok(body) => json_content_builder(self.custom_headers.as_ref())
