@@ -1,11 +1,11 @@
 use hyper::StatusCode;
 
-use crate::util::{http_response, response_body_str, setup};
+use crate::util::{http_response_default, response_body_str, setup};
 
 #[tokio::test]
 async fn dyn_data_dir_html() {
     let port = setup().await;
-    let response = http_response("/html/index.html", None, port).await;
+    let response = http_response_default("/html/index.html", port).await;
 
     assert_eq!(response.status(), StatusCode::OK);
 

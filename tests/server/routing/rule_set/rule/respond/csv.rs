@@ -1,11 +1,11 @@
 use hyper::StatusCode;
 
-use crate::util::{http_response, response_body_str, setup};
+use crate::util::{http_response_default, response_body_str, setup};
 
 #[tokio::test]
 async fn dyn_data_dir_csv_jsonpath_key() {
     let port = setup().await;
-    let response = http_response("/csv/records/jsonpath", None, port).await;
+    let response = http_response_default("/csv/records/jsonpath", port).await;
 
     assert_eq!(response.status(), StatusCode::OK);
 

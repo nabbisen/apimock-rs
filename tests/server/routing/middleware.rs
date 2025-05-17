@@ -1,11 +1,11 @@
 use hyper::StatusCode;
 
-use crate::util::{http_response, response_body_str, setup};
+use crate::util::{http_response_body_condition, http_response_default, response_body_str, setup};
 
 #[tokio::test]
 async fn middleware_url_path_handled() {
     let port = setup().await;
-    let response = http_response("/middleware-test", None, port).await;
+    let response = http_response_default("/middleware-test", port).await;
 
     assert_eq!(response.status(), StatusCode::OK);
 
@@ -21,7 +21,7 @@ async fn middleware_url_path_handled() {
 #[tokio::test]
 async fn middleware_url_path_missed() {
     let port = setup().await;
-    let response = http_response("/middleware-test/dummy", None, port).await;
+    let response = http_response_default("/middleware-test/dummy", port).await;
 
     assert_eq!(response.status(), StatusCode::NOT_FOUND);
 
@@ -33,7 +33,7 @@ async fn middleware_url_path_missed() {
 async fn middleware_body_handled() {
     let port = setup().await;
     let body = "{\"middleware\": \"isHere\"}";
-    let response = http_response("/middleware-test/dummy", Some(body), port).await;
+    let response = http_response_body_condition("/middleware-test/dummy", port, body).await;
 
     assert_eq!(response.status(), StatusCode::OK);
 
@@ -50,7 +50,7 @@ async fn middleware_body_handled() {
 async fn middleware_body_missed() {
     let port = setup().await;
     let body = "{\"middleware\": \"isHere?\"}";
-    let response = http_response("/middleware-test/dummy", Some(body), port).await;
+    let response = http_response_body_condition("/middleware-test/dummy", port, body).await;
 
     assert_eq!(response.status(), StatusCode::NOT_FOUND);
 

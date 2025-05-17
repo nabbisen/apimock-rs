@@ -6,13 +6,14 @@
 use http_body_util::{BodyExt, Empty, Full};
 use hyper::{
     body::{Bytes, Incoming},
+    header::{HeaderName, HeaderValue},
     Request, Response, Uri,
 };
 use hyper_util::rt::TokioIo;
 use rand::Rng;
 use tokio::net::TcpStream;
 
-use std::env;
+use std::{collections::HashMap, env};
 
 use apimock::core::{app::App, args::EnvArgs};
 
@@ -60,7 +61,35 @@ fn dynamic_port() -> u16 {
 }
 
 /// get http response from mock server
-pub async fn http_response(url_path: &str, body: Option<&str>, port: u16) -> Response<Incoming> {
+pub async fn http_response_default(url_path: &str, port: u16) -> Response<Incoming> {
+    http_response(url_path, port, None, None).await
+}
+
+/// get http response from mock server
+pub async fn http_response_headers_condition(
+    url_path: &str,
+    port: u16,
+    headers: HashMap<HeaderName, HeaderValue>,
+) -> Response<Incoming> {
+    http_response(url_path, port, Some(headers), None).await
+}
+
+/// get http response from mock server
+pub async fn http_response_body_condition(
+    url_path: &str,
+    port: u16,
+    body: &str,
+) -> Response<Incoming> {
+    http_response(url_path, port, None, Some(body)).await
+}
+
+/// get http response from mock server
+async fn http_response(
+    url_path: &str,
+    port: u16,
+    headers: Option<HashMap<HeaderName, HeaderValue>>,
+    body: Option<&str>,
+) -> Response<Incoming> {
     let url: Uri = Uri::builder()
         .scheme("http")
         .authority(format!("127.0.0.1:{}", port.to_string()))
@@ -91,11 +120,15 @@ pub async fn http_response(url_path: &str, body: Option<&str>, port: u16) -> Res
     } else {
         Full::new(Bytes::from(body.unwrap().to_owned())).boxed()
     };
-    let req = Request::builder()
+    let mut builder = Request::builder()
         .uri(path)
-        .header(hyper::header::HOST, authority.as_str())
-        .body(body)
-        .unwrap();
+        .header(hyper::header::HOST, authority.as_str());
+    if let Some(headers) = headers {
+        for (header_key, header_value) in headers.iter() {
+            builder = builder.header(header_key, header_value);
+        }
+    }
+    let req = builder.body(body).expect("failed to create http request");
 
     sender.send_request(req).await.unwrap()
 }

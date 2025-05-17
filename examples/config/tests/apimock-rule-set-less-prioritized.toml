@@ -2,11 +2,6 @@
 url_path = "/api/v1/"
 respond_dir = "apimock-rule-set-data"
 
-# [default]
-# delay_response_milliseconds = 1000
-
-# [guard.request.headers]
-
 [[rules]]
 when = { url_path = "" }
 respond = { file_path = "api.json5" }

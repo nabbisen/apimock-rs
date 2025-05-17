@@ -22,8 +22,8 @@ pub fn text_response(
     if let Some(headers) = custom_headers {
         builder = headers
             .iter()
-            .fold(builder, |builder, (header_name, header_value)| {
-                builder.header(header_name, header_value.clone().unwrap_or_default())
+            .fold(builder, |builder, (header_key, header_value)| {
+                builder.header(header_key, header_value.clone().unwrap_or_default())
             });
     }
 

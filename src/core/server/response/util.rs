@@ -28,8 +28,8 @@ pub fn json_content_builder(custom_headers: Option<&HashMap<String, Option<Strin
     if let Some(headers) = custom_headers {
         builder = headers
             .iter()
-            .fold(builder, |builder, (header_name, header_value)| {
-                builder.header(header_name, header_value.clone().unwrap_or_default())
+            .fold(builder, |builder, (header_key, header_value)| {
+                builder.header(header_key, header_value.clone().unwrap_or_default())
             });
     }
 
@@ -46,8 +46,8 @@ pub fn binary_content_builder(custom_headers: Option<&HashMap<String, Option<Str
     if let Some(headers) = custom_headers {
         builder = headers
             .iter()
-            .fold(builder, |builder, (header_name, header_value)| {
-                builder.header(header_name, header_value.clone().unwrap_or_default())
+            .fold(builder, |builder, (header_key, header_value)| {
+                builder.header(header_key, header_value.clone().unwrap_or_default())
             });
     }
 

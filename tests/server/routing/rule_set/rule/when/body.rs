@@ -1,12 +1,12 @@
 use hyper::StatusCode;
 
-use crate::util::{http_response, response_body_str, setup};
+use crate::util::{http_response_body_condition, response_body_str, setup};
 
 #[tokio::test]
 async fn matcher_object_1() {
     let port = setup().await;
     let body = "{\"a\":{\"b\":{\"c\":\"1\"}}}";
-    let response = http_response("/body", Some(body), port).await;
+    let response = http_response_body_condition("/body", port, body).await;
 
     assert_eq!(response.status(), StatusCode::OK);
 
@@ -23,7 +23,7 @@ async fn matcher_object_1() {
 async fn matcher_object_2() {
     let port = setup().await;
     let body = "{\"a\":{\"b\":{\"c\":\"0\"}}}";
-    let response = http_response("/body", Some(body), port).await;
+    let response = http_response_body_condition("/body", port, body).await;
 
     assert_eq!(response.status(), StatusCode::OK);
 
@@ -40,7 +40,7 @@ async fn matcher_object_2() {
 async fn matcher_object_3() {
     let port = setup().await;
     let body = "{\"a\":{\"b\":{\"c\":\"1\", \"d\": 0}}}";
-    let response = http_response("/body", Some(body), port).await;
+    let response = http_response_body_condition("/body", port, body).await;
 
     assert_eq!(response.status(), StatusCode::OK);
 
@@ -57,7 +57,7 @@ async fn matcher_object_3() {
 async fn matcher_data_type_insensitiveness() {
     let port = setup().await;
     let body = "{\"a\":{\"b\":{\"c\":1}}}";
-    let response = http_response("/body", Some(body), port).await;
+    let response = http_response_body_condition("/body", port, body).await;
 
     assert_eq!(response.status(), StatusCode::OK);
 
@@ -74,7 +74,7 @@ async fn matcher_data_type_insensitiveness() {
 async fn matcher_object_missing() {
     let port = setup().await;
     let body = "{\"a\":{\"b\":{\"c\":\"2\"}}}";
-    let response = http_response("/body", Some(body), port).await;
+    let response = http_response_body_condition("/body", port, body).await;
 
     assert_eq!(response.status(), StatusCode::OK);
 
@@ -91,7 +91,7 @@ async fn matcher_object_missing() {
 async fn matcher_array() {
     let port = setup().await;
     let body = "{\"d\":[{},{},{\"e\":\"x=\"}]}";
-    let response = http_response("/body", Some(body), port).await;
+    let response = http_response_body_condition("/body", port, body).await;
 
     assert_eq!(response.status(), StatusCode::OK);
 
@@ -108,7 +108,7 @@ async fn matcher_array() {
 async fn matcher_array_missing() {
     let port = setup().await;
     let body = "{\"d\":[{\"e\":\"x=\"}]}";
-    let response = http_response("/body", Some(body), port).await;
+    let response = http_response_body_condition("/body", port, body).await;
 
     assert_eq!(response.status(), StatusCode::OK);
 
@@ -125,7 +125,7 @@ async fn matcher_array_missing() {
 async fn matcher_empty_value() {
     let port = setup().await;
     let body = "{\"f\":\"\"}";
-    let response = http_response("/body", Some(body), port).await;
+    let response = http_response_body_condition("/body", port, body).await;
 
     assert_eq!(response.status(), StatusCode::OK);
 

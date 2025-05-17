@@ -1,11 +1,11 @@
 use hyper::StatusCode;
 
-use crate::util::{http_response, response_body_str, setup};
+use crate::util::{http_response_default, response_body_str, setup};
 
 #[tokio::test]
 async fn url_root() {
     let port = setup().await;
-    let response = http_response("/", None, port).await;
+    let response = http_response_default("/", port).await;
 
     assert_eq!(response.status(), StatusCode::OK);
 
@@ -21,7 +21,7 @@ async fn url_root() {
 #[tokio::test]
 async fn url_root_as_empty() {
     let port = setup().await;
-    let response = http_response("", None, port).await;
+    let response = http_response_default("", port).await;
 
     assert_eq!(response.status(), StatusCode::OK);
 
@@ -37,7 +37,7 @@ async fn url_root_as_empty() {
 #[tokio::test]
 async fn api_root() {
     let port = setup().await;
-    let response = http_response("/url-path/", None, port).await;
+    let response = http_response_default("/url-path/", port).await;
 
     assert_eq!(response.status(), StatusCode::NOT_FOUND);
 }
@@ -45,7 +45,7 @@ async fn api_root() {
 #[tokio::test]
 async fn api_root_as_empty() {
     let port = setup().await;
-    let response = http_response("/url-path", None, port).await;
+    let response = http_response_default("/url-path", port).await;
 
     assert_eq!(response.status(), StatusCode::NOT_FOUND);
 }
@@ -53,7 +53,7 @@ async fn api_root_as_empty() {
 #[tokio::test]
 async fn api_home() {
     let port = setup().await;
-    let response = http_response("/url-path/home", None, port).await;
+    let response = http_response_default("/url-path/home", port).await;
 
     assert_eq!(response.status(), StatusCode::OK);
 
