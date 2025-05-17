@@ -1,0 +1,28 @@
+[prefix]
+# url_path = ""
+respond_dir = "apimock-rule-set-data"
+
+# [default]
+# delay_response_milliseconds = 1000
+
+# [guard.request.headers]
+
+[[rules]]
+when = { url_path = "" }
+respond = { file_path = "home.json" }
+
+[[rules]]
+when = { url_path = "home" }
+respond = { file_path = "home.json" }
+
+[[rules]]
+[rules.when]
+url_path = "/a/b"
+url_path_op = "equal"
+# [rules.when.request.headers]
+# user = { op = "equal", value = "user1" }
+# [rules.when.request.body.json]
+# "a.b.c" = { op = "not_equal", value = "d" }
+[rules.respond]
+file_path = "api.json5"
+# delay_response_milliseconds = 1000
