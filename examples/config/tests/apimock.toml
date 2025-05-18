@@ -12,6 +12,7 @@ rule_sets = [
     "apimock-rule-sets/server/routing/rule_set/rule/when/request/url_path.toml",
     "apimock-rule-sets/server/routing/rule_set/rule/when/request/headers.toml",
     "apimock-rule-sets/server/routing/rule_set/rule/when/request/body.toml",
+    "apimock-rule-sets/server/response/file_response.toml",
     "apimock-rule-sets/server/response/error_response.toml",
     "apimock-rule-sets/@extra-test-cases/less-prioritized.toml"
 ]
