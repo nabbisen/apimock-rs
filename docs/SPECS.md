@@ -14,7 +14,7 @@
 graph
     subgraph Startup workflow
         direction TB
-        A[config mode if apimock.toml exists] --> B[config-less mode if apimock-dyn-data dir exists]
+        A[config mode if apimock.toml exists] --> B[config-less mode if apimock-dyn-route dir exists]
         B --> C['always' mode : fixed response]
         C --> D[middleware validation if exists]
     end
@@ -27,7 +27,7 @@ graph
     subgraph Response workflow
         direction TB
         A[middleware if exists] --> B['always' is activated ?]
-        B --> C['data_dir_query_path' accessed ?]
+        B --> C[one of the commands is accessed ?]
         C --> D['path.urls' have the path ?]
         D --> E[matcher exists in jsonpath patterns ?]
         E --> F[exists in 'dyn_data_dir' ?]

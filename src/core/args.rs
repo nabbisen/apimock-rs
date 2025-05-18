@@ -8,11 +8,11 @@ use constant::*;
 #[derive(Clone)]
 pub struct EnvArgs {
     /// config .toml file path
-    pub config_filepath: Option<String>,
+    pub config_file_path: Option<String>,
     /// overwrites value in config file
     pub port: Option<u16>,
     /// middleware .rhai file path
-    pub middleware_filepath: Option<String>,
+    pub middleware_file_path: Option<String>,
 }
 
 impl EnvArgs {
@@ -20,8 +20,8 @@ impl EnvArgs {
     pub fn init_with_default() -> Self {
         let mut ret = EnvArgs::init();
 
-        ret.default_config_filepath();
-        ret.default_middleware_filepath();
+        ret.default_config_file_path();
+        ret.default_middleware_file_path();
 
         let init_with_default_files =
             args_option_value(INIT_WITH_DEFAULT_FILES_OPTION_NAMES.to_vec().as_ref()).is_some();
@@ -36,20 +36,20 @@ impl EnvArgs {
     }
 
     pub fn validate(&self) -> Result<(), ()> {
-        if let Some(config_filepath) = self.config_filepath.as_ref() {
-            if !Path::new(config_filepath.as_str()).exists() {
+        if let Some(config_file_path) = self.config_file_path.as_ref() {
+            if !Path::new(config_file_path.as_str()).exists() {
                 panic!(
                     "config file was specified but didn't exist: {}",
-                    config_filepath
+                    config_file_path
                 );
             }
         }
 
-        if let Some(middleware_filepath) = self.middleware_filepath.as_ref() {
-            if !Path::new(middleware_filepath.as_str()).exists() {
+        if let Some(middleware_file_path) = self.middleware_file_path.as_ref() {
+            if !Path::new(middleware_file_path.as_str()).exists() {
                 panic!(
                     "middleware file was specified but didn't exist: {}",
-                    middleware_filepath
+                    middleware_file_path
                 );
             }
         }
@@ -71,10 +71,10 @@ impl EnvArgs {
             };
 
         let ret = EnvArgs {
-            config_filepath: args_option_value(CONFIG_FILEPATH_OPTION_NAMES.to_vec().as_ref()),
+            config_file_path: args_option_value(CONFIG_FILE_PATH_OPTION_NAMES.to_vec().as_ref()),
             port,
-            middleware_filepath: args_option_value(
-                MIDDLEWARE_FILEPATH_OPTION_NAMES.to_vec().as_ref(),
+            middleware_file_path: args_option_value(
+                MIDDLEWARE_FILE_PATH_OPTION_NAMES.to_vec().as_ref(),
             ),
         };
 
@@ -82,18 +82,18 @@ impl EnvArgs {
     }
 
     fn init_with_default_files(&mut self) {
-        if self.config_filepath.is_none() {
-            let filepath = DEFAULT_CONFIG_FILEPATH;
+        if self.config_file_path.is_none() {
+            let file_path = DEFAULT_CONFIG_FILE_PATH;
             let content = include_str!("../../examples/config/default/apimock.toml");
-            let _ = fs::write(filepath, content);
-            self.config_filepath = Some(filepath.to_owned());
+            let _ = fs::write(file_path, content);
+            self.config_file_path = Some(file_path.to_owned());
         }
 
-        if self.middleware_filepath.is_none() {
-            let filepath = DEFAULT_MIDDLEWARE_FILEPATH;
+        if self.middleware_file_path.is_none() {
+            let file_path = DEFAULT_MIDDLEWARE_FILE_PATH;
             let content = include_str!("../../examples/config/default/apimock-middleware.rhai");
-            let _ = fs::write(filepath, content);
-            self.middleware_filepath = Some(filepath.to_owned());
+            let _ = fs::write(file_path, content);
+            self.middleware_file_path = Some(file_path.to_owned());
         }
     }
 
@@ -102,15 +102,15 @@ impl EnvArgs {
     /// - if specified in arguments, use it
     /// - else if default file exists, use it
     /// - else miss it
-    fn default_config_filepath(&mut self) {
-        if self.config_filepath.is_some() {
+    fn default_config_file_path(&mut self) {
+        if self.config_file_path.is_some() {
             return;
         }
-        if !Path::new(DEFAULT_CONFIG_FILEPATH).exists() {
+        if !Path::new(DEFAULT_CONFIG_FILE_PATH).exists() {
             return;
         }
 
-        self.config_filepath = Some(DEFAULT_CONFIG_FILEPATH.to_owned());
+        self.config_file_path = Some(DEFAULT_CONFIG_FILE_PATH.to_owned());
     }
 
     /// app middleware file path
@@ -118,15 +118,15 @@ impl EnvArgs {
     /// - if specified in arguments, use it
     /// - else if default file exists, use it
     /// - else miss it
-    fn default_middleware_filepath(&mut self) {
-        if self.middleware_filepath.is_some() {
+    fn default_middleware_file_path(&mut self) {
+        if self.middleware_file_path.is_some() {
             return;
         }
-        if !Path::new(DEFAULT_MIDDLEWARE_FILEPATH).exists() {
+        if !Path::new(DEFAULT_MIDDLEWARE_FILE_PATH).exists() {
             return;
         }
 
-        self.middleware_filepath = Some(DEFAULT_MIDDLEWARE_FILEPATH.to_owned());
+        self.middleware_file_path = Some(DEFAULT_MIDDLEWARE_FILE_PATH.to_owned());
     }
 }
 

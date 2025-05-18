@@ -10,14 +10,19 @@ address = "127.0.0.1"
 port = 3001
 
 [general]
-dyn_data_dir = "apimock-dyn-data"
+dyn_data_dir = "apimock-dyn-route"
 # always = "{ greetings: \"Hello, world.\" }"
 response_wait = 100
 # verbose = { header = true, body = true }
 
+[commands]
+# converted to url path like "/@{command}/{parameter-if-required}"
+# to deactivate, comment out line or set empty at value
+dump = "dump"
+url_data_dir = "url-data-dir"
+
 [url]
 data_dir = "apimock-data"
-data_dir_query_path = "@@"
 path_prefix = "api/v1"
 
 [url.headers]
@@ -79,6 +84,16 @@ Specify in milliseconds. If specified, server waits for the time before returnin
 
 Activates verbose log at each request which server gets.
 
+#### `commands.dump`
+
+Access to http://(`listener.ip_address`):(`listener.port`)/@(`commands.dump`) to dump config content. 
+
+#### `commands.url_data_dir`
+
+Access to http://(`listener.ip_address`):(`listener.port`)/@(`commands.url_data_dir`) to get the current value. 
+
+Response data directory can be switched manually via HTTP request. Access to http://(`listener.ip_address`):(`listener.port`)/@(`commands.url_data_dir`)/some/path to change it.
+
 **Default**: header = false, body = false
 
 #### `url.data_dir`
@@ -86,10 +101,6 @@ Activates verbose log at each request which server gets.
 Data directory used as where to look up files when HTTP response is built.
 
 **Default**: executable directory
-
-#### `url.data_dir_query_path`
-
-Data directory can be switched manually via HTTP request. Access to http://127.0.0.1/(`url.data_dir_query_path`) to get the current value. Access to http://127.0.0.1/(`url.data_dir_query_path`)/some/path to change it.
 
 **Default**: "@@"
 
@@ -203,16 +214,16 @@ When passed, initialize app files.
 
 ### Pre-defined variables available in `.rhai`
 
-- `uri_path`: Request URI path.
+- `url_path`: Request URL path.
 - `body`: Request Body JSON value defined only when exists.
 
 ### Request routing
 
-#### URI path
+#### URL path
 
 ```js
-// print(uri_path); // debug
-if uri_path == "/middleware-test" { ... }
+// print(url_path); // debug
+if url_path == "/middleware-test" { ... }
 ```
 
 #### Body
@@ -223,7 +234,7 @@ if is_def_var("body") {
     // matches on json value dealed with as map
     if body.middleware == "isHere" { ... }
     // alternatively, case matching is available. if guard may be combined with
-    switch (uri_path) {
+    switch (url_path) {
         "/middleware-test/dummy" if body.middleware == "isHere" => { ... },
         _ => ()
     }

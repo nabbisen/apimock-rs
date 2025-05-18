@@ -1,0 +1,19 @@
+[prefix]
+url_path = "file-response"
+respond_dir = "apimock-rule-set-data/server/response/file_response"
+
+[[rules]]
+when.request.url_path = "json-ext-w-or-wo"
+respond = { file_path = "json-ext-w-or-wo.json" }
+
+[[rules]]
+when.request.url_path = "json5-ext-w-or-wo"
+respond = { file_path = "json5-ext-w-or-wo.json5" }
+
+[[rules]]
+when.request.url_path = "csv-ext-w-or-wo"
+respond = { file_path = "csv-ext-w-or-wo.csv" }
+
+[[rules]]
+when.request.url_path = "txt-ext-w-or-wo"
+respond = { file_path = "txt-ext-w-or-wo.txt" }

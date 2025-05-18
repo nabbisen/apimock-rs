@@ -1,4 +1,4 @@
-# apimock-rs
+# API mock (apimock-rs)
 
 [![crates.io](https://img.shields.io/crates/v/apimock?label=latest)](https://crates.io/crates/apimock)
 [![Documentation](https://docs.rs/apimock/badge.svg?version=latest)](https://docs.rs/apimock)
@@ -29,7 +29,7 @@ Server started to listen:
 
 ![server responds](docs/.assets/demo-02.png)
 
-Middleware is available as `rhai` script:
+Middleware is available as rhai script:
 
 ![server responds](docs/.assets/demo-03.png)
 
@@ -58,8 +58,8 @@ At startup, [`--init`](docs/CONFIGURE.md#--init) option is available to gerenate
 #### Customization
 
 - Able to customize by modifying [config file](docs/CONFIGURE.md) (`./apimock.toml` by default) and restarting app.
-- [Dynamic routing directory](docs/CONFIGURE.md#generaldyn_data_dir) is also available (`./apimock-dyn-data/` by default) even without config file. App returns response by associating request URL path with relative file path under it.
-- When app runs without both `./apimock.toml` and `./apimock-dyn-data/` directory, [`always`](./CONFIGURE.md#configuration) option is automatically activated to return fixed response.
+- [Dynamic routing directory](docs/CONFIGURE.md#generaldyn_data_dir) is also available (`./apimock-dyn-route/` by default) even without config file. App returns response by associating request URL path with relative file path under it.
+- When app runs without both `./apimock.toml` and `./apimock-dyn-route/` directory, [`always`](./CONFIGURE.md#configuration) option is automatically activated to return fixed response.
 
 ### `cargo` install
 
