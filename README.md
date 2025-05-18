@@ -1,4 +1,4 @@
-# apimock-rs
+# API mock (apimock-rs)
 
 [![crates.io](https://img.shields.io/crates/v/apimock?label=latest)](https://crates.io/crates/apimock)
 [![Documentation](https://docs.rs/apimock/badge.svg?version=latest)](https://docs.rs/apimock)
@@ -29,7 +29,7 @@ Server started to listen:
 
 ![server responds](docs/.assets/demo-02.png)
 
-Middleware is available as `rhai` script:
+Middleware is available as rhai script:
 
 ![server responds](docs/.assets/demo-03.png)
 
