@@ -4,6 +4,12 @@ respond_dir = "apimock-rule-set-data"
 
 [[rules]]
 [rules.when.request.headers]
+user = { value = "user1" }
+[rules.respond]
+file_path = "home.json"
+
+[[rules]]
+[rules.when.request.headers]
 authorization = { value = "some-hash", op = "contains" }
 [rules.respond]
 file_path = "home.json"
