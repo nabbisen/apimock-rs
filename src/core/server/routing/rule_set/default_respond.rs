@@ -17,7 +17,7 @@ impl std::fmt::Display for DefaultRespond {
         if self.delay_response_milliseconds.is_some() {
             let _ = write!(
                 f,
-                "[[ delay_response_milliseconds ]] {}",
+                "[delay_response_milliseconds] {}",
                 self.delay_response_milliseconds.as_ref().unwrap()
             );
         }

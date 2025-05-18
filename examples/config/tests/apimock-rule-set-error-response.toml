@@ -3,9 +3,9 @@ url_path = "/api/v1/"
 respond_dir = "apimock-rule-set-data"
 
 [[rules]]
-when = { url_path = "error/401" }
+when.request.url_path = "error/401"
 respond = { code = 401 }
 
 [[rules]]
-when = { url_path = "error/api-403" }
+when.request.url_path = "error/api-403"
 respond = { code = 403 }

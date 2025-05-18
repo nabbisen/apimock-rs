@@ -1,3 +1,4 @@
+use console::style;
 use serde::Deserialize;
 use strategy::Strategy;
 use util::canonicalized_fallback_respond_dir;
@@ -10,7 +11,9 @@ mod util;
 use super::constant::{
     PRINT_DELIMITER, SERVICE_DEFAULT_FALLBACK_RESPOND_DIR, SERVICE_DEFAULT_RULE_SET_FILE_PATH,
 };
-use crate::core::server::routing::rule_set::RuleSet;
+use crate::core::server::{
+    parsed_request::ParsedRequest, routing::rule_set::RuleSet, types::BoxBody,
+};
 
 /// verbose logs
 #[derive(Clone, Deserialize)]
@@ -26,6 +29,32 @@ pub struct ServiceConfig {
 }
 
 impl ServiceConfig {
+    /// handle on `rule_sets`
+    pub async fn matched_content(
+        &self,
+        request: &ParsedRequest,
+    ) -> Option<Result<hyper::Response<BoxBody>, hyper::http::Error>> {
+        for (rule_set_idx, rule_set) in self.rule_sets.iter().enumerate() {
+            for (rule_idx, rule) in rule_set.rules.iter().enumerate() {
+                let is_match = rule.when.is_match(request, rule_idx, rule_set_idx);
+                if is_match {
+                    let dir_prefix = rule_set.dir_prefix();
+
+                    let response = rule.respond.response(dir_prefix.as_str()).await;
+
+                    // todo : last match in the future ?
+                    match self.strategy {
+                        Some(Strategy::FirstMatch) | None => {
+                            return Some(response);
+                        }
+                    }
+                }
+            }
+        }
+
+        None
+    }
+
     pub fn validate(&self) -> bool {
         let rule_sets_validate =
             self.rule_sets
@@ -44,7 +73,7 @@ impl ServiceConfig {
                     let dir_prefix = rule_set.dir_prefix();
                     let rules_validate =
                         rule_set.rules.iter().enumerate().all(|(rule_idx, rule)| {
-                            rule.when.validate()
+                            rule.when.validate(rule_idx, rule_set_idx)
                                 && rule.respond.validate(
                                     dir_prefix.as_str(),
                                     rule_idx,
@@ -85,15 +114,20 @@ impl std::fmt::Display for ServiceConfig {
         if has_rule_sets {
             let _ = writeln!(
                 f,
-                "@ rule sets strategy = {}",
+                "[rule_sets.strategy] {}",
                 self.strategy.clone().unwrap_or_default()
             );
             let _ = writeln!(f, "");
         }
 
         for (idx, rule_set) in self.rule_sets.iter().enumerate() {
-            let _ = writeln!(f, "@ rule_set #{}\n", idx + 1);
-            let _ = write!(f, "{}", rule_set);
+            let _ = writeln!(
+                f,
+                "@ rule_set #{} ({})\n",
+                idx + 1,
+                style(rule_set.file_path.as_str()).green()
+            );
+            let _ = write!(f, "{}\n", rule_set);
         }
 
         if has_rule_sets {

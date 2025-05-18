@@ -6,14 +6,14 @@
 use http_body_util::{BodyExt, Empty, Full};
 use hyper::{
     body::{Bytes, Incoming},
-    header::{HeaderName, HeaderValue},
+    header::{HeaderMap, HeaderValue},
     Request, Response, Uri,
 };
 use hyper_util::rt::TokioIo;
 use rand::Rng;
 use tokio::net::TcpStream;
 
-use std::{collections::HashMap, env};
+use std::env;
 
 use apimock::core::{app::App, args::EnvArgs};
 
@@ -69,7 +69,7 @@ pub async fn http_response_default(url_path: &str, port: u16) -> Response<Incomi
 pub async fn http_response_headers_condition(
     url_path: &str,
     port: u16,
-    headers: HashMap<HeaderName, HeaderValue>,
+    headers: &HeaderMap<HeaderValue>,
 ) -> Response<Incoming> {
     http_response(url_path, port, Some(headers), None).await
 }
@@ -87,7 +87,7 @@ pub async fn http_response_body_condition(
 async fn http_response(
     url_path: &str,
     port: u16,
-    headers: Option<HashMap<HeaderName, HeaderValue>>,
+    headers: Option<&HeaderMap<HeaderValue>>,
     body: Option<&str>,
 ) -> Response<Incoming> {
     let url: Uri = Uri::builder()

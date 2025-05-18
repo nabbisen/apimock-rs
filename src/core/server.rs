@@ -5,21 +5,20 @@ use hyper_util::{
     server::conn::auto::Builder,
 };
 use response::{error_response::internal_server_error_response, file_response::FileResponse};
-use routing::{dyn_route::dyn_route_content, rule_set::rule_sets_content};
+use routing::dyn_route::dyn_route_content;
 use tokio::net::TcpListener;
 use tokio::sync::Mutex;
 
 use std::net::{SocketAddr, ToSocketAddrs};
 use std::sync::Arc;
 
-mod constant;
+pub mod constant;
 pub mod middleware;
-mod parsed_request;
+pub mod parsed_request;
 mod response;
 pub mod routing;
 mod routing_analysis;
-mod types;
-mod util;
+pub mod types;
 
 use crate::core::app::app_state::AppState;
 use crate::core::app::constant::APP_NAME;
@@ -149,13 +148,7 @@ pub async fn service(
         }
     }
 
-    match rule_sets_content(
-        &request,
-        &config.service.rule_sets,
-        config.service.strategy.as_ref(),
-    )
-    .await
-    {
+    match config.service.matched_content(&request).await {
         Some(x) => return x,
         None => (),
     }

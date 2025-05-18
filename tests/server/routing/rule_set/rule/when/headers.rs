@@ -1,8 +1,6 @@
-use std::collections::HashMap;
-
 use hyper::{
     http::header::{HeaderName, HeaderValue},
-    StatusCode,
+    HeaderMap, StatusCode,
 };
 
 use crate::util::{http_response_headers_condition, response_body_str, setup};
@@ -10,11 +8,11 @@ use crate::util::{http_response_headers_condition, response_body_str, setup};
 #[tokio::test]
 async fn headers_key_match() {
     let port = setup().await;
-    let headers: HashMap<HeaderName, HeaderValue> = [("user", "user1")]
+    let headers: HeaderMap<HeaderValue> = [("user", "user1")]
         .iter()
         .map(|(k, v)| (HeaderName::from_static(k), HeaderValue::from_static(v)))
         .collect();
-    let response = http_response_headers_condition("/headers", port, headers).await;
+    let response = http_response_headers_condition("/headers", port, &headers).await;
 
     assert_eq!(response.status(), StatusCode::OK);
 
@@ -30,11 +28,11 @@ async fn headers_key_match() {
 #[tokio::test]
 async fn headers_key_not_match() {
     let port = setup().await;
-    let headers: HashMap<HeaderName, HeaderValue> = [("user", "user2")]
+    let headers: HeaderMap<HeaderValue> = [("user", "user2")]
         .iter()
         .map(|(k, v)| (HeaderName::from_static(k), HeaderValue::from_static(v)))
         .collect();
-    let response = http_response_headers_condition("/headers", port, headers).await;
+    let response = http_response_headers_condition("/headers", port, &headers).await;
 
     assert_eq!(response.status(), StatusCode::NOT_FOUND);
 }

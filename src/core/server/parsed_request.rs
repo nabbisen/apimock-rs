@@ -6,8 +6,9 @@ use serde_json::Value;
 
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use super::util::normalize_url_path;
-use crate::core::config::log_config::verbose_config::VerboseConfig;
+use crate::core::{
+    config::log_config::verbose_config::VerboseConfig, util::http::normalize_url_path,
+};
 
 #[derive(Debug)]
 pub struct ParsedRequest {

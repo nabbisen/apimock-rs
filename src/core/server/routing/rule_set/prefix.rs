@@ -39,7 +39,7 @@ impl std::fmt::Display for Prefix {
             let _ = writeln!(
                 f,
                 "[url_path_prefix] {}",
-                style(self.url_path_prefix.as_ref().unwrap()).yellow()
+                style(self.url_path_prefix.as_ref().unwrap()).magenta()
             );
         }
 
@@ -47,7 +47,7 @@ impl std::fmt::Display for Prefix {
             let _ = writeln!(
                 f,
                 "[respond_dir_prefix] {}",
-                self.respond_dir_prefix.as_ref().unwrap()
+                style(self.respond_dir_prefix.clone().unwrap_or_default().as_str()).magenta()
             );
         }
 

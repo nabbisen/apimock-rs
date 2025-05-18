@@ -1,4 +1,3 @@
-use console::style;
 use hyper::StatusCode;
 use serde::Deserialize;
 use util::full_file_path;
@@ -7,15 +6,17 @@ use std::{collections::HashMap, path::Path};
 
 mod util;
 
-use crate::core::server::{
-    response::{
-        error_response::internal_server_error_response,
-        file_response::FileResponse,
-        status_code_response::{status_code_response, status_code_response_with_message},
-        text_response::text_response,
+use crate::core::{
+    server::{
+        response::{
+            error_response::internal_server_error_response,
+            file_response::FileResponse,
+            status_code_response::{status_code_response, status_code_response_with_message},
+            text_response::text_response,
+        },
+        types::BoxBody,
     },
-    types::BoxBody,
-    util::delay_response,
+    util::http::delay_response,
 };
 
 #[derive(Clone, Deserialize, Debug)]
@@ -112,17 +113,15 @@ impl Respond {
 
 impl std::fmt::Display for Respond {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let _ = write!(f, "  [respond]");
         if let Some(status_code) = self.status_code {
-            let _ = writeln!(f, " status code = {}", style(status_code).magenta());
+            let _ = writeln!(f, "status_code = {} ", status_code);
         }
         if let Some(text) = self.text.as_ref() {
-            let _ = writeln!(f, " text = `{}`", text);
+            let _ = writeln!(f, "text = `{}` ", text);
         }
         if let Some(file_path) = self.file_path.as_ref() {
-            let _ = writeln!(f, " file_path = `{}`", style(file_path).green());
+            let _ = writeln!(f, "file_path = `{}` ", file_path);
         }
-        let _ = writeln!(f, "");
 
         Ok(())
     }
