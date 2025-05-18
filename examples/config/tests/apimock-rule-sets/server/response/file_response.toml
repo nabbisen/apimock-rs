@@ -1,0 +1,12 @@
+[prefix]
+url_path = "file-reponse"
+respond_dir = "apimock-rule-set-data/server/response/file_response"
+
+# todo
+[[rules]]
+when.request.url_path = "error/401"
+respond = { code = 401 }
+
+[[rules]]
+when.request.url_path = "error/api-403"
+respond = { code = 403 }

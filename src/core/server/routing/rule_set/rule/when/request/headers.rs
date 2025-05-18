@@ -19,19 +19,19 @@ impl Headers {
         rule_idx: usize,
         rule_set_idx: usize,
     ) -> bool {
-        if self
-            .0
+        self.0
             .iter()
-            .any(|(matcher_header_key, matcher_header_value)| {
-                let sent_request_header_value = sent_request_headers.get(matcher_header_key);
-                if sent_request_header_value.is_none() {
-                    return true;
-                }
-                let sent_request_header_value = match sent_request_header_value.unwrap().to_str() {
+            .all(|(matcher_header_key, matcher_header_value)| {
+                let sent_request_header_value = match sent_request_headers.get(matcher_header_key) {
+                    Some(x) => x,
+                    None => return false,
+                };
+
+                let sent_request_header_value = match sent_request_header_value.to_str() {
                     Ok(x) => x,
                     Err(err) => {
                         log::error!(
-                            "failed to get value from {} (rule #{} in rule set #{}) ({})",
+                            "failed to get request header value by key `{}` (rule #{} in rule set #{}) ({})",
                             matcher_header_key,
                             rule_idx + 1,
                             rule_set_idx + 1,
@@ -40,13 +40,14 @@ impl Headers {
                         return true;
                     }
                 };
-                let op = matcher_header_value.op.clone().unwrap_or_default();
-                !op.is_match(sent_request_header_value, &matcher_header_value.value)
+
+                let ret = matcher_header_value
+                    .op
+                    .clone()
+                    .unwrap_or_default()
+                    .is_match(sent_request_header_value, &matcher_header_value.value);
+                ret
             })
-        {
-            return false;
-        }
-        true
     }
 
     /// validate

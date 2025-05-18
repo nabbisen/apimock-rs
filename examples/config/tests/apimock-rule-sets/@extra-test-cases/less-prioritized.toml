@@ -1,7 +1,6 @@
 [prefix]
-url_path = "/api/v1/"
 respond_dir = "apimock-rule-set-data"
 
 [[rules]]
-when.request.url_path = ""
+when.request.url_path = "/api/v1/"
 respond = { file_path = "api.json5" }

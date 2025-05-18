@@ -1,0 +1,40 @@
+[prefix]
+url_path = "body"
+respond_dir = "apimock-rule-set-data/server/routing/rule_set/rule/when/request"
+
+[[rules]]
+[rules.when.request.body.json]
+"a.b.c.g.1" = { value = "2" }
+[rules.respond]
+file_path = "response6.json5"
+
+[[rules]]
+[rules.when.request.body.json]
+"a.b.c.f.0" = { value = "array" }
+[rules.respond]
+file_path = "response5.json"
+
+[[rules]]
+[rules.when.request.body.json]
+"a.b.e" = { value = "" }
+[rules.respond]
+file_path = "response4.json5"
+
+[[rules]]
+[rules.when.request.body.json]
+"a.b.c" = { value = "1" }
+"a.b.d" = { value = "0" }
+[rules.respond]
+file_path = "response3.json"
+
+[[rules]]
+[rules.when.request.body.json]
+"a.b.c" = { value = "1" }
+[rules.respond]
+file_path = "response2.json5"
+
+[[rules]]
+[rules.when.request.body.json]
+"a" = { value = "1" }
+[rules.respond]
+file_path = "response1.json"

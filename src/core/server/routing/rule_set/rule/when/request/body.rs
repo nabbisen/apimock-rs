@@ -1,6 +1,6 @@
 use body_kind::BodyKind;
-use hyper::header::CONTENT_TYPE;
 use serde::Deserialize;
+use serde_json::Value;
 
 use std::collections::HashMap;
 
@@ -11,7 +11,7 @@ use crate::core::{
         parsed_request::ParsedRequest,
         routing::rule_set::rule::{when::condition_statement::ConditionStatement, ConditionKey},
     },
-    util::{http::content_type_is_application_json, json::json_value_by_jsonpath},
+    util::json::json_value_by_jsonpath,
 };
 
 #[derive(Clone, Debug, Deserialize)]
@@ -20,69 +20,42 @@ pub struct Body(pub HashMap<BodyKind, HashMap<ConditionKey, ConditionStatement>>
 
 impl Body {
     /// check if `body` in `when` matches
-    pub fn is_match(
-        &self,
-        sent_request: &ParsedRequest,
-        rule_idx: usize,
-        rule_set_idx: usize,
-    ) -> bool {
-        let request_content_type = match sent_request.component_parts.headers.get(CONTENT_TYPE) {
-            Some(x) => Ok(x),
-            None => Err(()),
-        };
-        if request_content_type.is_err() {
-            log::error!(
-                "failed to get content-type of request (rule #{} in rule set #{})",
-                rule_idx + 1,
-                rule_set_idx + 1
-            );
-            return false;
-        }
-        let request_content_type = request_content_type.unwrap();
-
-        if !content_type_is_application_json(request_content_type) {
-            return false;
-        }
-
-        let request_body_json = sent_request.body_json.clone();
-        if request_body_json.is_none() {
-            return false;
-        }
-        let request_body_json = request_body_json.unwrap();
-
+    pub fn is_match(&self, sent_request: &ParsedRequest) -> bool {
         // todo: support other types than json (such as form value) in the future
+        let request_body_json = match sent_request.body_json.as_ref() {
+            Some(x) => x,
+            None => return false,
+        };
+
         let matcher_body_json_condition = match self.0.get(&BodyKind::Json) {
             Some(x) if 0 < x.len() => x,
             _ => return false,
         };
 
-        if matcher_body_json_condition.iter().any(
+        let ret = matcher_body_json_condition.iter().all(
             |(matcher_json_condition_key, matcher_json_condition_statement)| {
                 let request_body_json_value =
-                    json_value_by_jsonpath(&request_body_json, matcher_json_condition_key);
+                    match json_value_by_jsonpath(request_body_json, matcher_json_condition_key) {
+                        Some(x) => match x {
+                            Value::String(s) => s.to_owned(),
+                            _ => x.to_string(),
+                        },
+                        None => return false,
+                    };
 
-                if request_body_json_value.is_none() {
-                    return false;
-                }
-
-                let request_body_json_value = request_body_json_value.unwrap();
-                match request_body_json_value.as_str() {
-                    Some(request_body_json_value) => matcher_json_condition_statement
-                        .op
-                        .clone()
-                        .unwrap_or_default()
-                        .is_match(
-                            request_body_json_value,
-                            &matcher_json_condition_statement.value,
-                        ),
-                    None => false,
-                }
+                let ret = matcher_json_condition_statement
+                    .op
+                    .clone()
+                    .unwrap_or_default()
+                    .is_match(
+                        request_body_json_value.as_str(),
+                        &matcher_json_condition_statement.value,
+                    );
+                ret
             },
-        ) {
-            return true;
-        }
+        );
 
-        false
+        ret
     }
 
     /// validate

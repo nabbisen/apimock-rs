@@ -12,7 +12,7 @@ when.request.url_path = ""
 respond = { file_path = "home.json" }
 
 [[rules]]
-when.request.url_path = { value = "/api/v1/", op = "equal" }
+when.request.url_path = "/api/v1/"
 respond = { file_path = "home.json" }
 
 [[rules]]

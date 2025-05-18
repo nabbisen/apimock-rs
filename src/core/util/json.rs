@@ -42,11 +42,12 @@ pub fn is_equivalent_json_file(request_path: &Path, entry_path: &Path) -> bool {
 
 /// get json value by jsonpath key
 pub fn json_value_by_jsonpath<'a>(value: &'a Value, jsonpath: &str) -> Option<&'a Value> {
-    jsonpath.split('.').fold(Some(value), |current, key| {
-        if let Some(current) = current {
-            current.get(key)
-        } else {
-            None
-        }
-    })
+    let ret = jsonpath
+        .split('.')
+        .fold(Some(value), |current, key| match current {
+            Some(Value::Object(map)) => map.get(key),
+            Some(Value::Array(arr)) => key.parse::<usize>().ok().and_then(|i| arr.get(i)),
+            _ => None,
+        });
+    ret
 }

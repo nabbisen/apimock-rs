@@ -1,19 +1,30 @@
-use hyper::header::HeaderValue;
+use hyper::{
+    header::{HeaderValue, CONTENT_TYPE},
+    HeaderMap,
+};
 use tokio::time;
 
 use std::time::Duration;
 
 /// check if content-type is application/json
 /// supporting case when "application/json; charset=utf-8"
-pub fn content_type_is_application_json(content_type: &HeaderValue) -> bool {
-    if let Ok(content_type) = content_type.to_str() {
+pub fn content_type_is_application_json(headers: &HeaderMap<HeaderValue>) -> Option<bool> {
+    let content_type = match headers.get(CONTENT_TYPE) {
+        Some(x) => x,
+        None => {
+            return None;
+        }
+    };
+
+    let ret = if let Ok(content_type) = content_type.to_str() {
         content_type
             .trim_start()
             .to_ascii_lowercase()
             .starts_with("application/json")
     } else {
         false
-    }
+    };
+    Some(ret)
 }
 
 /// normalize url path

@@ -29,29 +29,24 @@ impl Request {
         rule_idx: usize,
         rule_set_idx: usize,
     ) -> bool {
-        if let Some(matcher_url_path) = self.url_path.as_ref() {
-            if !matcher_url_path.is_match(sent_request.url_path.as_str()) {
-                return false;
-            }
-        }
+        let url_path_is_match = self.url_path.is_none()
+            || self
+                .url_path
+                .as_ref()
+                .unwrap()
+                .is_match(sent_request.url_path.as_str());
 
-        if let Some(matcher_headers) = self.headers.as_ref() {
-            if !matcher_headers.is_match(
+        let headers_is_match = self.headers.is_none()
+            || self.headers.as_ref().unwrap().is_match(
                 &sent_request.component_parts.headers,
                 rule_idx,
                 rule_set_idx,
-            ) {
-                return false;
-            }
-        }
+            );
 
-        if let Some(matcher_body) = self.body.as_ref() {
-            if !matcher_body.is_match(sent_request, rule_idx, rule_set_idx) {
-                return false;
-            }
-        }
+        let body_is_match =
+            self.body.is_none() || self.body.as_ref().unwrap().is_match(&sent_request);
 
-        true
+        url_path_is_match && headers_is_match && body_is_match
     }
 
     /// validate
