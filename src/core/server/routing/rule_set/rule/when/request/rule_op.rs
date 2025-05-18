@@ -1,5 +1,8 @@
 use serde::Deserialize;
 
+#[cfg(test)]
+mod tests;
+
 use crate::core::util::glob::glob_match;
 
 #[derive(Clone, Deserialize, Debug)]

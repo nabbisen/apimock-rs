@@ -1,3 +1,4 @@
-mod app;
-mod server;
-pub mod util;
+// tests structure
+//
+// - util.rs: test helper
+// - the other .rs: test modules
