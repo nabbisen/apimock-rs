@@ -3,7 +3,7 @@ use hyper::StatusCode;
 use crate::util::{http_response_default, response_body_str, setup};
 
 #[tokio::test]
-async fn dyn_data_dir_csv_jsonpath_key() {
+async fn matches_dyn_data_dir_csv_jsonpath_key() {
     let port = setup().await;
     let response = http_response_default("/csv/records/jsonpath", port).await;
 

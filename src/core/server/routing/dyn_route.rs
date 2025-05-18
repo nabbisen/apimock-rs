@@ -5,7 +5,7 @@ use crate::core::{
         response::{error_response::not_found_response, file_response::FileResponse},
         types::BoxBody,
     },
-    util::json::{file_is_json, is_equivalent_json_file, JSON_COMPATIBLE_EXTENSIONS},
+    util::json::JSON_COMPATIBLE_EXTENSIONS,
 };
 
 /// handle on `fallback_respond_dir` (dynamic json responses)
@@ -36,17 +36,6 @@ pub fn dyn_route_content(
         {
             found = Some(entry_path.as_path().to_owned());
             break;
-        }
-    }
-
-    if found.is_none() && file_is_json(request_path.as_path()) {
-        for entry in fs::read_dir(dir).unwrap() {
-            let entry_path = entry.unwrap().path();
-
-            if is_equivalent_json_file(request_path.as_ref(), entry_path.as_ref()) {
-                found = Some(entry_path.as_path().to_owned());
-                break;
-            }
         }
     }
 

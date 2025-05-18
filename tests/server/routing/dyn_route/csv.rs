@@ -3,7 +3,7 @@ use hyper::StatusCode;
 use crate::util::{http_response_default, response_body_str, setup};
 
 #[tokio::test]
-async fn dyn_data_dir_csv() {
+async fn matches_dyn_data_dir_csv() {
     let port = setup().await;
     let response = http_response_default("/csv/records.csv", port).await;
 
@@ -19,7 +19,7 @@ async fn dyn_data_dir_csv() {
 }
 
 #[tokio::test]
-async fn dyn_data_dir_csv_wo_ext() {
+async fn matches_dyn_data_dir_csv_wo_ext() {
     let port = setup().await;
     let response = http_response_default("/csv/records", port).await;
 

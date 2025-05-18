@@ -13,28 +13,53 @@ use hyper_util::rt::TokioIo;
 use rand::Rng;
 use tokio::net::TcpStream;
 
-use std::env;
+use std::{env, time::Duration};
 
 use apimock::core::{app::App, args::EnvArgs};
 
 const TEST_WORKDIR: &str = "examples/config/tests";
+const TEST_CONFIG_FREE_ENV_WORKDIR: &str =
+    "examples/config/tests/@extra-test-cases/config-free-env";
 const CONFIG_FILE_PATH: &str = "apimock.toml";
 pub const DYN_ROUTE_DIR: &str = "apimock-dyn-route";
 const MIDDLEWARE_FILE_PATH: &str = "apimock-middleware.rhai";
 
-/// test initial setup: start up mock server
+/// test initial setup with dynamic port selected
 pub async fn setup() -> u16 {
     let port = dynamic_port();
-    setup_with_port(port).await;
+    let _ = setup_with_port(port).await;
     port
 }
 
-/// test initial setup: start up mock server with specific port number
+/// test initial setup with port specified
 pub async fn setup_with_port(port: u16) {
-    let _ = env::set_current_dir(TEST_WORKDIR);
+    let _ = setup_impl(port, TEST_WORKDIR, true).await;
+}
+
+/// test initial setup with dynamic port selected and current_dir specifid
+pub async fn setup_as_config_free_env() -> u16 {
+    let port = dynamic_port();
+    setup_impl(port, TEST_CONFIG_FREE_ENV_WORKDIR, false).await;
+    port
+}
+
+/// test initial setup: start up mock server
+async fn setup_impl(port: u16, path: &str, env_args_for_test_configs: bool) {
+    let _ = env::set_current_dir(path);
 
     tokio::spawn(async move {
-        let app = App::new(env_args(port), None, true).await;
+        let app_env_args = if env_args_for_test_configs {
+            env_args(port)
+        } else {
+            let mut env_args = EnvArgs::init_with_default();
+            env_args.port = Some(port);
+            env_args
+        };
+
+        let port_conflict_mitigation_milliseconds = rand::rng().random_range(1..=1000);
+        let _ = tokio::time::sleep(Duration::from_millis(port_conflict_mitigation_milliseconds));
+
+        let app = App::new(app_env_args, None, true).await;
         app.server.start().await
     });
     // wait for server started

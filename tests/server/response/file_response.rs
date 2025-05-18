@@ -1,3 +1,4 @@
+use apimock::core::server::constant::CSV_RECORDS_DEFAULT_KEY;
 use hyper::StatusCode;
 use serde_json::json;
 
@@ -67,7 +68,7 @@ async fn csv_wo_ext() {
     let body_str = response_body_str(response).await;
     assert_eq!(
         body_str.as_str(),
-        json!({"records": [{"a":"key","b":"csv"}]}).to_string()
+        json!({CSV_RECORDS_DEFAULT_KEY: [{"a":"key","b":"csv"}]}).to_string()
     );
 }
 

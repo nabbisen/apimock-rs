@@ -4,7 +4,10 @@ use serde_json::{Map, Value};
 
 use std::{collections::HashMap, path::Path};
 
-use crate::core::server::{constant::CSV_RECORDS_DEFAULT_KEY, types::BoxBody};
+use crate::core::{
+    server::{constant::CSV_RECORDS_DEFAULT_KEY, types::BoxBody},
+    util::json::resolve_with_json_compatible_extensions,
+};
 
 use super::{
     error_response::{bad_request_response, internal_server_error_response},
@@ -50,9 +53,13 @@ impl FileResponse {
     pub fn file_content_response(
         &mut self,
     ) -> Result<hyper::Response<BoxBody>, hyper::http::Error> {
-        if Path::new(self.file_path.as_str()).is_dir() {
-            return bad_request_response(format!("{} is directory", self.file_path).as_str());
-        }
+        let file_path = match resolve_with_json_compatible_extensions(self.file_path.as_str()) {
+            Some(x) => x,
+            None => {
+                return bad_request_response(format!("{} is directory", self.file_path).as_str())
+            }
+        };
+        self.file_path = file_path;
 
         match std::fs::read_to_string(self.file_path.as_str()) {
             Ok(content) => {

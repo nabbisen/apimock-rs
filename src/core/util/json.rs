@@ -4,15 +4,20 @@ use serde_json::Value;
 
 pub const JSON_COMPATIBLE_EXTENSIONS: [&str; 3] = ["json", "json5", "csv"];
 
-/// check if file is json
-pub fn file_is_json(p: &Path) -> bool {
-    JSON_COMPATIBLE_EXTENSIONS.contains(
-        &p.extension()
-            .unwrap_or_default()
-            .to_ascii_lowercase()
-            .to_str()
-            .unwrap_or_default(),
-    )
+/// resolve unknown path with json compatible extensions supplied
+pub fn resolve_with_json_compatible_extensions(unknown_path: &str) -> Option<String> {
+    let p = Path::new(unknown_path);
+    if p.is_file() {
+        return Some(unknown_path.to_owned());
+    }
+
+    let ext = JSON_COMPATIBLE_EXTENSIONS
+        .iter()
+        .find(|ext| Path::new(format!("{}.{}", unknown_path, ext).as_str()).is_file());
+    match ext {
+        Some(ext) => Some(format!("{}.{}", unknown_path, ext)),
+        None => None,
+    }
 }
 
 /// check if two json files are equivalent to each
