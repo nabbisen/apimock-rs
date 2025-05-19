@@ -31,7 +31,7 @@
     "main": "index.js",
     "types": "index.d.ts",
     "bin": {
-        "apimokka": "scripts/run-built-package.js"
+        "apimock-rs": "scripts/run-built-package.js"
     },
     "napi": {
         "name": "apimock-rs",

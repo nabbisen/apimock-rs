@@ -32,24 +32,24 @@ switch (platform) {
   case 'android':
     switch (arch) {
       case 'arm64':
-        localFileExisted = existsSync(join(__dirname, 'apimock.android-arm64.node'))
+        localFileExisted = existsSync(join(__dirname, 'apimock-rs.android-arm64.node'))
         try {
           if (localFileExisted) {
-            nativeBinding = require('./apimock.android-arm64.node')
+            nativeBinding = require('./apimock-rs.android-arm64.node')
           } else {
-            nativeBinding = require('@apimock/bin-android-arm64')
+            nativeBinding = require('@apimock-rs/bin-android-arm64')
           }
         } catch (e) {
           loadError = e
         }
         break
       case 'arm':
-        localFileExisted = existsSync(join(__dirname, 'apimock.android-arm-eabi.node'))
+        localFileExisted = existsSync(join(__dirname, 'apimock-rs.android-arm-eabi.node'))
         try {
           if (localFileExisted) {
-            nativeBinding = require('./apimock.android-arm-eabi.node')
+            nativeBinding = require('./apimock-rs.android-arm-eabi.node')
           } else {
-            nativeBinding = require('@apimock/bin-android-arm-eabi')
+            nativeBinding = require('@apimock-rs/bin-android-arm-eabi')
           }
         } catch (e) {
           loadError = e
@@ -63,13 +63,13 @@ switch (platform) {
     switch (arch) {
       case 'x64':
         localFileExisted = existsSync(
-          join(__dirname, 'apimock.win32-x64-msvc.node')
+          join(__dirname, 'apimock-rs.win32-x64-msvc.node')
         )
         try {
           if (localFileExisted) {
-            nativeBinding = require('./apimock.win32-x64-msvc.node')
+            nativeBinding = require('./apimock-rs.win32-x64-msvc.node')
           } else {
-            nativeBinding = require('@apimock/bin-win32-x64-msvc')
+            nativeBinding = require('@apimock-rs/bin-win32-x64-msvc')
           }
         } catch (e) {
           loadError = e
@@ -77,13 +77,13 @@ switch (platform) {
         break
       case 'ia32':
         localFileExisted = existsSync(
-          join(__dirname, 'apimock.win32-ia32-msvc.node')
+          join(__dirname, 'apimock-rs.win32-ia32-msvc.node')
         )
         try {
           if (localFileExisted) {
-            nativeBinding = require('./apimock.win32-ia32-msvc.node')
+            nativeBinding = require('./apimock-rs.win32-ia32-msvc.node')
           } else {
-            nativeBinding = require('@apimock/bin-win32-ia32-msvc')
+            nativeBinding = require('@apimock-rs/bin-win32-ia32-msvc')
           }
         } catch (e) {
           loadError = e
@@ -91,13 +91,13 @@ switch (platform) {
         break
       case 'arm64':
         localFileExisted = existsSync(
-          join(__dirname, 'apimock.win32-arm64-msvc.node')
+          join(__dirname, 'apimock-rs.win32-arm64-msvc.node')
         )
         try {
           if (localFileExisted) {
-            nativeBinding = require('./apimock.win32-arm64-msvc.node')
+            nativeBinding = require('./apimock-rs.win32-arm64-msvc.node')
           } else {
-            nativeBinding = require('@apimock/bin-win32-arm64-msvc')
+            nativeBinding = require('@apimock-rs/bin-win32-arm64-msvc')
           }
         } catch (e) {
           loadError = e
@@ -108,23 +108,23 @@ switch (platform) {
     }
     break
   case 'darwin':
-    localFileExisted = existsSync(join(__dirname, 'apimock.darwin-universal.node'))
+    localFileExisted = existsSync(join(__dirname, 'apimock-rs.darwin-universal.node'))
     try {
       if (localFileExisted) {
-        nativeBinding = require('./apimock.darwin-universal.node')
+        nativeBinding = require('./apimock-rs.darwin-universal.node')
       } else {
-        nativeBinding = require('@apimock/bin-darwin-universal')
+        nativeBinding = require('@apimock-rs/bin-darwin-universal')
       }
       break
     } catch {}
     switch (arch) {
       case 'x64':
-        localFileExisted = existsSync(join(__dirname, 'apimock.darwin-x64.node'))
+        localFileExisted = existsSync(join(__dirname, 'apimock-rs.darwin-x64.node'))
         try {
           if (localFileExisted) {
-            nativeBinding = require('./apimock.darwin-x64.node')
+            nativeBinding = require('./apimock-rs.darwin-x64.node')
           } else {
-            nativeBinding = require('@apimock/bin-darwin-x64')
+            nativeBinding = require('@apimock-rs/bin-darwin-x64')
           }
         } catch (e) {
           loadError = e
@@ -132,13 +132,13 @@ switch (platform) {
         break
       case 'arm64':
         localFileExisted = existsSync(
-          join(__dirname, 'apimock.darwin-arm64.node')
+          join(__dirname, 'apimock-rs.darwin-arm64.node')
         )
         try {
           if (localFileExisted) {
-            nativeBinding = require('./apimock.darwin-arm64.node')
+            nativeBinding = require('./apimock-rs.darwin-arm64.node')
           } else {
-            nativeBinding = require('@apimock/bin-darwin-arm64')
+            nativeBinding = require('@apimock-rs/bin-darwin-arm64')
           }
         } catch (e) {
           loadError = e
@@ -152,12 +152,12 @@ switch (platform) {
     if (arch !== 'x64') {
       throw new Error(`Unsupported architecture on FreeBSD: ${arch}`)
     }
-    localFileExisted = existsSync(join(__dirname, 'apimock.freebsd-x64.node'))
+    localFileExisted = existsSync(join(__dirname, 'apimock-rs.freebsd-x64.node'))
     try {
       if (localFileExisted) {
-        nativeBinding = require('./apimock.freebsd-x64.node')
+        nativeBinding = require('./apimock-rs.freebsd-x64.node')
       } else {
-        nativeBinding = require('@apimock/bin-freebsd-x64')
+        nativeBinding = require('@apimock-rs/bin-freebsd-x64')
       }
     } catch (e) {
       loadError = e
@@ -168,26 +168,26 @@ switch (platform) {
       case 'x64':
         if (isMusl()) {
           localFileExisted = existsSync(
-            join(__dirname, 'apimock.linux-x64-musl.node')
+            join(__dirname, 'apimock-rs.linux-x64-musl.node')
           )
           try {
             if (localFileExisted) {
-              nativeBinding = require('./apimock.linux-x64-musl.node')
+              nativeBinding = require('./apimock-rs.linux-x64-musl.node')
             } else {
-              nativeBinding = require('@apimock/bin-linux-x64-musl')
+              nativeBinding = require('@apimock-rs/bin-linux-x64-musl')
             }
           } catch (e) {
             loadError = e
           }
         } else {
           localFileExisted = existsSync(
-            join(__dirname, 'apimock.linux-x64-gnu.node')
+            join(__dirname, 'apimock-rs.linux-x64-gnu.node')
           )
           try {
             if (localFileExisted) {
-              nativeBinding = require('./apimock.linux-x64-gnu.node')
+              nativeBinding = require('./apimock-rs.linux-x64-gnu.node')
             } else {
-              nativeBinding = require('@apimock/bin-linux-x64-gnu')
+              nativeBinding = require('@apimock-rs/bin-linux-x64-gnu')
             }
           } catch (e) {
             loadError = e
@@ -197,26 +197,26 @@ switch (platform) {
       case 'arm64':
         if (isMusl()) {
           localFileExisted = existsSync(
-            join(__dirname, 'apimock.linux-arm64-musl.node')
+            join(__dirname, 'apimock-rs.linux-arm64-musl.node')
           )
           try {
             if (localFileExisted) {
-              nativeBinding = require('./apimock.linux-arm64-musl.node')
+              nativeBinding = require('./apimock-rs.linux-arm64-musl.node')
             } else {
-              nativeBinding = require('@apimock/bin-linux-arm64-musl')
+              nativeBinding = require('@apimock-rs/bin-linux-arm64-musl')
             }
           } catch (e) {
             loadError = e
           }
         } else {
           localFileExisted = existsSync(
-            join(__dirname, 'apimock.linux-arm64-gnu.node')
+            join(__dirname, 'apimock-rs.linux-arm64-gnu.node')
           )
           try {
             if (localFileExisted) {
-              nativeBinding = require('./apimock.linux-arm64-gnu.node')
+              nativeBinding = require('./apimock-rs.linux-arm64-gnu.node')
             } else {
-              nativeBinding = require('@apimock/bin-linux-arm64-gnu')
+              nativeBinding = require('@apimock-rs/bin-linux-arm64-gnu')
             }
           } catch (e) {
             loadError = e
@@ -226,26 +226,26 @@ switch (platform) {
       case 'arm':
         if (isMusl()) {
           localFileExisted = existsSync(
-            join(__dirname, 'apimock.linux-arm-musleabihf.node')
+            join(__dirname, 'apimock-rs.linux-arm-musleabihf.node')
           )
           try {
             if (localFileExisted) {
-              nativeBinding = require('./apimock.linux-arm-musleabihf.node')
+              nativeBinding = require('./apimock-rs.linux-arm-musleabihf.node')
             } else {
-              nativeBinding = require('@apimock/bin-linux-arm-musleabihf')
+              nativeBinding = require('@apimock-rs/bin-linux-arm-musleabihf')
             }
           } catch (e) {
             loadError = e
           }
         } else {
           localFileExisted = existsSync(
-            join(__dirname, 'apimock.linux-arm-gnueabihf.node')
+            join(__dirname, 'apimock-rs.linux-arm-gnueabihf.node')
           )
           try {
             if (localFileExisted) {
-              nativeBinding = require('./apimock.linux-arm-gnueabihf.node')
+              nativeBinding = require('./apimock-rs.linux-arm-gnueabihf.node')
             } else {
-              nativeBinding = require('@apimock/bin-linux-arm-gnueabihf')
+              nativeBinding = require('@apimock-rs/bin-linux-arm-gnueabihf')
             }
           } catch (e) {
             loadError = e
@@ -255,26 +255,26 @@ switch (platform) {
       case 'riscv64':
         if (isMusl()) {
           localFileExisted = existsSync(
-            join(__dirname, 'apimock.linux-riscv64-musl.node')
+            join(__dirname, 'apimock-rs.linux-riscv64-musl.node')
           )
           try {
             if (localFileExisted) {
-              nativeBinding = require('./apimock.linux-riscv64-musl.node')
+              nativeBinding = require('./apimock-rs.linux-riscv64-musl.node')
             } else {
-              nativeBinding = require('@apimock/bin-linux-riscv64-musl')
+              nativeBinding = require('@apimock-rs/bin-linux-riscv64-musl')
             }
           } catch (e) {
             loadError = e
           }
         } else {
           localFileExisted = existsSync(
-            join(__dirname, 'apimock.linux-riscv64-gnu.node')
+            join(__dirname, 'apimock-rs.linux-riscv64-gnu.node')
           )
           try {
             if (localFileExisted) {
-              nativeBinding = require('./apimock.linux-riscv64-gnu.node')
+              nativeBinding = require('./apimock-rs.linux-riscv64-gnu.node')
             } else {
-              nativeBinding = require('@apimock/bin-linux-riscv64-gnu')
+              nativeBinding = require('@apimock-rs/bin-linux-riscv64-gnu')
             }
           } catch (e) {
             loadError = e
@@ -283,13 +283,13 @@ switch (platform) {
         break
       case 's390x':
         localFileExisted = existsSync(
-          join(__dirname, 'apimock.linux-s390x-gnu.node')
+          join(__dirname, 'apimock-rs.linux-s390x-gnu.node')
         )
         try {
           if (localFileExisted) {
-            nativeBinding = require('./apimock.linux-s390x-gnu.node')
+            nativeBinding = require('./apimock-rs.linux-s390x-gnu.node')
           } else {
-            nativeBinding = require('@apimock/bin-linux-s390x-gnu')
+            nativeBinding = require('@apimock-rs/bin-linux-s390x-gnu')
           }
         } catch (e) {
           loadError = e
