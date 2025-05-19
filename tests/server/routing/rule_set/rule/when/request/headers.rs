@@ -2,6 +2,7 @@ use hyper::{
     http::header::{HeaderName, HeaderValue},
     HeaderMap, StatusCode,
 };
+use serde_json::json;
 
 use crate::util::{http_response_headers_condition, response_body_str, setup};
 
@@ -22,7 +23,7 @@ async fn headers_key_match() {
     );
 
     let body_str = response_body_str(response).await;
-    assert_eq!(body_str.as_str(), "{\"hello\":\"world\"}");
+    assert_eq!(body_str.as_str(), json!({"hello": "world"}).to_string());
 }
 
 #[tokio::test]
