@@ -52,7 +52,7 @@ impl Headers {
 
     /// validate
     pub fn validate(&self) -> bool {
-        0 < self.0.len()
+        !self.0.is_empty()
     }
 }
 

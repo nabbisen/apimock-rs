@@ -30,7 +30,7 @@ impl ParsedRequest {
             }
         };
 
-        let body_json: Option<Value> = if 0 < body_bytes.len() {
+        let body_json: Option<Value> = if !body_bytes.is_empty() {
             match serde_json::from_slice(&body_bytes) {
                 Ok(x) => x,
                 Err(err) => {
