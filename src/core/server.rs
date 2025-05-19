@@ -139,7 +139,7 @@ pub async fn service(
     // }
 
     // middleware if activated
-    if let Some(middleware) = shared_app_state.middleware {
+    for middleware in config.service.middlewares.iter() {
         let middleware_response_file_path =
             middleware.handle(request.url_path.as_str(), request.body_json.as_ref());
         if let Some(middleware_response_file_path) = middleware_response_file_path {

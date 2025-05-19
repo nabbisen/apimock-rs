@@ -12,7 +12,10 @@ use super::constant::{
     PRINT_DELIMITER, SERVICE_DEFAULT_FALLBACK_RESPOND_DIR, SERVICE_DEFAULT_RULE_SET_FILE_PATH,
 };
 use crate::core::{
-    server::{parsed_request::ParsedRequest, routing::rule_set::RuleSet, types::BoxBody},
+    server::{
+        middleware::Middleware, parsed_request::ParsedRequest, routing::rule_set::RuleSet,
+        types::BoxBody,
+    },
     util::http::content_type_is_application_json,
 };
 
@@ -20,11 +23,16 @@ use crate::core::{
 #[derive(Clone, Deserialize)]
 pub struct ServiceConfig {
     // routing
+    pub strategy: Option<Strategy>,
     #[serde(rename = "rule_sets")]
     pub rule_sets_file_paths: Vec<String>,
     #[serde(skip)]
     pub rule_sets: Vec<RuleSet>,
-    pub strategy: Option<Strategy>,
+
+    #[serde(rename = "middlewares")]
+    pub middlewares_file_paths: Option<Vec<String>>,
+    #[serde(skip)]
+    pub middlewares: Vec<Middleware>,
 
     pub fallback_respond_dir: String,
 }
@@ -107,9 +115,11 @@ impl Default for ServiceConfig {
         };
 
         ServiceConfig {
+            strategy: Some(Strategy::default()),
             rule_sets_file_paths,
             rule_sets: vec![],
-            strategy: Some(Strategy::default()),
+            middlewares_file_paths: None,
+            middlewares: vec![],
             fallback_respond_dir: SERVICE_DEFAULT_FALLBACK_RESPOND_DIR.to_owned(),
         }
     }
@@ -117,7 +127,7 @@ impl Default for ServiceConfig {
 
 impl std::fmt::Display for ServiceConfig {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let has_rule_sets = 0 < self.rule_sets.iter().len();
+        let has_rule_sets = !self.rule_sets.is_empty();
 
         if has_rule_sets {
             let _ = writeln!(

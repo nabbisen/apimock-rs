@@ -11,30 +11,28 @@ pub struct Middleware {
 }
 
 impl Middleware {
-    pub fn new(file_path: Option<&String>) -> Option<Self> {
-        match file_path {
-            Some(file_path) if Path::new(file_path.as_str()).exists() => {
-                let engine = Engine::new();
-                // todo: watch source file change - `notify` crate ?
-                let ast = engine.compile_file(file_path.clone().into()).expect(
-                    format!(
-                        "failed to compile middleware file to get ast: {}",
-                        file_path
-                    )
-                    .as_str(),
-                );
-
-                let middleware = Middleware {
-                    engine: Arc::new(engine),
-                    file_path: file_path.to_owned(),
-                    ast,
-                };
-
-                log::info!("Middleware is activated: {}", file_path);
-                Some(middleware)
-            }
-            _ => None,
+    pub fn new(file_path: &str) -> Result<Self, String> {
+        if !Path::new(file_path).exists() {
+            return Err(format!("middleware file path must be wrong: {}", file_path));
         }
+
+        let engine = Engine::new();
+        // todo: watch source file change - `notify` crate ?
+        let ast = engine.compile_file(file_path.into()).expect(
+            format!(
+                "failed to compile middleware file to get ast: {}",
+                file_path
+            )
+            .as_str(),
+        );
+
+        let middleware = Middleware {
+            engine: Arc::new(engine),
+            file_path: file_path.to_owned(),
+            ast,
+        };
+
+        Ok(middleware)
     }
 
     /// return string if middleware returns

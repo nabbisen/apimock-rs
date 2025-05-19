@@ -28,7 +28,7 @@ impl Body {
         };
 
         let matcher_body_json_condition = match self.0.get(&BodyKind::Json) {
-            Some(x) if 0 < x.len() => x,
+            Some(x) if !x.is_empty() => x,
             _ => return false,
         };
 
@@ -60,12 +60,12 @@ impl Body {
 
     /// validate
     pub fn validate(&self) -> bool {
-        if self.0.len() == 0 {
+        if self.0.is_empty() {
             return false;
         }
 
         for (_, body_kind_map) in self.0.iter() {
-            if body_kind_map.len() == 0 {
+            if body_kind_map.is_empty() {
                 return false;
             }
         }
