@@ -1,0 +1,69 @@
+{
+    "name": "@apimock/bin",
+    "version": "4.0.0-rc.2",
+    "description": "HTTP server generating REST/JSON responses. Aims to be mocking helper to develop microservices and APIs.",
+    "author": "nabbisen<nabbisen@scqr.net",
+    "license": "Apache-2.0",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/nabbisen/apimock-rs.git"
+    },
+    "keywords": [
+        "api",
+        "mock",
+        "server",
+        "http",
+        "json",
+        "route-matching",
+        "dynamic-routing",
+        "custom-routes",
+        "devtool",
+        "developer-tool",
+        "testing",
+        "stub",
+        "simulate"
+    ],
+    "files": [
+        "index.js",
+        "index.d.ts",
+        "scripts"
+    ],
+    "main": "index.js",
+    "types": "index.d.ts",
+    "bin": {
+        "apimokka": "scripts/run-built-package.js"
+    },
+    "napi": {
+        "name": "apimock",
+        "triples": {
+            "defaults": false,
+            "additional": [
+                "x86_64-unknown-linux-gnu",
+                "arm64-apple-darwin",
+                "x86_64-pc-windows-msvc"
+            ]
+        }
+    },
+    "devDependencies": {
+        "@napi-rs/cli": "^2.18.4",
+        "ava": "^6.3.0"
+    },
+    "ava": {
+        "timeout": "3m"
+    },
+    "engines": {
+        "node": ">= 12"
+    },
+    "scripts": {
+        "artifacts": "napi artifacts",
+        "build": "napi build --release --platform --features napi",
+        "build:debug": "napi build --platform --features napi",
+        "build:local": "napi build --platform --features napi --cargo-cwd ../",
+        "test": "ava",
+        "universal": "napi universal",
+        "version": "napi version",
+        "create-npm-dir": "napi create-npm-dir -t .",
+        "prepublishOnly": "napi prepublish --skip-gh-release",
+        "postinstall": "node scripts/postinstall.js"
+    }
+}

@@ -7,6 +7,9 @@ pub mod core;
 use core::app::App;
 use core::args::EnvArgs;
 
+#[cfg(feature = "napi")]
+use napi_derive::napi;
+
 /// return hyper http server
 #[cfg(not(feature = "spawn"))]
 pub async fn run(env_args: EnvArgs) -> App {
@@ -22,4 +25,11 @@ use tokio::sync::mpsc::Sender;
 #[cfg(feature = "spawn")]
 pub async fn run(env_args: EnvArgs, spawn_tx: Sender<String>, includes_ansi_codes: bool) -> App {
     App::new(env_args, Some(spawn_tx), includes_ansi_codes).await
+}
+
+/// node.js binding entry point
+#[cfg(feature = "napi")]
+#[napi]
+pub async fn napi_run() {
+    let _ = run(EnvArgs::init_with_default()).await;
 }

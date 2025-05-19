@@ -12,3 +12,11 @@ target/
 
 # MSVC Windows builds of rustc generate these, which store debugging information
 *.pdb
+
+node_modules/
+*.node
+bun.lock
+bun.lockb
+.env
+.env.*
+!.env.example

@@ -1,8 +1,9 @@
-use apimock::core::args::EnvArgs;
-
 /// app entry point on executable
 #[tokio::main]
 async fn main() {
-    let app = apimock::run(EnvArgs::init_with_default()).await;
-    app.server.start().await
+    #[cfg(not(feature = "napi"))]
+    {
+        let app = apimock::run(apimock::core::args::EnvArgs::init_with_default()).await;
+        app.server.start().await
+    }
 }
