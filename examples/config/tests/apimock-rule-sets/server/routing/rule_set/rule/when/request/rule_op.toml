@@ -1,0 +1,24 @@
+[prefix]
+url_path = "/rule-op/"
+respond_dir = "apimock-rule-set-data/server/routing/rule_set/rule/when/request/rule_op"
+
+[[rules]]
+when.request.url_path = { value = "equal/1", op = "equal" }
+respond = { file_path = "equal.json" }
+
+[[rules]]
+when.request.url_path = { value = "not-equal/1", op = "not_equal" }
+when.request.headers.user = { value = "not-equal-unique-request" }
+respond = { file_path = "not_equal.json" }
+
+[[rules]]
+when.request.url_path = { value = "starts-with/12", op = "starts_with" }
+respond = { file_path = "starts_with.json" }
+
+[[rules]]
+when.request.url_path = { value = "contains/1", op = "contains" }
+respond = { file_path = "contains.json" }
+
+[[rules]]
+when.request.url_path = { value = "wild-card/???/*", op = "wild_card" }
+respond = { file_path = "wild_card.json" }
