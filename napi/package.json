@@ -1,5 +1,5 @@
 {
-    "name": "@apimock/bin",
+    "name": "@apimock-rs/bin",
     "version": "4.0.0-rc.2",
     "description": "HTTP server generating REST/JSON responses. Aims to be mocking helper to develop microservices and APIs.",
     "author": "nabbisen<nabbisen@scqr.net",
@@ -34,7 +34,7 @@
         "apimokka": "scripts/run-built-package.js"
     },
     "napi": {
-        "name": "apimock",
+        "name": "apimock-rs",
         "triples": {
             "defaults": false,
             "additional": [
