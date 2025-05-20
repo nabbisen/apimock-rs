@@ -56,7 +56,13 @@ impl FileResponse {
         let file_path = match resolve_with_json_compatible_extensions(self.file_path.as_str()) {
             Some(x) => x,
             None => {
-                return bad_request_response(format!("{} is directory", self.file_path).as_str())
+                return bad_request_response(
+                    format!(
+                        "{} is not a file. must be missing or a directory",
+                        self.file_path
+                    )
+                    .as_str(),
+                )
             }
         };
         self.file_path = file_path;

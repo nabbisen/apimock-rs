@@ -12,6 +12,10 @@ async fn dyn_data_dir_dir() {
     let body_str = response_body_str(response).await;
     assert_eq!(
         body_str.as_str(),
-        format!("{}/html is directory", DYN_ROUTE_DIR).as_str()
+        format!(
+            "{}/html is not a file. must be missing or a directory",
+            DYN_ROUTE_DIR
+        )
+        .as_str()
     );
 }
