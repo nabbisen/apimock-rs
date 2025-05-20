@@ -1,18 +1,18 @@
 use console::style;
 use hyper::StatusCode;
-use respond::Respond;
 use serde::Deserialize;
+
+pub mod respond;
+mod util;
+pub mod when;
+
+use super::RuleSet;
+use respond::Respond;
 use util::url_path_with_prefix;
 use when::{
     request::url_path::{UrlPath, UrlPathConfig},
     When,
 };
-
-use super::RuleSet;
-
-pub mod respond;
-mod util;
-pub mod when;
 
 type ConditionKey = String;
 
