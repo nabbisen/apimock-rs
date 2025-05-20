@@ -1,7 +1,7 @@
 use console::style;
 use serde::Deserialize;
 use strategy::Strategy;
-use util::canonicalized_fallback_respond_dir;
+use util::canonicalized_fallback_respond_dir_to_print;
 
 use std::path::Path;
 
@@ -13,7 +13,10 @@ use super::constant::{
 };
 use crate::core::{
     server::{
-        middleware::Middleware, parsed_request::ParsedRequest, routing::rule_set::RuleSet,
+        middleware::Middleware,
+        parsed_request::ParsedRequest,
+        response::{error_response::internal_server_error_response, file_response::FileResponse},
+        routing::rule_set::RuleSet,
         types::BoxBody,
     },
     util::http::content_type_is_application_json,
@@ -38,8 +41,61 @@ pub struct ServiceConfig {
 }
 
 impl ServiceConfig {
+    /// handle middleware(s)
+    pub fn middleware_response(
+        &self,
+        request: &ParsedRequest,
+    ) -> Option<Result<hyper::Response<BoxBody>, hyper::http::Error>> {
+        for middleware in self.middlewares.iter() {
+            let middleware_response_file_path =
+                match middleware.handle(request.url_path.as_str(), request.body_json.as_ref()) {
+                    Some(x) => x,
+                    None => continue,
+                };
+
+            let response_file_path =
+                if Path::new(middleware_response_file_path.as_str()).is_absolute() {
+                    middleware_response_file_path
+                } else {
+                    let middleware_dir_path = Path::new(middleware.file_path.as_str()).parent();
+
+                    let joined_file_path = match middleware_dir_path {
+                        Some(x) => x.join(middleware_response_file_path.as_str()),
+                        None => {
+                            return Some(internal_server_error_response(
+                                format!(
+                                    "failed to get middleware parent dir: {}",
+                                    middleware.file_path.as_str(),
+                                )
+                                .as_str(),
+                            ))
+                        }
+                    };
+
+                    match joined_file_path.to_str() {
+                        Some(x) => x.to_owned(),
+                        None => {
+                            return Some(internal_server_error_response(
+                                format!(
+                                    "middleware response file path is invalid: {}/{}",
+                                    middleware.file_path.as_str(),
+                                    middleware_response_file_path
+                                )
+                                .as_str(),
+                            ))
+                        }
+                    }
+                };
+
+            return Some(
+                FileResponse::new(response_file_path.as_str(), None).file_content_response(),
+            );
+        }
+        None
+    }
+
     /// handle on `rule_sets`
-    pub async fn matched_content(
+    pub async fn rule_set_response(
         &self,
         request: &ParsedRequest,
     ) -> Option<Result<hyper::Response<BoxBody>, hyper::http::Error>> {
@@ -71,6 +127,7 @@ impl ServiceConfig {
         None
     }
 
+    /// validate
     pub fn validate(&self) -> bool {
         let rule_sets_validate =
             self.rule_sets
@@ -155,7 +212,7 @@ impl std::fmt::Display for ServiceConfig {
         let _ = writeln!(
             f,
             "[fallback_respond_dir] {}",
-            canonicalized_fallback_respond_dir(self.fallback_respond_dir.as_str())
+            canonicalized_fallback_respond_dir_to_print(self.fallback_respond_dir.as_str())
         );
 
         Ok(())

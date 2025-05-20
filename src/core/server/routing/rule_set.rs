@@ -1,7 +1,7 @@
 use default_respond::DefaultRespond;
 use serde::Deserialize;
 
-use std::fs;
+use std::{fs, path::Path};
 
 mod default_respond;
 mod guard;
@@ -24,7 +24,11 @@ pub struct RuleSet {
 
 impl RuleSet {
     /// create instance
-    pub fn new(rule_set_file_path: &str, rule_set_idx: usize) -> Self {
+    pub fn new(
+        rule_set_file_path: &str,
+        current_dir_to_config_dir_relative_path: &str,
+        rule_set_idx: usize,
+    ) -> Self {
         let toml_string = fs::read_to_string(rule_set_file_path)
             .expect(format!("failed to read rule set toml `{}`", rule_set_file_path).as_str());
         let deserialized = toml::from_str::<Self>(&toml_string);
@@ -33,6 +37,31 @@ impl RuleSet {
             Err(err) => panic!("{}: Invalid toml content\n({})", rule_set_file_path, err),
         };
 
+        // - prefix - respond_dir_prefix
+        let mut prefix = match ret.prefix {
+            Some(x) => x.clone(),
+            None => Prefix::default(),
+        };
+
+        let respond_dir_prefix = match prefix.respond_dir_prefix.as_ref() {
+            Some(respond_dir_prefix) => respond_dir_prefix.as_str(),
+            None => ".",
+        };
+
+        let respond_dir_prefix =
+            Path::new(current_dir_to_config_dir_relative_path).join(respond_dir_prefix);
+        let respond_dir_prefix = respond_dir_prefix.to_str().expect(
+            format!(
+                "failed to get path str: {}",
+                respond_dir_prefix.to_string_lossy()
+            )
+            .as_str(),
+        );
+
+        prefix.respond_dir_prefix = Some(respond_dir_prefix.to_owned());
+        ret.prefix = Some(prefix);
+
+        // - rules
         ret.rules = ret
             .rules
             .iter()
@@ -40,6 +69,7 @@ impl RuleSet {
             .map(|(rule_idx, rule)| rule.compute_derived_fields(&ret, rule_idx, rule_set_idx))
             .collect();
 
+        // - file path
         ret.file_path = rule_set_file_path.to_owned();
 
         ret

@@ -4,8 +4,7 @@ use hyper_util::{
     rt::{TokioExecutor, TokioIo},
     server::conn::auto::Builder,
 };
-use response::{error_response::internal_server_error_response, file_response::FileResponse};
-use routing::dyn_route::dyn_route_content;
+use response::error_response::internal_server_error_response;
 use tokio::net::TcpListener;
 use tokio::sync::Mutex;
 
@@ -15,7 +14,7 @@ use std::sync::Arc;
 pub mod constant;
 pub mod middleware;
 pub mod parsed_request;
-mod response;
+pub mod response;
 pub mod routing;
 mod routing_analysis;
 pub mod types;
@@ -23,6 +22,7 @@ pub mod types;
 use crate::core::app::app_state::AppState;
 use crate::core::app::constant::APP_NAME;
 use parsed_request::ParsedRequest;
+use routing::dyn_route::dyn_route_content;
 use types::BoxBody;
 
 /// server
@@ -104,51 +104,12 @@ pub async fn service(
 
     request.capture_in_log(config.log.verbose);
 
-    // todo: commands
-    // // config update
-    // {
-    //     let mut shared_app_state = { app_state.lock().await.clone() };
-    //     let mut config = shared_app_state.config;
-
-    //     if let Some(x) = handle_data_dir_query_path(&config, request_url_path.as_str()) {
-    //         let res = if !x.is_empty() {
-    //             let old_data_dir = config.data_dir.clone().unwrap();
-    //             let data_dir = x.strip_prefix("/").unwrap();
-
-    //             config.data_dir = Some(data_dir.to_owned());
-    //             config.update_paths(data_dir, old_data_dir.as_str());
-    //             shared_app_state.config = config.clone();
-
-    //             plain_text_response(data_dir, None)
-    //         } else {
-    //             plain_text_response(config.data_dir.clone().unwrap().as_str(), None)
-    //         };
-
-    //         request::capture_in_log(
-    //             request_url_path.as_str(),
-    //             &parts,
-    //             None,
-    //             config.verbose.clone(),
-    //         );
-    //         log::info!(" * [url.data_dir] updated.\n");
-    //         config.print_paths();
-    //         log::info!("");
-
-    //         return res;
-    //     }
-    // }
-
-    // middleware if activated
-    for middleware in config.service.middlewares.iter() {
-        let middleware_response_file_path =
-            middleware.handle(request.url_path.as_str(), request.body_json.as_ref());
-        if let Some(middleware_response_file_path) = middleware_response_file_path {
-            return FileResponse::new(middleware_response_file_path.as_str(), None)
-                .file_content_response();
-        }
+    match config.service.middleware_response(&request) {
+        Some(x) => return x,
+        None => (),
     }
 
-    match config.service.matched_content(&request).await {
+    match config.service.rule_set_response(&request).await {
         Some(x) => return x,
         None => (),
     }

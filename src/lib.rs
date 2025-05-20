@@ -31,5 +31,6 @@ pub async fn run(env_args: EnvArgs, spawn_tx: Sender<String>, includes_ansi_code
 #[cfg(feature = "napi")]
 #[napi]
 pub async fn napi_run() {
-    let _ = run(EnvArgs::init_with_default()).await;
+    let app = run(EnvArgs::init_with_default()).await;
+    let _ = app.server.start().await;
 }
