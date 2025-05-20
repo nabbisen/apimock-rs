@@ -17,10 +17,10 @@ use std::{env, time::Duration};
 
 use apimock::core::{app::App, args::EnvArgs};
 
-const TEST_WORKDIR: &str = "examples/config/tests";
-const TEST_CONFIG_FREE_ENV_WORKDIR: &str =
+pub const TEST_WORK_DIR: &str = "examples/config/tests";
+const TEST_CONFIG_FREE_ENV_WORK_DIR: &str =
     "examples/config/tests/@extra-test-cases/config-free-env";
-const CONFIG_FILE_PATH: &str = "apimock.toml";
+const CONFIG_FILE_NAME: &str = "apimock.toml";
 pub const DYN_ROUTE_DIR: &str = "apimock-dyn-route";
 const MIDDLEWARE_FILE_PATH: &str = "apimock-middleware.rhai";
 
@@ -33,22 +33,28 @@ pub async fn setup() -> u16 {
 
 /// test initial setup with port specified
 pub async fn setup_with_port(port: u16) {
-    let _ = setup_impl(port, TEST_WORKDIR, true).await;
+    let _ = setup_impl(port, Some(TEST_WORK_DIR.to_owned()), true).await;
 }
 
 /// test initial setup with dynamic port selected and current_dir specifid
 pub async fn setup_as_config_free_env() -> u16 {
+    let _ = env::set_current_dir(TEST_CONFIG_FREE_ENV_WORK_DIR);
+
     let port = dynamic_port();
-    setup_impl(port, TEST_CONFIG_FREE_ENV_WORKDIR, false).await;
+    setup_impl(port, None, false).await;
     port
 }
 
 /// test initial setup: start up mock server
-async fn setup_impl(port: u16, path: &str, env_args_for_test_configs: bool) {
-    let _ = env::set_current_dir(path);
+async fn setup_impl(
+    port: u16,
+    config_file_dir_path: Option<String>,
+    env_args_for_test_configs: bool,
+) {
+    let config_file_dir_path = config_file_dir_path.clone();
 
     tokio::spawn(async move {
-        let app_env_args = if env_args_for_test_configs {
+        let mut app_env_args = if env_args_for_test_configs {
             env_args(port)
         } else {
             let mut env_args = EnvArgs::init_with_default();
@@ -56,12 +62,21 @@ async fn setup_impl(port: u16, path: &str, env_args_for_test_configs: bool) {
             env_args
         };
 
+        if let Some(config_file_dir_path) = config_file_dir_path {
+            app_env_args.config_file_path = Some(format!(
+                "{}/{}",
+                config_file_dir_path.as_str(),
+                CONFIG_FILE_NAME
+            ));
+        }
+
         let port_conflict_mitigation_milliseconds = rand::rng().random_range(1..=1000);
         let _ = tokio::time::sleep(Duration::from_millis(port_conflict_mitigation_milliseconds));
 
         let app = App::new(app_env_args, None, true).await;
         app.server.start().await
     });
+
     // wait for server started
     tokio::time::sleep(std::time::Duration::from_millis(400)).await;
 }
@@ -70,7 +85,6 @@ async fn setup_impl(port: u16, path: &str, env_args_for_test_configs: bool) {
 fn env_args(port: u16) -> EnvArgs {
     let mut ret = EnvArgs::init_with_default();
 
-    ret.config_file_path = Some(CONFIG_FILE_PATH.to_owned());
     ret.port = Some(port);
     ret.middleware_file_path = Some(MIDDLEWARE_FILE_PATH.to_owned());
 

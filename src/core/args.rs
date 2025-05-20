@@ -45,15 +45,6 @@ impl EnvArgs {
             }
         }
 
-        if let Some(middleware_file_path) = self.middleware_file_path.as_ref() {
-            if !Path::new(middleware_file_path.as_str()).exists() {
-                panic!(
-                    "middleware file was specified but didn't exist: {}",
-                    middleware_file_path
-                );
-            }
-        }
-
         Ok(())
     }
 

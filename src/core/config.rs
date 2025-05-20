@@ -9,7 +9,9 @@ use std::{fs, path::Path};
 
 use crate::core::server::middleware::Middleware;
 
-use super::server::routing::rule_set::RuleSet;
+use super::{
+    server::routing::rule_set::RuleSet, util::path::current_dir_to_file_parent_dir_relative_path,
+};
 
 pub mod constant;
 pub mod listener_config;
@@ -34,7 +36,7 @@ impl Config {
         let mut ret = Self::init(config_file_path);
 
         ret.set_rule_sets();
-        ret.set_default_middleware_file_path_if_specified(middleware_file_path);
+        ret.set_default_middleware_file_path_if_not_specified(middleware_file_path);
         match ret.middlewares_from_file_paths() {
             Ok(x) => {
                 if !x.is_empty() {
@@ -44,6 +46,8 @@ impl Config {
             }
             Err(x) => panic!("{}", x),
         }
+
+        ret.compute_fallback_respond_dir();
 
         if !ret.validate() {
             panic!("failed to start up due to invalid config");
@@ -77,19 +81,32 @@ impl Config {
 
     /// set rule sets from rule sets file paths
     fn set_rule_sets(&mut self) {
+        let relative_dir_path = self.current_dir_to_parent_dir_relative_path();
+
         self.service.rule_sets = self
             .service
             .rule_sets_file_paths
             .iter()
             .enumerate()
             .map(|(rule_set_idx, rule_set_file_path)| {
-                RuleSet::new(rule_set_file_path, rule_set_idx)
+                let rule_set_file_path =
+                    Path::new(relative_dir_path.as_str()).join(rule_set_file_path);
+                let rule_set_file_path = rule_set_file_path.to_str().expect(
+                    format!(
+                        "failed to get relative path from current dir to rule set #{} ({})",
+                        rule_set_idx + 1,
+                        rule_set_file_path.to_string_lossy()
+                    )
+                    .as_str(),
+                );
+
+                RuleSet::new(rule_set_file_path, relative_dir_path.as_str(), rule_set_idx)
             })
             .collect();
     }
 
     /// set middlewares file paths if no file path is specified
-    fn set_default_middleware_file_path_if_specified(
+    fn set_default_middleware_file_path_if_not_specified(
         &mut self,
         middleware_file_path: Option<&String>,
     ) {
@@ -101,9 +118,6 @@ impl Config {
 
         let _ = match middleware_file_path {
             Some(x) => {
-                if !Path::new(x).exists() {
-                    panic!("default middleware is specified but doesn't exist: {}", x);
-                }
                 self.service.middlewares_file_paths = Some(vec![x.to_owned()]);
             }
             None => (),
@@ -112,13 +126,44 @@ impl Config {
 
     /// set middlewares from middlewares file paths
     fn middlewares_from_file_paths(&mut self) -> Result<Vec<Middleware>, String> {
+        let relative_dir_path = self.current_dir_to_parent_dir_relative_path();
+
         match self.service.middlewares_file_paths.as_ref() {
             Some(x) => x
                 .iter()
-                .map(|middlware_file_path| Middleware::new(middlware_file_path.as_str()))
+                .enumerate()
+                .map(|(middleware_idx, middlware_file_path)| {
+                    let middlware_file_path =
+                        Path::new(relative_dir_path.as_str()).join(middlware_file_path);
+                    let middlware_file_path = middlware_file_path.to_str().expect(
+                        format!(
+                            "failed to get relative path from current dir to rule set #{} ({})",
+                            middleware_idx + 1,
+                            middlware_file_path.to_string_lossy()
+                        )
+                        .as_str(),
+                    );
+
+                    Middleware::new(middlware_file_path)
+                })
                 .collect(),
             None => Ok(vec![]),
         }
+    }
+
+    /// compute relative fallback_respond_dir from current dir
+    pub fn compute_fallback_respond_dir(&mut self) {
+        let relative_path = self.current_dir_to_parent_dir_relative_path();
+        let fallback_respond_dir =
+            Path::new(relative_path.as_str()).join(self.service.fallback_respond_dir.as_str());
+        let fallback_respond_dir = fallback_respond_dir.to_str().expect(
+            format!(
+                "failed to get path str: {}",
+                fallback_respond_dir.to_string_lossy()
+            )
+            .as_str(),
+        );
+        self.service.fallback_respond_dir = fallback_respond_dir.to_owned();
     }
 
     /// address listened to
@@ -135,6 +180,26 @@ impl Config {
     /// note: none requires validation in LogConfig
     fn validate(&self) -> bool {
         self.service.validate()
+    }
+
+    /// get relative path from current dir (working dir) to parent dir of this file
+    fn current_dir_to_parent_dir_relative_path(&self) -> String {
+        match self.file_path.as_ref() {
+            Some(x) => {
+                let relative_dir_path =
+                    current_dir_to_file_parent_dir_relative_path(x.as_str())
+                    .expect(format!("failed to get relative path from current dir to config toml file dir: config toml = {}", self.file_path.clone().unwrap_or_default()).as_str());
+                let relative_dir_path = relative_dir_path.to_str().expect(
+                    format!(
+                        "failed to get relative file str: {}",
+                        relative_dir_path.to_string_lossy()
+                    )
+                    .as_str(),
+                );
+                relative_dir_path.to_owned()
+            }
+            None => String::from("."),
+        }
     }
 }
 
