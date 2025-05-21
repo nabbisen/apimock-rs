@@ -14,6 +14,7 @@ defaults:
 env:
   PRODUCT_BASENAME: apimock
   TAG: ${{ github.ref_name }}            # tag or branch name
+  JOB_WORKDIR: tmp-${{ github.run_id }}  # unique number
 
 jobs:
   build:
@@ -64,21 +65,56 @@ jobs:
       - name: Build Rust executable
         run: |
           cargo build --release --target ${{ matrix.target }} --bin ${{ env.PRODUCT_BASENAME }} --locked
-          mkdir ${{ env.PRODUCT_BASENAME }}-${{ matrix.name }}-${{ env.TAG }}
-          mv target/${{ matrix.target }}/release/${{ env.PRODUCT_BASENAME }}${{ matrix.bin-ext }} ${{ env.PRODUCT_BASENAME }}-${{ matrix.name }}-${{ env.TAG }}
-      
+            
       # [ artifact passed to next workflow(s) ]
       - name: Upload built binary (Linux, macOS)
-        if: matrix.target != 'x86_64-pc-windows-msvc'
         uses: actions/upload-artifact@v4
+        working-directory: target/${{ matrix.target }}/release
         with:
           name: ${{ env.PRODUCT_BASENAME }}-${{ matrix.name }}-${{ env.TAG }}
-          path: ${{ env.PRODUCT_BASENAME }}-${{ matrix.name }}-${{ env.TAG }}
+          path: ${{ env.PRODUCT_BASENAME }}{{ env.bin-ext }}
             
       # [ release asset ]
+      - name: Prepare for release asset
+        run: |
+          BUILT_FILE_PATH=target/${{ matrix.target }}/release/${{ env.PRODUCT_BASENAME }}${{ matrix.bin_ext }}
+          RELEASE_ASSET_BASENAME=${{ env.PRODUCT_BASENAME }}@${{ matrix.name }}-${{ env.TAG }}
+          RELEASE_SRC_DIR=${RELEASE_ASSET_BASENAME}
+          RELEASE_ASSET_FILENAME=${RELEASE_ASSET_BASENAME}${{ matrix.archive_ext }}
+          
+          mkdir -p "${{ env.JOB_WORKDIR }}/${RELEASE_SRC_DIR}"
+
+          cp "examples/config/default/apimock.toml" "${{ env.JOB_WORKDIR }}/${RELEASE_SRC_DIR}/"
+          cp "examples/config/default/apimock-middleware.rhai" "${{ env.JOB_WORKDIR }}/${RELEASE_SRC_DIR}/"
+          cp "${BUILT_FILE_PATH}" "${{ env.JOB_WORKDIR }}/${RELEASE_SRC_DIR}/"
+          
+          echo "RELEASE_SRC_DIR=${RELEASE_SRC_DIR}" >> $GITHUB_ENV
+          echo "RELEASE_ASSET_FILENAME=${RELEASE_ASSET_FILENAME}" >> $GITHUB_ENV
+
+      # BSD tar on macOS: first 8MB of the file are sometimes all NUL byte
+      # refs: https://github.com/actions/cache/issues/403 , https://github.com/rust-lang/cargo/issues/8603
+      - name: Mitigate macOS tar bug
+        if: matrix.target == 'aarch64-apple-darwin'
+        run: |
+          sudo /usr/sbin/purge
+      
+      - name: Create archive as release asset - Linux
+        if: >
+          matrix.target != 'aarch64-apple-darwin' &&
+          matrix.target != 'x86_64-pc-windows-msvc'
+        run: |
+          cd "${{ env.JOB_WORKDIR }}"
+          tar czf "../${RELEASE_ASSET_FILENAME}" "${RELEASE_SRC_DIR}"
+      
+      - name: Create archive as release asset - Windows / macOS
+        if: >
+          matrix.target == 'aarch64-apple-darwin' ||
+          matrix.target == 'x86_64-pc-windows-msvc'
+        run: |
+          cd "${{ env.JOB_WORKDIR }}"
+          7z a "../${RELEASE_ASSET_FILENAME}" "${RELEASE_SRC_DIR}"
+      
       - name: Update release with new asset
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh release upload ${{ github.ref_name }} ${{ env.PRODUCT_BASENAME }}-${{ matrix.name }}-${{ env.TAG }}
-        
+        run: gh release upload ${{ github.ref_name }} ${RELEASE_ASSET_FILENAME}

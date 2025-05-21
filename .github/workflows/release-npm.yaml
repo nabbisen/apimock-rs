@@ -65,7 +65,6 @@ jobs:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         working-directory: npm/${{ matrix.npm-target }}
         run: |
-          mv ${{ env.PRODUCT_BASENAME }}-${{ matrix.name }}-${{ env.TAG }}/${{ env.PRODUCT_BASENAME }}{{ matrix.bin-ext }} ./
           npm config set provenance true
           echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc
           npm publish --access public
