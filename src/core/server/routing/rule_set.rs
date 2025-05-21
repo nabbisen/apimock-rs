@@ -34,7 +34,7 @@ impl RuleSet {
         let deserialized = toml::from_str::<Self>(&toml_string);
         let mut ret = match deserialized {
             Ok(x) => x,
-            Err(err) => panic!("{}: Invalid toml content\n({})", rule_set_file_path, err),
+            Err(err) => panic!("{}: invalid toml content\n({})", rule_set_file_path, err),
         };
 
         // - prefix - respond_dir_prefix

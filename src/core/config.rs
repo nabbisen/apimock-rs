@@ -40,7 +40,7 @@ impl Config {
         match ret.middlewares_from_file_paths() {
             Ok(x) => {
                 if !x.is_empty() {
-                    log::info!("Middleware is activated: {} file(s)", x.len());
+                    log::info!("middleware is activated: {} file(s)", x.len());
                 }
                 ret.service.middlewares = x
             }
@@ -66,7 +66,7 @@ impl Config {
             let toml_string = fs::read_to_string(config_file_path.as_str()).unwrap();
             let mut config: Config = match toml::from_str(&toml_string) {
                 Ok(x) => x,
-                Err(err) => panic!("{}: Invalid toml content\n({})", config_file_path, err),
+                Err(err) => panic!("{}: invalid toml content\n({})", config_file_path, err),
             };
 
             config.file_path = Some(config_file_path.to_owned());
@@ -153,6 +153,10 @@ impl Config {
 
     /// compute relative fallback_respond_dir from current dir
     pub fn compute_fallback_respond_dir(&mut self) {
+        if self.service.fallback_respond_dir.as_str() == SERVICE_DEFAULT_FALLBACK_RESPOND_DIR {
+            return;
+        }
+
         let relative_path = self.current_dir_to_parent_dir_relative_path();
         let fallback_respond_dir =
             Path::new(relative_path.as_str()).join(self.service.fallback_respond_dir.as_str());
