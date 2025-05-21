@@ -1,5 +1,5 @@
 {
-  "name": "@apimock/bin-win32-x64-msvc",
+  "name": "@apimock-rs/bin-win32-x64-msvc",
   "version": "4.0.0-rc.6",
   "os": [
     "win32"
