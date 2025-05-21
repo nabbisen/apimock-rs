@@ -118,7 +118,7 @@ impl FileResponse {
                     .body(Full::new(Bytes::from(body)).boxed())
             }
             _ => internal_server_error_response(
-                format!("{}: Invalid json content", self.file_path.as_str()).as_str(),
+                format!("{}: invalid json content", self.file_path.as_str()).as_str(),
             ),
         }
     }

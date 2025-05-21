@@ -1,6 +1,6 @@
 [package]
 name = "apimock"
-version = "4.0.0-rc.4"
+version = "4.0.0-rc.12"
 edition = "2021"
 
 description = "API mock Server generating HTTP/JSON responses"
@@ -12,9 +12,6 @@ keywords = ["http", "api", "mock", "testing"]
 repository = "https://github.com/nabbisen/apimock-rs"
 readme = "README.md"
 rust-version = "1.78.0"
-
-[lib]
-crate-type = ["rlib", "cdylib"]
 
 [profile.release]     # shrink executable size
 opt-level = "z"
@@ -32,12 +29,6 @@ incremental = true
 [features]
 default = []
 spawn = [] # offers another entry point for subprocess
-napi = ["dep:napi", "dep:napi-derive", "dep:napi-build"]
-
-[[bin]]
-name = "apimock"
-path = "src/main.rs"
-required-features = []
 
 [dependencies]
 tokio = { version = "^1.44", features = ["full"] }
@@ -52,12 +43,7 @@ toml = "0"
 json5 = "0"
 csv = "1"
 rhai = { version = "1", features = ["sync", "serde"] }
-napi = { version = "2", default-features = false, features = ["napi5", "async"], optional = true }
-napi-derive = { version = "2", optional = true }
 
 [dev-dependencies]
 hyper = { version = "1", features = ["client"] }
 rand = "0"
-
-[build-dependencies]
-napi-build = { version = "2", optional = true }

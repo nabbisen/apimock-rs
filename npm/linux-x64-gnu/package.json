@@ -1,17 +1,22 @@
 {
-  "name": "@apimock/bin-linux-x64-gnu",
-  "version": "4.0.0-rc.4",
+  "name": "@apimock-rs/linux-x64-gnu",
+  "version": "4.0.0-rc.12",
   "os": [
     "linux"
   ],
   "cpu": [
     "x64"
   ],
-  "main": "apimock.linux-x64-gnu.node",
   "files": [
-    "apimock.linux-x64-gnu.node"
+    "apimock"
   ],
   "description": "HTTP server generating REST/JSON responses. Aims to be mocking helper to develop microservices and APIs.",
+  "author": "nabbisen<nabbisen@scqr.net",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nabbisen/apimock-rs.git"
+  },
   "keywords": [
     "api",
     "mock",
@@ -26,17 +31,5 @@
     "testing",
     "stub",
     "simulate"
-  ],
-  "author": "nabbisen<nabbisen@scqr.net",
-  "license": "Apache-2.0",
-  "engines": {
-    "node": ">= 12"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/nabbisen/apimock-rs.git"
-  },
-  "libc": [
-    "glibc"
   ]
 }

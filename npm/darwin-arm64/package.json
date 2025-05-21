@@ -1,17 +1,22 @@
 {
-  "name": "@apimock/bin-darwin-arm64",
-  "version": "4.0.0-rc.4",
+  "name": "@apimock-rs/darwin-arm64",
+  "version": "4.0.0-rc.12",
   "os": [
     "darwin"
   ],
   "cpu": [
     "arm64"
   ],
-  "main": "apimock.darwin-arm64.node",
   "files": [
-    "apimock.darwin-arm64.node"
+    "apimock"
   ],
   "description": "HTTP server generating REST/JSON responses. Aims to be mocking helper to develop microservices and APIs.",
+  "author": "nabbisen<nabbisen@scqr.net",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nabbisen/apimock-rs.git"
+  },
   "keywords": [
     "api",
     "mock",
@@ -26,14 +31,5 @@
     "testing",
     "stub",
     "simulate"
-  ],
-  "author": "nabbisen<nabbisen@scqr.net",
-  "license": "Apache-2.0",
-  "engines": {
-    "node": ">= 12"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/nabbisen/apimock-rs.git"
-  }
+  ]
 }
