@@ -123,7 +123,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.PRODUCT_BASENAME }}-${{ matrix.name }}-${{ env.TAG }}
-          path: target/${{ matrix.target }}/release/${{ env.PRODUCT_BASENAME }}${{ env.bin-ext }}
+          path: target/${{ matrix.target }}/release/${{ env.PRODUCT_BASENAME }}${{ matrix.bin-ext }}
   
   npm-platforms-publish:
     runs-on: ${{ matrix.os }}
