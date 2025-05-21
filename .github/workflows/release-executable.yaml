@@ -26,22 +26,27 @@ jobs:
             target: aarch64-unknown-linux-musl
             os: ubuntu-latest
             bin-ext:
+            archive-ext: .tar.gz
           - name: Linux-x64-gnu
             target: x86_64-unknown-linux-gnu
             os: ubuntu-latest
             bin-ext:
+            archive-ext: .tar.gz
           - name: Linux-x64-musl
             target: x86_64-unknown-linux-musl
             os: ubuntu-latest
             bin-ext:
+            archive-ext: .tar.gz
           - name: macOS-aarch64
             target: aarch64-apple-darwin
             os: macos-latest
             bin-ext:
+            archive-ext: .zip
           - name: Windows-x64
             target: x86_64-pc-windows-msvc
             os: windows-latest
             bin-ext: .exe
+            archive-ext: .zip
 
     steps:
       - name: Checkout repository
@@ -79,7 +84,7 @@ jobs:
           BUILT_FILE_PATH=target/${{ matrix.target }}/release/${{ env.PRODUCT_BASENAME }}${{ matrix.bin-ext }}
           RELEASE_ASSET_BASENAME=${{ env.PRODUCT_BASENAME }}@${{ matrix.name }}-${{ env.TAG }}
           RELEASE_SRC_DIR=${RELEASE_ASSET_BASENAME}
-          RELEASE_ASSET_FILENAME=${RELEASE_ASSET_BASENAME}${{ matrix.archive_ext }}
+          RELEASE_ASSET_FILENAME=${RELEASE_ASSET_BASENAME}${{ matrix.archive-ext }}
           
           mkdir -p "${{ env.JOB_WORKDIR }}/${RELEASE_SRC_DIR}"
 
