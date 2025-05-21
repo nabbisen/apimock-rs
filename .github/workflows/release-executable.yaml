@@ -69,15 +69,14 @@ jobs:
       # [ artifact passed to next workflow(s) ]
       - name: Upload built binary (Linux, macOS)
         uses: actions/upload-artifact@v4
-        working-directory: target/${{ matrix.target }}/release
         with:
           name: ${{ env.PRODUCT_BASENAME }}-${{ matrix.name }}-${{ env.TAG }}
-          path: ${{ env.PRODUCT_BASENAME }}{{ env.bin-ext }}
+          path: target/${{ matrix.target }}/release/${{ env.PRODUCT_BASENAME }}{{ env.bin-ext }}
             
       # [ release asset ]
       - name: Prepare for release asset
         run: |
-          BUILT_FILE_PATH=target/${{ matrix.target }}/release/${{ env.PRODUCT_BASENAME }}${{ matrix.bin_ext }}
+          BUILT_FILE_PATH=target/${{ matrix.target }}/release/${{ env.PRODUCT_BASENAME }}${{ matrix.bin-ext }}
           RELEASE_ASSET_BASENAME=${{ env.PRODUCT_BASENAME }}@${{ matrix.name }}-${{ env.TAG }}
           RELEASE_SRC_DIR=${RELEASE_ASSET_BASENAME}
           RELEASE_ASSET_FILENAME=${RELEASE_ASSET_BASENAME}${{ matrix.archive_ext }}
