@@ -151,7 +151,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: false # cache is unnecessary without `npm install`
       
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -182,7 +181,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: false # cache is unnecessary without `npm install`
       
       - name: npm publish
         env:
