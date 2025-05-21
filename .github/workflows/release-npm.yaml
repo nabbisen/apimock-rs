@@ -3,6 +3,8 @@ name: npm
 on:
   workflow_run:
     workflows: ["Executable"]
+    types:
+      - completed
 
 permissions:
   contents: write

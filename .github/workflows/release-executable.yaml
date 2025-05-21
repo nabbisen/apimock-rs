@@ -65,7 +65,7 @@ jobs:
         if: matrix.target != 'x86_64-pc-windows-msvc'
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ env.PRODUCT_BASENAME }}-${{ matrix.name }}
+          name: ${{ env.PRODUCT_BASENAME }}-${{ matrix.name }}-${{ env.TAG }}
           path: target/release/${{ env.PRODUCT_BASENAME }}
       
       - name: Upload built binary (Windows)
