@@ -58,8 +58,8 @@ jobs:
 
       - name: Build Rust executable
         run: |
-          cargo build --release --target ${{ matrix.target }} --bin ${{ env.PRODUCT_BASENAME }} --locked
-      
+          cargo build --release --target ${{ matrix.target }}
+
       # [ release asset ]
       - name: Upload built binary (Linux, macOS)
         if: matrix.target != 'x86_64-pc-windows-msvc'
