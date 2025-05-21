@@ -59,10 +59,7 @@ jobs:
       - name: Build Rust executable
         run: |
           cargo build --release --target ${{ matrix.target }} --bin ${{ env.PRODUCT_BASENAME }} --locked
-          pwd
-          ls .
-          ls target
-          ls target/release
+          ls -R target/release
 
       # [ release asset ]
       - name: Upload built binary (Linux, macOS)
