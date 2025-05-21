@@ -26,20 +26,31 @@ jobs:
           # - name: Linux-aarch64-musl
           #   target: aarch64-unknown-linux-musl
           #   os: ubuntu-latest
+          #   bin-ext:
           - name: Linux-x64-gnu
             npm-target: linux-x64-gnu
             os: ubuntu-latest
+            bin-ext:
           # - name: Linux-x64-musl
           #   target: x86_64-unknown-linux-musl
           #   os: ubuntu-latest
+          #   bin-ext:
           - name: macOS-aarch64
             npm-target: darwin-arm64
             os: macos-latest
+            bin-ext:
           - name: Windows-x64
             npm-target: win32-x64-gnu
             os: windows-latest
+            bin-ext:
 
     steps:
+      - name: Setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      
       - name: Checkout repository
         uses: actions/checkout@v4
       
@@ -49,17 +60,12 @@ jobs:
           name: ${{ env.PRODUCT_BASENAME }}-${{ matrix.name }}-${{ env.TAG }}
           path: npm/${{ matrix.npm-target }}
       
-      - name: Setup node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-      
       - name: npm publish
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         working-directory: npm/${{ matrix.npm-target }}
         run: |
+          mv ${{ env.PRODUCT_BASENAME }}-${{ matrix.name }}-${{ env.TAG }}/${{ env.PRODUCT_BASENAME }}{{ matrix.bin-ext }} ./
           npm config set provenance true
           echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc
           npm publish --access public

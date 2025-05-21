@@ -64,6 +64,8 @@ jobs:
       - name: Build Rust executable
         run: |
           cargo build --release --target ${{ matrix.target }} --bin ${{ env.PRODUCT_BASENAME }} --locked
+          mkdir ${{ env.PRODUCT_BASENAME }}-${{ matrix.name }}-${{ env.TAG }}
+          mv target/${{ matrix.target }}/release/${{ env.PRODUCT_BASENAME }}${{ matrix.bin-ext }} ${{ env.PRODUCT_BASENAME }}-${{ matrix.name }}-${{ env.TAG }}
       
       # [ artifact passed to next workflow(s) ]
       - name: Upload built binary (Linux, macOS)
@@ -71,12 +73,12 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.PRODUCT_BASENAME }}-${{ matrix.name }}-${{ env.TAG }}
-          path: target/${{ matrix.target }}/release/${{ env.PRODUCT_BASENAME }}${{ matrix.bin-ext }}
+          path: ${{ env.PRODUCT_BASENAME }}-${{ matrix.name }}-${{ env.TAG }}
             
       # [ release asset ]
       - name: Update release with new asset
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release upload ${{ github.ref_name }} target/${{ matrix.target }}/release/${{ env.PRODUCT_BASENAME }}${{ matrix.bin-ext }}
+          gh release upload ${{ github.ref_name }} ${{ env.PRODUCT_BASENAME }}-${{ matrix.name }}-${{ env.TAG }}
         
