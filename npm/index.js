@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 const os = require("os")
+const { join } = require("path")
 const { spawn } = require("child_process")
 
 const binaryName = "apimock"
@@ -15,7 +16,7 @@ function binaryPath() {
         default:
     }
 
-    return `${binaryName}${extension}`
+    return join(__dirname, `${binaryName}${extension}`)
 }
 
 function spawnBinary(binaryPath) {
