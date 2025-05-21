@@ -126,6 +126,7 @@ jobs:
 
   npm-platforms-publish:
     runs-on: ${{ matrix.os }}
+    needs: build
     strategy:
       matrix:
         include:
@@ -172,6 +173,7 @@ jobs:
 
   npm-core-publish:
     runs-on: ubuntu-latest
+    needs: npm-platforms-publish
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
