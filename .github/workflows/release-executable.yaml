@@ -60,27 +60,17 @@ jobs:
         run: |
           cargo build --release --target ${{ matrix.target }} --bin ${{ env.PRODUCT_BASENAME }} --locked
       
-      - name: Build Rust executableW
-        run: |
-          pwd
-          echo ----------
-          ls -lh
-          echo ----------
-          ls -lh target/release
-          echo ----------
-          ls -lh target
-      
       # [ release asset ]
       - name: Upload built binary (Linux, macOS)
         if: matrix.target != 'x86_64-pc-windows-msvc'
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.PRODUCT_BASENAME }}-${{ matrix.name }}-${{ env.TAG }}
-          path: target/release/${{ env.PRODUCT_BASENAME }}
+          path: target/${{ matrix.target }}/${{ env.PRODUCT_BASENAME }}
       
       - name: Upload built binary (Windows)
         if: matrix.target == 'x86_64-pc-windows-msvc'
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.PRODUCT_BASENAME }}-${{ matrix.name }}-${{ env.TAG }}
-          path: target/release/${{ env.PRODUCT_BASENAME }}.exe
+          path: target/${{ matrix.target }}/${{ env.PRODUCT_BASENAME }}.exe
