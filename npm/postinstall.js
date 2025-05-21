@@ -2,22 +2,24 @@ const fs = require("fs")
 const os = require("os")
 const path = require("path")
 
+const binaryName = "apimock"
+const platformOrganization = "@apimock-rs"
+
 function srcDestBinaryPath() {
     const platform = os.platform()
 
-    let targetPackage = null
-    let binaryName = "apimock"
+    let platformPackage = null
     let extension = ""
 
     switch (platform) {
         case "linux":
-            targetPackage = "bin-linux-x64-gnu"
+            platformPackage = "linux-x64-gnu"
             break
         case "darwin":
-            targetPackage = "bin-darwin-arm64"
+            platformPackage = "darwin-arm64"
             break
         case "win32":
-            targetPackage = "bin-win32-x64-msvc"
+            platformPackage = "win32-x64-msvc"
             extension = ".exe"
             break
         default:
@@ -26,7 +28,7 @@ function srcDestBinaryPath() {
     }
 
     const binDir = __dirname
-    const srcDir = path.join(binDir, "..", targetPackage)
+    const srcDir = path.join(binDir, "..", platformOrganization, platformPackage)
     const srcBinary = path.join(srcDir, `${binaryName}${extension}`)
     const destBinary = path.join(binDir, `${binaryName}${extension}`)
 
@@ -41,6 +43,7 @@ function linkOrCopy(src, dest) {
 
         // Try symbolic link first
         fs.symlinkSync(src, dest, "file")
+        fs.chmodSync(src, 0o755)
         console.log(`linked ${src} --> ${dest}`)
     } catch (e) {
         // Fallback to file copy

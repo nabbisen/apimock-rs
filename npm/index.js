@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 const os = require("os")
 const { spawn } = require("child_process")
 
@@ -20,7 +22,7 @@ function spawnBinary(binaryPath) {
     // passing command line arguments to the executable
     const args = process.argv.slice(2)
 
-    const child = spawn(binPath, args, {
+    const child = spawn(binaryPath, args, {
         stdio: "inherit", // sharing std i/o with the parent brings memory efficiency
     })
 
