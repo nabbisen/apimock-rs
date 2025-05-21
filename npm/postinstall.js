@@ -1,46 +1,49 @@
-import { platform, arch } from "process";
-import { dirname, join } from "path";
-import { fileURLToPath } from "url";
+const fs = require("fs");
+const os = require("os");
+const path = require("path");
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
+const platform = os.platform();
+let targetPackage = null;
+let binaryName = "apimock";
+let extension = "";
 
-const getPlatformDir = () => {
-    const currentPlatform = `${platform()}-${arch()}`
-
-    switch (currentPlatform) {
-        case "linux-x64": return "linux-x64-gnu"
-        case "darwin-arm64": return "darwin-arm64"
-        case "win32-x64": return "win32-x64-msvc"
-    }
-
-    throw new Error(`Unsupported platform: ${currentPlatform}`)
+switch (platform) {
+    case "linux":
+        targetPackage = "bin-linux-x64-gnu";
+        break;
+    case "darwin":
+        targetPackage = "bin-darwin-arm64";
+        break;
+    case "win32":
+        targetPackage = "bin-win32-x64-msvc";
+        extension = ".exe";
+        break;
+    default:
+        console.error(`Unsupported platform: ${platform}`);
+        process.exit(1);
 }
 
-function install() {
-    const platformDir = getPlatformDir()
-    const binSrcPath = resolve(__dirname, "..", platformDir, binaryName)
-    const binDestDir = resolve(__dirname, "..", "..", ".bin")
-    const binDestPath = join(binDestDir, "apimock")
+const binDir = __dirname;
+const targetDir = path.join(__dirname, "..", targetPackage);
+const srcBinary = path.join(targetDir, `${binaryName}${extension}`);
+const destBinary = path.join(binDir, `${binaryName}${extension}`);
 
+function linkOrCopy(src, dest) {
     try {
-        if (!existsSync(binSrcPath)) {
-            throw new Error(`binary not found at: ${binSrcPath}`)
+        if (fs.existsSync(dest)) {
+            fs.rmSync(dest, { force: true });
         }
 
-        mkdirSync(binDestDir, { recursive: true })
-
-        if (platform() === "win32") {
-            copyFileSync(binSrcPath, binDestPath + ".exe")
-        } else {
-            symlinkSync(binSrcPath, binDestPath)
-            chmodSync(binSrcPath, 0o755)
-        }
-
-        console.log(`app installed to ${binDestPath}`)
-    } catch (err) {
-        console.error("failed to install app binary:", err)
-        process.exit(1)
+        // Try symbolic link first
+        fs.symlinkSync(src, dest, "file");
+        console.log(`Linked ${src} → ${dest}`);
+    } catch (e) {
+        // Fallback to file copy
+        console.warn(`symlink failed (${e.message}), falling back to copy.`);
+        fs.copyFileSync(src, dest);
+        fs.chmodSync(dest, 0o755);
+        console.log(`Copied ${src} → ${dest}`);
     }
 }
 
-install()
+linkOrCopy(srcBinary, destBinary);

@@ -147,7 +147,7 @@ async fn http_response(
     let (mut sender, conn) = hyper::client::conn::http1::handshake(io).await.unwrap();
     tokio::task::spawn(async move {
         if let Err(err) = conn.await {
-            log::error!("Connection failed: {:?}", err);
+            log::error!("connection failed: {:?}", err);
         }
     });
 
