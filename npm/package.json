@@ -1,6 +1,6 @@
 {
-    "name": "@apimock-rs/bin",
-    "version": "4.0.0-rc.9",
+    "name": "apimock-rs",
+    "version": "4.0.0-rc.10",
     "description": "HTTP server generating REST/JSON responses. Aims to be mocking helper to develop microservices and APIs.",
     "author": "nabbisen<nabbisen@scqr.net",
     "license": "Apache-2.0",
@@ -9,7 +9,7 @@
         "url": "git+https://github.com/nabbisen/apimock-rs.git"
     },
     "bin": {
-        "apimock": "./apimock"
+        "apimock": "./index.js"
     },
     "files": [
         "postinstall.js"
@@ -18,9 +18,9 @@
         "postinstall": "node postinstall.js"
     },
     "optionalDependencies": {
-        "@apimock-rs/bin-linux-x64-gnu": "4.0.0-rc.9",
-        "@apimock-rs/bin-darwin-arm64": "4.0.0-rc.9",
-        "@apimock-rs/bin-win32-x64-msvc": "4.0.0-rc.9"
+        "@apimock-rs/linux-x64-gnu": "4.0.0-rc.10",
+        "@apimock-rs/darwin-arm64": "4.0.0-rc.10",
+        "@apimock-rs/win32-x64-msvc": "4.0.0-rc.10"
     },
     "keywords": [
         "api",
