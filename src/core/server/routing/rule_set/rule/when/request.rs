@@ -62,12 +62,32 @@ impl Request {
         };
 
         let headers_validate = match self.headers.as_ref() {
-            Some(headers) => headers.validate(),
+            Some(headers) => {
+                let ret = headers.validate();
+                if !ret {
+                    log::error!(
+                        "something wrong in headers (rule #{} in rule set #{})",
+                        rule_idx + 1,
+                        rule_set_idx + 1
+                    )
+                }
+                ret
+            }
             None => true,
         };
 
         let body_validate = match self.body.as_ref() {
-            Some(body) => body.validate(),
+            Some(body) => {
+                let ret = body.validate();
+                if !ret {
+                    log::error!(
+                        "something wrong in body (rule #{} in rule set #{})",
+                        rule_idx + 1,
+                        rule_set_idx + 1
+                    )
+                }
+                ret
+            }
             None => true,
         };
 

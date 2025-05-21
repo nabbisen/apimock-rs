@@ -156,8 +156,17 @@ impl ServiceConfig {
 
                     prefix_validate && default_validate && guard_validate && rules_validate
                 });
+        if !rule_sets_validate {
+            log::error!("something wrong in rule sets");
+        }
 
         let fallback_respond_dir_validate = Path::new(self.fallback_respond_dir.as_str()).exists();
+        if !fallback_respond_dir_validate {
+            log::error!(
+                "fallback_respond_dir is invalid: {}",
+                self.fallback_respond_dir
+            );
+        }
 
         rule_sets_validate && fallback_respond_dir_validate
     }
