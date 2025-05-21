@@ -144,7 +144,7 @@ jobs:
             npm-target: darwin-arm64
             os: macos-latest
           - name: Windows-x64
-            npm-target: win32-x64-gnu
+            npm-target: win32-x64-msvc
             os: windows-latest
 
     steps:
