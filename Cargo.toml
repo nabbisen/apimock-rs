@@ -1,6 +1,6 @@
 [package]
 name = "apimock"
-version = "4.0.0-rc.10"
+version = "4.0.0-rc.11"
 edition = "2021"
 
 description = "API mock Server generating HTTP/JSON responses"
