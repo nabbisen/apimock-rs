@@ -24,18 +24,23 @@ jobs:
           - name: Linux-aarch64-musl
             target: aarch64-unknown-linux-musl
             os: ubuntu-latest
+            bin-ext:
           - name: Linux-x64-gnu
             target: x86_64-unknown-linux-gnu
             os: ubuntu-latest
+            bin-ext:
           - name: Linux-x64-musl
             target: x86_64-unknown-linux-musl
             os: ubuntu-latest
+            bin-ext:
           - name: macOS-aarch64
             target: aarch64-apple-darwin
             os: macos-latest
+            bin-ext:
           - name: Windows-x64
             target: x86_64-pc-windows-msvc
             os: windows-latest
+            bin-ext: .exe
 
     steps:
       - name: Checkout repository
@@ -60,17 +65,18 @@ jobs:
         run: |
           cargo build --release --target ${{ matrix.target }} --bin ${{ env.PRODUCT_BASENAME }} --locked
       
-      # [ release asset ]
+      # [ artifact passed to next workflow(s) ]
       - name: Upload built binary (Linux, macOS)
         if: matrix.target != 'x86_64-pc-windows-msvc'
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.PRODUCT_BASENAME }}-${{ matrix.name }}-${{ env.TAG }}
-          path: target/${{ matrix.target }}/release/${{ env.PRODUCT_BASENAME }}
-      
-      - name: Upload built binary (Windows)
-        if: matrix.target == 'x86_64-pc-windows-msvc'
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ env.PRODUCT_BASENAME }}-${{ matrix.name }}-${{ env.TAG }}
-          path: target/${{ matrix.target }}/release/${{ env.PRODUCT_BASENAME }}.exe
+          path: target/${{ matrix.target }}/release/${{ env.PRODUCT_BASENAME }}${{ matrix.bin-ext }}
+            
+      # [ release asset ]
+      - name: Update release with new asset
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload ${{ github.ref_name }} target/${{ matrix.target }}/release/${{ env.PRODUCT_BASENAME }}${{ matrix.bin-ext }}
+        
