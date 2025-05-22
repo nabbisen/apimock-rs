@@ -6,71 +6,47 @@
 [![Releases Workflow](https://github.com/nabbisen/apimock-rs/actions/workflows/release-executable.yaml/badge.svg)](https://github.com/nabbisen/apimock-rs/actions/workflows/release-executable.yaml)
 [![License](https://img.shields.io/github/license/nabbisen/apimock-rs)](https://github.com/nabbisen/apimock-rs/blob/main/LICENSE)
 
-## 🛠️ App overhaul announcement
+## 🪄 Mock APIs easily — no setup stress, just JSON and go
 
-### ⚠️ Major update in development (v4)
+If you’re building or testing APIs, this tool makes mocking painless. You don’t need to write any config files — just use folders and JSON. It’s super fast, efficient, and flexible when you need it to be.
 
-v4 introduces a fundamental shift in design. Existing configuration files will no longer work as-is. Some features will be deprecated.
-In return: cleaner configs, dynamic resolution, and better extensibility.
+    🎈 No config needed to get started
 
-## Summary
+    🥷 Fast to launch, light on memory, out of your way
 
-HTTP server generating REST/JSON responses. Aims to be mocking helper to develop microservices and APIs. Written in [Rust](https://www.rust-lang.org/) and based on [hyper](https://hyper.rs/).
+    🧩 Moreover, advanced matching and custom scripting supported
 
-Running `apimock` or `apimock -c apimock.toml` starts the server. Built as small single native binary. Supports cross-platform.
+It’s rebuilt from the ground up in version 4. Designed to help developers of all levels.
 
-## Screenshots
-
-Server started to listen:
-
-![server starts](docs/.assets/demo-01.png)
-
-`curl` test result:
-
-![server responds](docs/.assets/demo-02.png)
-
-Middleware is available as rhai script:
-
-![server responds](docs/.assets/demo-03.png)
-
-### Reference
-
-- [Features](docs/FEATURES.md)
-- [Configuration and options](docs/CONFIGURE.md)
-- [Design and specification](docs/SPECS.md)
-
-## Usage
-
-### Executable
-
-[Assets](https://github.com/nabbisen/apimock-rs/releases/latest) in Releases offer executables for multiple platforms.
+![demo](docs/.assets/demo.gif)
 
 ```sh
-./apimock
+# install
+npm install -D apimock-rs
+# and go
+npx apimock
 ```
-
-At startup, [`--init`](docs/CONFIGURE.md#--init) option is available to gerenate app configuration and customization files:
 
 ```sh
-./apimock --init
+# just use folders and JSON
+mkdir -p api/v1/
+echo '{"hello": "world"}' > api/v1/hello.json
+npx apimock
+
+# response
+curl http://localhost:3001/api/v1/hello
+# --> {"hello":"world"}
 ```
-
-#### Customization
-
-- Able to customize by modifying [config file](docs/CONFIGURE.md) (`./apimock.toml` by default) and restarting app.
-- [Dynamic routing directory](docs/CONFIGURE.md#generaldyn_data_dir) is also available (`./apimock-dyn-route/` by default) even without config file. App returns response by associating request URL path with relative file path under it.
-- When app runs without both `./apimock.toml` and `./apimock-dyn-route/` directory, [`always`](./CONFIGURE.md#configuration) option is automatically activated to return fixed response.
-
-### `cargo` install
 
 ```sh
-cargo install apimock
-# after installed:
-apimock
+# also, there's room to tweak things later
+npx apimock --init
 ```
 
-## Acknowledgements
+For more details, [see the docs](docs/README.md).
 
-Depends on:
+## 🤝 Open-source, with care
 
-[tokio](https://github.com/tokio-rs/tokio) / [hyper](https://hyper.rs/) / [toml](https://github.com/toml-rs/toml) / [serde](https://serde.rs/) / [serde_json](https://github.com/serde-rs/json) / [json5](https://github.com/callum-oakley/json5-rs) / [console](https://github.com/console-rs/console) / [rhai](https://github.com/rhaiscript/rhai). In addition, [mdbook](https://github.com/rust-lang/mdBook) (as to workflows)
+This project is lovingly built and maintained by volunteers.  
+We hope it helps streamline your API development.  
+Please understand that the project has its own direction — while we welcome feedback, it might not fit every edge case 🌱
