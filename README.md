@@ -15,6 +15,8 @@
 v4 introduces a fundamental shift in design. Existing configuration files will no longer work as-is. Some features will be deprecated.
 In return: cleaner configs, dynamic resolution, and better extensibility.
 
+Notice below is around v4 and current stable version is [v3](https://github.com/nabbisen/apimock-rs/tree/3.2.2).
+
 ---
 
 ## 🪄 Mock APIs easily — no setup stress, just JSON and go
