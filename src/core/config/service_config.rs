@@ -11,15 +11,12 @@ mod util;
 use super::constant::{
     PRINT_DELIMITER, SERVICE_DEFAULT_FALLBACK_RESPOND_DIR, SERVICE_DEFAULT_RULE_SET_FILE_PATH,
 };
-use crate::core::{
-    server::{
-        middleware::Middleware,
-        parsed_request::ParsedRequest,
-        response::{error_response::internal_server_error_response, file_response::FileResponse},
-        routing::rule_set::RuleSet,
-        types::BoxBody,
-    },
-    util::http::content_type_is_application_json,
+use crate::core::server::{
+    middleware::Middleware,
+    parsed_request::ParsedRequest,
+    response::{error_response::internal_server_error_response, file_response::FileResponse},
+    routing::rule_set::RuleSet,
+    types::BoxBody,
 };
 
 /// verbose logs
@@ -99,13 +96,6 @@ impl ServiceConfig {
         &self,
         request: &ParsedRequest,
     ) -> Option<Result<hyper::Response<BoxBody>, hyper::http::Error>> {
-        // todo: support other types than json (such as form value) in the future
-        let _ = match content_type_is_application_json(&request.component_parts.headers) {
-            Some(x) if !x => log::warn!("request content-type is not application/json",),
-            None => log::warn!("failed to get content-type from request"),
-            _ => (),
-        };
-
         for (rule_set_idx, rule_set) in self.rule_sets.iter().enumerate() {
             for (rule_idx, rule) in rule_set.rules.iter().enumerate() {
                 let is_match = rule.when.is_match(request, rule_idx, rule_set_idx);

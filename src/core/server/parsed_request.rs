@@ -7,7 +7,8 @@ use serde_json::Value;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use crate::core::{
-    config::log_config::verbose_config::VerboseConfig, util::http::normalize_url_path,
+    config::log_config::verbose_config::VerboseConfig,
+    util::http::{content_type_is_application_json, normalize_url_path},
 };
 
 #[derive(Debug)]
@@ -21,28 +22,42 @@ impl ParsedRequest {
     pub async fn from(request: hyper::Request<Incoming>) -> Result<Self, String> {
         let (component_parts, body) = request.into_parts();
 
-        let url_path = normalize_url_path(component_parts.uri.path(), None);
-
         let body_bytes = match body.boxed().collect().await {
-            Ok(x) => x.to_bytes(),
+            Ok(x) => Some(x.to_bytes()),
             Err(err) => {
-                return Err(format!("failed to collect request incoming body: {}", err));
+                log::warn!("failed to collect request incoming body: {}", err);
+                None
             }
         };
 
-        let body_json: Option<Value> = if !body_bytes.is_empty() {
-            match serde_json::from_slice(&body_bytes) {
-                Ok(x) => x,
-                Err(err) => {
+        let has_body = body_bytes.is_some() && !body_bytes.as_ref().unwrap().is_empty();
+
+        let mut body_json: Option<Value> = None;
+        if has_body {
+            let raw_body_json = serde_json::from_slice::<Option<Value>>(&body_bytes.unwrap());
+
+            let _ = match content_type_is_application_json(&component_parts.headers) {
+                // case application/json: get json body
+                Some(x) if x && raw_body_json.is_err() => {
                     return Err(format!(
                         "failed to get json value from request body: {}",
-                        err
-                    ))
+                        raw_body_json.unwrap_err()
+                    ));
                 }
+                // todo: support other types than json (such as form value) in the future
+                Some(x) if !x => {
+                    log::warn!("request has body but its content-type is not application/json")
+                }
+                None => log::warn!("request has body but doesn't have content-type"),
+                _ => (),
+            };
+
+            if raw_body_json.is_ok() {
+                body_json = raw_body_json.unwrap();
             }
-        } else {
-            None
-        };
+        }
+
+        let url_path = normalize_url_path(component_parts.uri.path(), None);
 
         Ok(ParsedRequest {
             url_path,
