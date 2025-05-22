@@ -6,6 +6,19 @@
 [![Releases Workflow](https://github.com/nabbisen/apimock-rs/actions/workflows/release-executable.yaml/badge.svg)](https://github.com/nabbisen/apimock-rs/actions/workflows/release-executable.yaml)
 [![License](https://img.shields.io/github/license/nabbisen/apimock-rs)](https://github.com/nabbisen/apimock-rs/blob/main/LICENSE)
 
+---
+
+## 🛠️ App overhaul announcement
+
+### ⚠️ Major update in development (v4)
+
+v4 introduces a fundamental shift in design. Existing configuration files will no longer work as-is. Some features will be deprecated.
+In return: cleaner configs, dynamic resolution, and better extensibility.
+
+Notice below is around v4 and current stable version is [v3](https://github.com/nabbisen/apimock-rs/tree/3.2.2).
+
+---
+
 ## 🪄 Mock APIs easily — no setup stress, just JSON and go
 
 If you’re building or testing APIs, this tool makes mocking painless. You don’t need to write any config files — just use folders and JSON. It’s super fast, efficient, and flexible when you need it to be.
@@ -43,9 +56,17 @@ curl http://localhost:3001/api/v1/hello
 npx apimock --init
 ```
 
-For more details, [see the docs](docs/README.md).
+### 📖 Documentation
 
-## 🤝 Open-source, with care
+For more details, check out [the docs](docs/README.md).
+
+### 💻️ GUI bundle
+
+[apimokka](https://github.com/nabbisen/apimokka), lightweight GUI bundle, is also available.
+
+---
+
+## Open-source, with care
 
 This project is lovingly built and maintained by volunteers.  
 We hope it helps streamline your API development.  
