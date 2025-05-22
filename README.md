@@ -50,3 +50,7 @@ For more details, [see the docs](docs/README.md).
 This project is lovingly built and maintained by volunteers.  
 We hope it helps streamline your API development.  
 Please understand that the project has its own direction — while we welcome feedback, it might not fit every edge case 🌱
+
+## Acknowledgements
+
+Depends on [tokio](https://github.com/tokio-rs/tokio) / [hyper](https://hyper.rs/) / [toml](https://github.com/toml-rs/toml) / [serde](https://serde.rs/) / [serde_json](https://github.com/serde-rs/json) / [json5](https://github.com/callum-oakley/json5-rs) / [console](https://github.com/console-rs/console) / [rhai](https://github.com/rhaiscript/rhai). In addition, [mdbook](https://github.com/rust-lang/mdBook) (as to workflows).

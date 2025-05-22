@@ -1,4 +1,4 @@
-# 🤝 Code of Conduct
+## 🤝 Code of Conduct
 
 This project is maintained by volunteers in their personal time. We welcome respectful and constructive participation. Please be kind and patient in all interactions.
 
