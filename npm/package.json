@@ -1,40 +1,40 @@
 {
-    "name": "apimock-rs",
-    "version": "4.0.0-rc.12",
-    "description": "HTTP server generating REST/JSON responses. Aims to be mocking helper to develop microservices and APIs.",
-    "author": "nabbisen<nabbisen@scqr.net",
-    "license": "Apache-2.0",
-    "repository": {
-        "type": "git",
-        "url": "git+https://github.com/nabbisen/apimock-rs.git"
-    },
-    "bin": {
-        "apimock": "./index.js"
-    },
-    "files": [
-        "postinstall.js"
-    ],
-    "scripts": {
-        "postinstall": "node postinstall.js"
-    },
-    "optionalDependencies": {
-        "@apimock-rs/linux-x64-gnu": "4.0.0-rc.12",
-        "@apimock-rs/darwin-arm64": "4.0.0-rc.12",
-        "@apimock-rs/win32-x64-msvc": "4.0.0-rc.12"
-    },
-    "keywords": [
-        "api",
-        "mock",
-        "server",
-        "http",
-        "json",
-        "route-matching",
-        "dynamic-routing",
-        "custom-routes",
-        "devtool",
-        "developer-tool",
-        "testing",
-        "stub",
-        "simulate"
-    ]
+  "name": "apimock-rs",
+  "version": "4.0.0-rc.13",
+  "description": "HTTP server generating REST/JSON responses. Aims to be mocking helper to develop microservices and APIs.",
+  "author": "nabbisen<nabbisen@scqr.net>",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nabbisen/apimock-rs.git"
+  },
+  "bin": {
+    "apimock": "./index.js"
+  },
+  "files": [
+    "postinstall.js"
+  ],
+  "scripts": {
+    "postinstall": "node postinstall.js"
+  },
+  "optionalDependencies": {
+    "@apimock-rs/linux-x64-gnu": "4.0.0-rc.13",
+    "@apimock-rs/darwin-arm64": "4.0.0-rc.13",
+    "@apimock-rs/win32-x64-msvc": "4.0.0-rc.13"
+  },
+  "keywords": [
+    "api",
+    "mock",
+    "server",
+    "http",
+    "json",
+    "route-matching",
+    "dynamic-routing",
+    "custom-routes",
+    "devtool",
+    "developer-tool",
+    "testing",
+    "stub",
+    "simulate"
+  ]
 }

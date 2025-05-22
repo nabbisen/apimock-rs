@@ -6,7 +6,7 @@
 use http_body_util::{BodyExt, Empty, Full};
 use hyper::{
     body::{Bytes, Incoming},
-    header::{HeaderMap, HeaderValue},
+    header::{HeaderMap, HeaderValue, CONTENT_TYPE},
     Request, Response, Uri,
 };
 use hyper_util::rt::TokioIo;
@@ -99,12 +99,12 @@ fn dynamic_port() -> u16 {
     rand::rng().random_range(49152..=65535)
 }
 
-/// get http response from mock server
+/// get http response from mock server - default
 pub async fn http_response_default(url_path: &str, port: u16) -> Response<Incoming> {
     http_response(url_path, port, None, None).await
 }
 
-/// get http response from mock server
+/// get http response from mock server - with headers condition
 pub async fn http_response_headers_condition(
     url_path: &str,
     port: u16,
@@ -113,13 +113,28 @@ pub async fn http_response_headers_condition(
     http_response(url_path, port, Some(headers), None).await
 }
 
-/// get http response from mock server
+/// get http response from mock server - with body condition
 pub async fn http_response_body_condition(
+    url_path: &str,
+    port: u16,
+    headers: Option<&HeaderMap<HeaderValue>>,
+    body: &str,
+) -> Response<Incoming> {
+    http_response(url_path, port, headers, Some(body)).await
+}
+
+/// get http response from mock server - with body condition as json
+pub async fn http_response_json_body_condition(
     url_path: &str,
     port: u16,
     body: &str,
 ) -> Response<Incoming> {
-    http_response(url_path, port, None, Some(body)).await
+    let headers: HeaderMap = [(CONTENT_TYPE, "application/json")]
+        .into_iter()
+        .map(|(k, v)| (k, HeaderValue::from_static(v)))
+        .collect();
+
+    http_response_body_condition(url_path, port, Some(&headers), body).await
 }
 
 /// get http response from mock server

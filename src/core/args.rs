@@ -74,10 +74,18 @@ impl EnvArgs {
 
     fn init_with_default_files(&mut self) {
         if self.config_file_path.is_none() {
-            let file_path = DEFAULT_CONFIG_FILE_PATH;
-            let content = include_str!("../../examples/config/default/apimock.toml");
-            let _ = fs::write(file_path, content);
-            self.config_file_path = Some(file_path.to_owned());
+            let config_file_path = DEFAULT_CONFIG_FILE_PATH;
+            let config_content = include_str!("../../examples/config/default/apimock.toml");
+            let _ = fs::write(config_file_path, config_content);
+
+            if !Path::new(DEFAULT_RULE_SET_FILE_PATH).exists() {
+                let rule_set_file_path = DEFAULT_RULE_SET_FILE_PATH;
+                let rule_set_content =
+                    include_str!("../../examples/config/default/apimock-rule-set.toml");
+                let _ = fs::write(rule_set_file_path, rule_set_content);
+            }
+
+            self.config_file_path = Some(config_file_path.to_owned());
         }
 
         if self.middleware_file_path.is_none() {

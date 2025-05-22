@@ -8,16 +8,18 @@
 # [guard.request.headers]
 
 [[rules]]
-when.request.url_path = "/a/b/c"
-respond = { file_path = "test/res.json" }
+when.request.url_path = "/a/b"
+# respond = { file_path = "test/res.json" }
+respond = { text = "hej ab" }
 
 [[rules]]
 [rules.when.request]
-url_path = { value = "/a/b", op = "not_equal" }
+url_path = { value = "/c/d", op = "starts_with" }
 # [rules.when.request.headers]
 # user = { value = "user1" }
 # [rules.when.request.body.json]
 # "a.b.c" = { value = "d", op = "starts_with" }
 [rules.respond]
-file_path = "test/return.json"
+# file_path = "test/return.json"
+text = "hejhej cd"
 # delay_response_milliseconds = 1000
