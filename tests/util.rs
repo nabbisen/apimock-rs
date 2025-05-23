@@ -24,6 +24,8 @@ const CONFIG_FILE_NAME: &str = "apimock.toml";
 pub const DYN_ROUTE_DIR: &str = "apimock-dyn-route";
 const MIDDLEWARE_FILE_PATH: &str = "apimock-middleware.rhai";
 
+pub const DUMMY_BINARY_DATA: &[u8] = b"Q\xb0\xd6wE\xc6\xbc\xaa\x1a\x01\xbf\x9e\xb0\xf6\xac\xcd-\xe8\x8dDdummy\x97\x8d%.2\x10v)\xb5\xc6\x0b\x01\xcd\xdc4\xb9O%u\x8d";
+
 /// test initial setup with dynamic port selected
 pub async fn setup() -> u16 {
     let port = dynamic_port();

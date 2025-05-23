@@ -5,7 +5,7 @@ use crate::util::{http_response_default, response_body_str, setup};
 #[tokio::test]
 async fn dyn_data_dir_css() {
     let port = setup().await;
-    let response = http_response_default("/css/style.css", port).await;
+    let response = http_response_default("/text/css/style.css", port).await;
 
     assert_eq!(response.status(), StatusCode::OK);
 
