@@ -31,11 +31,12 @@ Each single executable on Win/Mac/Linux are available, thanks to Rust and their 
 - Prints out routing at startup
 - Describes request content on both HTTP headers and body (json or plain text) when [`verbose`](docs/CONFIGURE.md#generalverbose) log is activated
 
-## 5. Test helper
+## ~~. Test helper~~
 
-- Can [switch data directory paths](docs/CONFIGURE.md#urldata_dir_query_path) manually in testing via specific HTTP request to make json responses flexible
+- ~~Can [switch data directory paths](docs/CONFIGURE.md#urldata_dir_query_path) manually in testing via specific HTTP request to make json responses flexible~~
+
+Commands support might come in the future. (todo)
 
 ## 6. crate features
 
-- `debug`: when activated, `Debug` trait is enabled on app structs.
 - `spawn`: when activated, the server is available as subprocess. The output will be returned via tokio mpsc queue.

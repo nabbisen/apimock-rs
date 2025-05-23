@@ -37,9 +37,11 @@ curl http://localhost:3001/api/v1/hello
 npx apimock --init
 ```
 
-For more details, [see the docs](docs/README.md).
+For more details, check out [the docs](https://github.com/nabbisen/apimock-rs/blob/main/docs/README.md).
 
-## 🤝 Open-source, with care
+---
+
+## Open-source, with care
 
 This project is lovingly built and maintained by volunteers.  
 We hope it helps streamline your API development.  

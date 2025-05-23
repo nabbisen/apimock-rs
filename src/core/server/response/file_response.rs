@@ -2,7 +2,7 @@ use http_body_util::{BodyExt, Full};
 use hyper::body::Bytes;
 use serde_json::{Map, Value};
 
-use std::{collections::HashMap, path::Path};
+use std::collections::HashMap;
 
 use crate::core::{
     server::{constant::CSV_RECORDS_DEFAULT_KEY, types::BoxBody},
@@ -13,7 +13,7 @@ use super::{
     error_response::{bad_request_response, internal_server_error_response},
     text_response::text_response,
     util::{
-        binary_content_builder, json_content_builder, json_value_with_jsonpath_key,
+        binary_content_builder, file_extension, json_content_builder, json_value_with_jsonpath_key,
         text_file_content_type,
     },
 };
@@ -86,18 +86,13 @@ impl FileResponse {
 
     /// text file response
     fn text_file_content_response(&self) -> Result<hyper::Response<BoxBody>, hyper::http::Error> {
-        match Path::new(self.file_path.as_str())
-            .extension()
-            .unwrap_or_default()
-            .to_ascii_lowercase()
-            .to_str()
-        {
-            Some(ext) => match ext {
+        match file_extension(self.file_path.as_str()) {
+            Some(ext) => match ext.as_str() {
                 "json" | "json5" => self.json_file_content_response(),
                 "csv" => self.csv_file_content_response(),
                 _ => text_response(
                     self.text_content.clone().unwrap_or_default().as_str(),
-                    Some(text_file_content_type(ext).as_str()),
+                    Some(text_file_content_type(ext.as_str()).as_str()),
                     None,
                 ),
             },
@@ -188,7 +183,7 @@ impl FileResponse {
     /// binary file response
     fn binary_file_content_response(&self) -> Result<hyper::Response<BoxBody>, hyper::http::Error> {
         let content = self.binary_content.clone().unwrap_or_default().to_owned();
-        binary_content_builder(self.custom_headers.as_ref())
+        binary_content_builder(self.file_path.as_str(), self.custom_headers.as_ref())
             .body(Full::new(Bytes::from(content)).boxed())
     }
 }

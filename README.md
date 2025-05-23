@@ -33,6 +33,8 @@ It’s rebuilt from the ground up in version 4. Designed to help developers of a
 
 ![demo](docs/.assets/demo.gif)
 
+### Getting started
+
 ```sh
 # install
 npm install -D apimock-rs
@@ -58,7 +60,7 @@ npx apimock --init
 
 ### 📖 Documentation
 
-For more details, check out [the docs](docs/README.md).
+For more details, check out [the docs for users](docs/users/README.md). The docs [for contributors](docs/developers/README.md) also live.
 
 ### 💻️ GUI bundle
 
