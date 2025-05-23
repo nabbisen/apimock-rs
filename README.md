@@ -60,7 +60,7 @@ npx apimock --init
 
 ### 📖 Documentation
 
-For more details, check out [the docs for users](docs/users/README.md). The docs [for contributors](docs/developers/README.md) also live.
+For more details, check out [the docs for users](https://nabbisen.github.io/apimock-rs/users/). The docs [for contributors](https://nabbisen.github.io/apimock-rs/developers/) also live.
 
 ### 💻️ GUI bundle
 

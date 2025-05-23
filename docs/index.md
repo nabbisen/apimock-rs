@@ -2,7 +2,7 @@
 
 ## For Users
 
-- [**Users docs**](users/README.md)
+- [**Users docs**](users/index.md)
 
 ### Requirements
 
@@ -17,11 +17,11 @@ npx apimock
 
 ### Demo
 
-![demo](.assets/demo.gif)
+![demo](https://github.com/nabbisen/apimock-rs/blob/main/docs/.assets/demo.gif)
 
 ## For Contributors
 
-- [Developers docs](developers/README.md)
+- [Developers docs](developers/index.md)
 
 ## For full source code
 

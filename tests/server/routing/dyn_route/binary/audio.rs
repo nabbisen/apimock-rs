@@ -5,7 +5,7 @@ use crate::util::{http_response_default, response_body_bytes, setup, DUMMY_BINAR
 #[tokio::test]
 async fn dyn_data_dir_sound_mp3() {
     let port = setup().await;
-    let response = http_response_default("/binary/sound/sound.mp3", port).await;
+    let response = http_response_default("/binary/audio/sound.mp3", port).await;
 
     assert_eq!(response.status(), StatusCode::OK);
 
