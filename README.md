@@ -1,9 +1,10 @@
 # API mock (apimock-rs)
 
 [![crates.io](https://img.shields.io/crates/v/apimock?label=latest)](https://crates.io/crates/apimock)
-[![Documentation](https://docs.rs/apimock/badge.svg?version=latest)](https://docs.rs/apimock)
+[![Rust Documentation](https://docs.rs/apimock/badge.svg?version=latest)](https://docs.rs/apimock)
 [![Dependency Status](https://deps.rs/crate/apimock/latest/status.svg)](https://deps.rs/crate/apimock)
 [![Releases Workflow](https://github.com/apimokka/apimock-rs/actions/workflows/release-executable.yaml/badge.svg)](https://github.com/apimokka/apimock-rs/actions/workflows/release-executable.yaml)
+[![App Docs Workflow](https://github.com/apimokka/apimock-rs/actions/workflows/docs.yaml/badge.svg)](https://github.com/apimokka/apimock-rs/actions/workflows/docs.yaml)
 [![License](https://img.shields.io/github/license/apimokka/apimock-rs)](https://github.com/apimokka/apimock-rs/blob/main/LICENSE)
 
 ---
@@ -60,7 +61,7 @@ npx apimock --init
 
 ### 📖 Documentation
 
-For more details, check out [the docs for users](https://nabbisen.github.io/apimock-rs/users/). The docs [for contributors](https://nabbisen.github.io/apimock-rs/developers/) also live.
+For more details, check out [the docs for users](https://apimokka.github.io/apimock-rs/users/). The docs [for contributors](https://apimokka.github.io/apimock-rs/developers/) also live.
 
 ### 💻️ GUI bundle
 

@@ -6,16 +6,14 @@
 
 ### Requirements
 
-* Node.js and npm (stable)
+* Node.js and npm (stable) only
 
-### Install and run
+### Quick start
 
 ```sh
 npm install -D apimock-rs
 npx apimock
 ```
-
-### Demo
 
 ![demo](https://github.com/apimokka/apimock-rs/blob/main/docs/.assets/demo.gif?raw=true)
 
