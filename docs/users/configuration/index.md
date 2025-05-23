@@ -1,4 +1,36 @@
-# Configuration and options
+# Configuration
+
+## Key points
+
+* Rules are evaluated in order; place specific rules first.
+
+## Categories
+
+- [File-based routing](./file-based.md)
+- [Rule-based routing](./rule-based.md)
+- [Scripting mapping](./scripting-mappings.md)
+
+---
+
+## Basic Configuration
+
+### Configuration File: `apimock.toml`
+
+```toml
+listener.port = 3001
+log.verbose = { header = false, body = false }
+[service]
+rule_sets = [...]
+fallback_respond_dir = "./api"
+```
+
+In the `rule_sets` entry, you can specify `.toml` files where custom mappings from request paths to specific mock files are defined.
+
+
+
+
+Below is v3. (todo)
+
 
 ## Configuration
 

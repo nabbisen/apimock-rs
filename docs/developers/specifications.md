@@ -1,14 +1,26 @@
-# Specs
+# Specifications
 
-## Designed in mind with
+## Request and Response
 
-- Performance
-    - Fast speed, low memory consumption.
-- Easy setup/usage
-    - Built as single (and small) executable, integrated configuration. (No need to write scripts, config-less mode is also supported.)
-- Cross-platform support
+### Request Matching
 
-## How startup works
+Matching is performed based on:
+
+- URL path (e.g. `/api/v1/function`)
+- Headers
+- Request body content (JSON only)
+
+### Response Sources
+
+Responses are typically defined using:
+
+- `.json` / `.json5` files for static responses.
+- `.csv` files are available as JSON responses including records.
+- Optionally, rule sets `.toml` offers way to define both text response and HTTP status code response.
+
+## ~~How startup works~~
+
+Below is v3 (todo)
 
 ```mermaid
 graph
@@ -20,7 +32,9 @@ graph
     end
 ```
 
-### How response works
+### ~~How response works~~
+
+Below is v3 (todo)
 
 ```mermaid
 graph
