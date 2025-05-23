@@ -95,7 +95,7 @@ fn binary_content_type(file_path: &str) -> HeaderValue {
         "webp" => "image/webp",
         "svg" => "image/svg+xml",
 
-        // - sound
+        // - audio
         "mp3" => "audio/mpeg",
         "wav" => "audio/wav",
         "flac" => "audio/flac",
