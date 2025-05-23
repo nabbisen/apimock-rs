@@ -5,7 +5,7 @@
 Clone the repository and build:
 
 ```sh
-git clone https://github.com/nabbisen/apimock-rs.git
+git clone https://github.com/apimokka/apimock-rs.git
 cd apimock-rs
 
 cargo run

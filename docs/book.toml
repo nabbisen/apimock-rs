@@ -1,0 +1,24 @@
+[book]
+title = "API mock (apimock-rs) Docs"
+authors = ["nabbisen<nabbisen@scqr.net>"]
+description = "Documentation about API mock (apimock-rs)"
+language = "en"
+multilingual = false
+
+[build]
+# src = "src" 
+# build-dir = "book" 
+
+# Markdown パーサーの設定
+# default-theme = "ayu" # デフォルトテーマ
+# preferred-dark-theme = "ayu" # ダークテーマ
+# highlight-theme = "dracula" # コードハイライトテーマ
+# live-reload = true # ライブリロードの有効化
+
+[output.html]
+# HTML 出力に関する設定
+# print.enable = true # 印刷用PDF出力の有効化
+# fold.enable = true # コードブロックの折りたたみ有効化
+# search.enable = true # 検索機能の有効化
+# default-selection-tab = "js" # デフォルトの選択タブ
+# edit-url-template = "https://github.com/your_username/your_repo/edit/main/{path}" # GitHubでの編集リンク

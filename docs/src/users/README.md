@@ -19,9 +19,10 @@ This guide walks through how to get started with `apimock-rs`, a TOML-configurab
 
 ## 😺 What's next ?
 
-- 👟 [Getting started](../../README.md#getting-started) (Return to top)
-- 🧳 [Configuration](./configuration/index.md)
-- 🍹 [Examples](./examples.md)
-- 👟 [Rule sets](./rule-sets.md)
-- 🎒 [Middleware](./middleware.md)
+- 👟 [Getting started](./getting-started.md)
+- 🧳 [Examples](./examples.md)
 - 🍹 [FAQ](./faq.md)
+- 🎒 [Configuration](./configuration/README.md)
+    - 🍪 [File-based](./configuration//file-based.md)
+    - 🍨 [Rule-based](./configuration/rule-based.md)
+    - 🧁 [Scripting matching](./configuration//scripting-mappings.md)

@@ -12,7 +12,7 @@ If you’re building or testing APIs, this tool makes mocking painless. You don�
 
 It’s rebuilt from the ground up in version 4. Designed to help developers of all levels.
 
-![demo](docs/.assets/demo.gif)
+![demo](https://github.com/apimokka/apimock-rs/blob/main/docs/.assets/demo.gif?raw=true)
 
 ```sh
 # install
@@ -37,7 +37,7 @@ curl http://localhost:3001/api/v1/hello
 npx apimock --init
 ```
 
-For more details, check out [the docs](https://github.com/nabbisen/apimock-rs/blob/main/docs/README.md).
+For more details, check out [the docs](https://github.com/apimokka/apimock-rs/blob/main/docs/README.md).
 
 ---
 

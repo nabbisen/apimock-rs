@@ -3,8 +3,8 @@
 [![crates.io](https://img.shields.io/crates/v/apimock?label=latest)](https://crates.io/crates/apimock)
 [![Documentation](https://docs.rs/apimock/badge.svg?version=latest)](https://docs.rs/apimock)
 [![Dependency Status](https://deps.rs/crate/apimock/latest/status.svg)](https://deps.rs/crate/apimock)
-[![Releases Workflow](https://github.com/nabbisen/apimock-rs/actions/workflows/release-executable.yaml/badge.svg)](https://github.com/nabbisen/apimock-rs/actions/workflows/release-executable.yaml)
-[![License](https://img.shields.io/github/license/nabbisen/apimock-rs)](https://github.com/nabbisen/apimock-rs/blob/main/LICENSE)
+[![Releases Workflow](https://github.com/apimokka/apimock-rs/actions/workflows/release-executable.yaml/badge.svg)](https://github.com/apimokka/apimock-rs/actions/workflows/release-executable.yaml)
+[![License](https://img.shields.io/github/license/apimokka/apimock-rs)](https://github.com/apimokka/apimock-rs/blob/main/LICENSE)
 
 ---
 
@@ -15,7 +15,7 @@
 v4 introduces a fundamental shift in design. Existing configuration files will no longer work as-is. Some features will be deprecated.
 In return: cleaner configs, dynamic resolution, and better extensibility.
 
-Notice below is around v4 and current stable version is [v3](https://github.com/nabbisen/apimock-rs/tree/3.2.2).
+Notice below is around v4 and current stable version is [v3](https://github.com/apimokka/apimock-rs/tree/3.2.2).
 
 ---
 
@@ -64,7 +64,7 @@ For more details, check out [the docs for users](https://nabbisen.github.io/apim
 
 ### 💻️ GUI bundle
 
-[apimokka](https://github.com/nabbisen/apimokka), lightweight GUI bundle, is also available.
+[apimokka](https://github.com/apimokka/apimokka), lightweight GUI bundle, is also available.
 
 ---
 
