@@ -9,6 +9,7 @@ verbose = { header = false, body = false }
 [service]
 rule_sets = [
     "apimock-rule-sets/common.toml",
+    "apimock-rule-sets/server/routing/rule_set/prefix.toml",
     "apimock-rule-sets/server/routing/rule_set/rule/when/request/rule_op.toml",
     "apimock-rule-sets/server/routing/rule_set/rule/when/request/url_path.toml",
     "apimock-rule-sets/server/routing/rule_set/rule/when/request/headers.toml",
