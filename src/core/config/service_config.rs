@@ -8,9 +8,7 @@ use std::path::Path;
 pub mod strategy;
 mod util;
 
-use super::constant::{
-    PRINT_DELIMITER, SERVICE_DEFAULT_FALLBACK_RESPOND_DIR, SERVICE_DEFAULT_RULE_SET_FILE_PATH,
-};
+use super::constant::{PRINT_DELIMITER, SERVICE_DEFAULT_FALLBACK_RESPOND_DIR};
 use crate::core::server::{
     middleware::Middleware,
     parsed_request::ParsedRequest,
@@ -25,7 +23,7 @@ pub struct ServiceConfig {
     // routing
     pub strategy: Option<Strategy>,
     #[serde(rename = "rule_sets")]
-    pub rule_sets_file_paths: Vec<String>,
+    pub rule_sets_file_paths: Option<Vec<String>>,
     #[serde(skip)]
     pub rule_sets: Vec<RuleSet>,
 
@@ -164,15 +162,9 @@ impl ServiceConfig {
 
 impl Default for ServiceConfig {
     fn default() -> Self {
-        let rule_sets_file_paths = if Path::new(SERVICE_DEFAULT_RULE_SET_FILE_PATH).exists() {
-            vec![SERVICE_DEFAULT_RULE_SET_FILE_PATH.to_owned()]
-        } else {
-            vec![]
-        };
-
         ServiceConfig {
             strategy: Some(Strategy::default()),
-            rule_sets_file_paths,
+            rule_sets_file_paths: None,
             rule_sets: vec![],
             middlewares_file_paths: None,
             middlewares: vec![],
