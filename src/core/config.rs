@@ -32,11 +32,10 @@ pub struct Config {
 /// app config
 impl Config {
     /// create new instance
-    pub fn new(config_file_path: Option<&String>, middleware_file_path: Option<&String>) -> Self {
+    pub fn new(config_file_path: Option<&String>) -> Self {
         let mut ret = Self::init(config_file_path);
 
         ret.set_rule_sets();
-        ret.set_default_middleware_file_path_if_not_specified(middleware_file_path);
         match ret.middlewares_from_file_paths() {
             Ok(x) => {
                 if !x.is_empty() {
@@ -83,9 +82,12 @@ impl Config {
     fn set_rule_sets(&mut self) {
         let relative_dir_path = self.current_dir_to_parent_dir_relative_path();
 
-        self.service.rule_sets = self
-            .service
-            .rule_sets_file_paths
+        let rule_sets_file_paths = match self.service.rule_sets_file_paths.as_ref() {
+            Some(x) => x,
+            None => return,
+        };
+
+        self.service.rule_sets = rule_sets_file_paths
             .iter()
             .enumerate()
             .map(|(rule_set_idx, rule_set_file_path)| {
@@ -103,25 +105,6 @@ impl Config {
                 RuleSet::new(rule_set_file_path, relative_dir_path.as_str(), rule_set_idx)
             })
             .collect();
-    }
-
-    /// set middlewares file paths if no file path is specified
-    fn set_default_middleware_file_path_if_not_specified(
-        &mut self,
-        middleware_file_path: Option<&String>,
-    ) {
-        if let Some(middlewares_file_paths) = self.service.middlewares_file_paths.as_ref() {
-            if !middlewares_file_paths.is_empty() {
-                return;
-            }
-        }
-
-        let _ = match middleware_file_path {
-            Some(x) => {
-                self.service.middlewares_file_paths = Some(vec![x.to_owned()]);
-            }
-            None => (),
-        };
     }
 
     /// set middlewares from middlewares file paths

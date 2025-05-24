@@ -18,11 +18,11 @@ use std::{env, time::Duration};
 use apimock::core::{app::App, args::EnvArgs};
 
 pub const TEST_WORK_DIR: &str = "examples/config/tests";
+pub const MIDDLEWARE_TEST_WORK_DIR: &str = "examples/config/tests/apimock-middleware";
 const TEST_CONFIG_FREE_ENV_WORK_DIR: &str =
     "examples/config/tests/@extra-test-cases/config-free-env";
 const CONFIG_FILE_NAME: &str = "apimock.toml";
 pub const DYN_ROUTE_DIR: &str = "apimock-dyn-route";
-const MIDDLEWARE_FILE_PATH: &str = "apimock-middleware.rhai";
 
 pub const DUMMY_BINARY_DATA: &[u8] = b"Q\xb0\xd6wE\xc6\xbc\xaa\x1a\x01\xbf\x9e\xb0\xf6\xac\xcd-\xe8\x8dDdummy\x97\x8d%.2\x10v)\xb5\xc6\x0b\x01\xcd\xdc4\xb9O%u\x8d";
 
@@ -36,6 +36,13 @@ pub async fn setup() -> u16 {
 /// test initial setup with port specified
 pub async fn setup_with_port(port: u16) {
     let _ = setup_impl(port, Some(TEST_WORK_DIR.to_owned()), true).await;
+}
+
+/// test initial setup with dynamic port selected and current_dir specifid
+pub async fn setup_with_middleware_activated() -> u16 {
+    let port = dynamic_port();
+    setup_impl(port, Some(MIDDLEWARE_TEST_WORK_DIR.to_owned()), true).await;
+    port
 }
 
 /// test initial setup with dynamic port selected and current_dir specifid
@@ -59,7 +66,7 @@ async fn setup_impl(
         let mut app_env_args = if env_args_for_test_configs {
             env_args(port)
         } else {
-            let mut env_args = EnvArgs::init_with_default();
+            let mut env_args = EnvArgs::default().expect("failed to get env args");
             env_args.port = Some(port);
             env_args
         };
@@ -75,7 +82,7 @@ async fn setup_impl(
         let port_conflict_mitigation_milliseconds = rand::rng().random_range(1..=1000);
         let _ = tokio::time::sleep(Duration::from_millis(port_conflict_mitigation_milliseconds));
 
-        let app = App::new(app_env_args, None, true).await;
+        let app = App::new(&app_env_args, None, true).await;
         app.server.start().await
     });
 
@@ -85,10 +92,9 @@ async fn setup_impl(
 
 /// env args for testing
 fn env_args(port: u16) -> EnvArgs {
-    let mut ret = EnvArgs::init_with_default();
+    let mut ret = EnvArgs::default().expect("failed to get env args");
 
     ret.port = Some(port);
-    ret.middleware_file_path = Some(MIDDLEWARE_FILE_PATH.to_owned());
 
     match ret.validate() {
         Ok(_) => ret,

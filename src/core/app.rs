@@ -19,16 +19,13 @@ impl App {
     ///
     /// - listener_port_to_overwrite: ignores port in config toml. used in both arguments and tests
     pub async fn new(
-        env_args: EnvArgs,
+        env_args: &EnvArgs,
         spawn_tx: Option<Sender<String>>,
         includes_ansi_codes: bool,
     ) -> Self {
         let _ = init_logger(spawn_tx, includes_ansi_codes);
 
-        let mut config = Config::new(
-            env_args.config_file_path.as_ref(),
-            env_args.middleware_file_path.as_ref(),
-        );
+        let mut config = Config::new(env_args.config_file_path.as_ref());
 
         // overwrite port if the arg is specified
         if let Some(port) = env_args.port {
