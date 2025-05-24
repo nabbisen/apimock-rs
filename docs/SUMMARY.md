@@ -1,16 +1,23 @@
-# ToC
+# SUMMARY
 
 - [Home](./README.md)
 
 ---
 
 - [Users docs](./users/README.md)
-    - [Getting started](./users/getting-started.md)
+    - [Getting started](./users/getting-started/README.md)
+        - [File-based routing](./users/getting-started/file-based-routing.md)
+        - [Root configuration](./users/getting-started/root-configuration.md)
+        - [Rule-based routing](./users/getting-started/rule-based-routing.md)
     - [Examples](./users/examples.md)
     - [FAQ](./users/faq.md)
     - [Configuration](./users/configuration/README.md)
-        - [File-based](./users/configuration/file-based.md)
-        - [Rule-based](./users/configuration/rule-based.md)
+        - [Root configuration](./users/configuration/root-configuration.md)
+        - [File-based routing](./users/configuration/file-based-routing.md)
+        - [Rule-based routing](./users/configuration/rule-based-routing/README.md)
+            - [Prefix section](./users/configuration/rule-based-routing/prefix-section.md)
+            - [When section](./users/configuration/rule-based-routing/when-section.md)
+            - [Respond section](./users/configuration/rule-based-routing/respond-section.md)
         - [Scripting matching](./users/configuration/scripting-mappings.md)
 
 ---

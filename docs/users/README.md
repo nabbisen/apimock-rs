@@ -1,28 +1,15 @@
-# API mock (apimock-rs) User Documentation
+# API mock (apimock-rs) Users Documentation
 
-## 🗺️ Overview
+This guide walks through how to get started with `apimock-rs`, a mock HTTP server for testing APIs. It covers basic setup, examples, frequently asked questions, deep configuration.
 
-This guide walks through how to get started with `apimock-rs`, a TOML-configurable mock HTTP server for testing APIs. It covers basic setup, configuration, tips, frequently asked questions, advanced examples, and tutorials.
+## 🏞️ Concept Overview
 
-## 🏯 Architecture
-
-**API mock (apimock-rs)** is a lightweight and developer-friendly HTTP mock server built in Rust. It provides file-based mechanism for mocking RESTful APIs using static JSON responses. Optionally, dynamic routing is supported: rule-based matching via `toml` and scripting via `rhai`.
+**API mock (apimock-rs)** is a developer-friendly, lightweight and functional HTTP mock server built in Rust. It provides file-based mechanism for mocking RESTful APIs using static JSON responses. Optionally, dynamic routing is supported: rule-based matching via `toml` and scripting via `rhai`.
 
 ### Key Features
 
-- **Zero-config start** – Just point to a folder with JSON files and run.
-- **File-based mocks** – Uses folder paths and `.json` files to simulate real API endpoints.
-- **Rule-based mocks** – Supports conditional responses with `when`-`respond` rules defined in `.toml`.
-- **Scriptable mocks** – Supports `.rhai` scripts for conditional responses.
-- **High-performance** – Built with async Rust using `tokio` and `hyper`.
-- **Simple setup** – Usable via a single CLI command, no compilation needed via npm-distributed binary.
-
-## 😺 What's next ?
-
-- 👟 [Getting started](./getting-started.md)
-- 🧳 [Examples](./examples.md)
-- 🍹 [FAQ](./faq.md)
-- 🎒 [Configuration](./configuration/README.md)
-    - 🍪 [File-based](./configuration//file-based.md)
-    - 🍨 [Rule-based](./configuration/rule-based.md)
-    - 🧁 [Scripting matching](./configuration//scripting-mappings.md)
+- 👟 **Zero-config start** – Just point to a directory (folder) with JSON files and run.
+- 🍬 **Simple setup** – Usable via a single CLI command, no compilation needed via npm-distributed binary.
+- 🧳 **Static routing** – File-based simple responses. Uses directory paths and `.json`-like files to simulate API endpoints.
+- 🎒 **Dynamic routing with matching** – Supports conditional responses with rule-based mechanism and scripting.
+- 🍨 **High-performance** – Effortless speed and minimal presence. Built with async Rust using `tokio` and `hyper`.

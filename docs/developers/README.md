@@ -1,4 +1,4 @@
-# API mock (apimock-rs) Developer Documentation
+# API mock (apimock-rs) Developers Documentation
 
 ## Getting started
 

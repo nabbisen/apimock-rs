@@ -1,4 +1,4 @@
-# FAQ
+# FAQ (Frequently Asked Questions)
 
 **Q: Can I match only by URL path?**
 A: Yes. `url_path`, `headers` and `body` are options.
