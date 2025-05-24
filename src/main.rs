@@ -1,6 +1,10 @@
 /// app entry point on executable
 #[tokio::main]
 async fn main() {
-    let app = apimock::run(apimock::core::args::EnvArgs::init_with_default()).await;
+    let env_args = match apimock::core::args::EnvArgs::default() {
+        Some(x) => x,
+        None => return (),
+    };
+    let app = apimock::run(&env_args).await;
     app.server.start().await
 }

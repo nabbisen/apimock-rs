@@ -9,7 +9,7 @@ use core::args::EnvArgs;
 
 /// return hyper http server
 #[cfg(not(feature = "spawn"))]
-pub async fn run(env_args: EnvArgs) -> App {
+pub async fn run(env_args: &EnvArgs) -> App {
     App::new(env_args, None, true).await
 }
 
@@ -20,6 +20,6 @@ use tokio::sync::mpsc::Sender;
 /// return hyper http server
 /// `includes_ansi_codes`: if true, log includes ansi escape codes for console text color
 #[cfg(feature = "spawn")]
-pub async fn run(env_args: EnvArgs, spawn_tx: Sender<String>, includes_ansi_codes: bool) -> App {
+pub async fn run(env_args: &EnvArgs, spawn_tx: Sender<String>, includes_ansi_codes: bool) -> App {
     App::new(env_args, Some(spawn_tx), includes_ansi_codes).await
 }

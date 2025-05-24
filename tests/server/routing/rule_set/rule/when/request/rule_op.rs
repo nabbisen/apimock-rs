@@ -1,3 +1,5 @@
+use std::str::FromStr;
+
 use hyper::{
     header::{HeaderName, HeaderValue},
     HeaderMap, StatusCode,
@@ -45,7 +47,12 @@ async fn matches_not_equal_1() {
     let port: u16 = setup().await;
     let headers: HeaderMap<HeaderValue> = [("user", "not-equal-unique-request")]
         .iter()
-        .map(|(k, v)| (HeaderName::from_static(k), HeaderValue::from_static(v)))
+        .map(|(k, v)| {
+            (
+                HeaderName::from_str(k).expect("failed to define header name"),
+                HeaderValue::from_static(v),
+            )
+        })
         .collect();
     let response = http_response_headers_condition("/rule-op/not-equal/2", port, &headers).await;
 
@@ -65,7 +72,12 @@ async fn matches_not_equal_2() {
     let port: u16 = setup().await;
     let headers: HeaderMap<HeaderValue> = [("user", "not-equal-unique-request")]
         .iter()
-        .map(|(k, v)| (HeaderName::from_static(k), HeaderValue::from_static(v)))
+        .map(|(k, v)| {
+            (
+                HeaderName::from_str(k).expect("failed to define header name"),
+                HeaderValue::from_static(v),
+            )
+        })
         .collect();
     let response = http_response_headers_condition("/rule-op/not-equal/", port, &headers).await;
 
@@ -85,7 +97,12 @@ async fn not_matches_not_equal_1() {
     let port: u16 = setup().await;
     let headers: HeaderMap<HeaderValue> = [("user", "not-equal-unique-request")]
         .iter()
-        .map(|(k, v)| (HeaderName::from_static(k), HeaderValue::from_static(v)))
+        .map(|(k, v)| {
+            (
+                HeaderName::from_str(k).expect("failed to define header name"),
+                HeaderValue::from_static(v),
+            )
+        })
         .collect();
     let response = http_response_headers_condition("/rule-op/not-equal/1", port, &headers).await;
 

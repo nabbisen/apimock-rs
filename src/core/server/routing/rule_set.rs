@@ -10,7 +10,12 @@ pub mod rule;
 
 use guard::Guard;
 use prefix::Prefix;
-use rule::Rule;
+use rule::{respond::Respond, Rule};
+
+use crate::core::{
+    config::service_config::strategy::Strategy, server::parsed_request::ParsedRequest,
+    util::http::normalize_url_path,
+};
 
 #[derive(Clone, Deserialize, Debug)]
 pub struct RuleSet {
@@ -37,12 +42,19 @@ impl RuleSet {
             Err(err) => panic!("{}: invalid toml content\n({})", rule_set_file_path, err),
         };
 
-        // - prefix - respond_dir_prefix
+        // - prefix
         let mut prefix = match ret.prefix {
             Some(x) => x.clone(),
             None => Prefix::default(),
         };
 
+        // - prefix.url_path_prefix
+        prefix.url_path_prefix = match prefix.url_path_prefix {
+            Some(url_path_prefix) => Some(normalize_url_path(url_path_prefix.as_str(), None)),
+            None => None,
+        };
+
+        // - prefix.respond_dir_prefix
         let respond_dir_prefix = match prefix.respond_dir_prefix.as_ref() {
             Some(respond_dir_prefix) => respond_dir_prefix.as_str(),
             None => ".",
@@ -73,6 +85,38 @@ impl RuleSet {
         ret.file_path = rule_set_file_path.to_owned();
 
         ret
+    }
+
+    /// find rule matching request and return its respond content
+    pub fn find_matched(
+        &self,
+        received_request: &ParsedRequest,
+        strategy: Option<&Strategy>,
+        rule_set_idx: usize,
+    ) -> Option<Respond> {
+        let _ = match self.prefix.as_ref() {
+            Some(prefix) if prefix.url_path_prefix.is_some() => {
+                if !received_request
+                    .url_path
+                    .starts_with(prefix.url_path_prefix.as_ref().unwrap())
+                {
+                    return None;
+                }
+            }
+            _ => (),
+        };
+
+        for (rule_idx, rule) in self.rules.iter().enumerate() {
+            let is_match = rule.when.is_match(received_request, rule_idx, rule_set_idx);
+            if is_match {
+                // todo: last match in the future ?
+                match strategy {
+                    Some(&Strategy::FirstMatch) | None => return Some(rule.respond.to_owned()),
+                }
+            }
+        }
+
+        None
     }
 
     /// validate

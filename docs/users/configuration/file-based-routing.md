@@ -1,21 +1,32 @@
-# Getting started
-
-## Directory Structure
-
-Example structure:
+# File-based routing
 
 ```
-fallback-respond-dir(root)/
+(root)/
 └── api/
     └── v1/
         ├── status.json
-        └── user/
-            ├── 1.json
-            └── 2.json
+        ├── user/
+        │   ├── 1.json
+        │   └── 2.json5
+        └── users.csv
 ```
 
 - A request to `/api/v1/status` returns `status.json`.
 - `/api/v1/user/1` returns the content of `1.json`.
+- `/api/v1/user/2` returns the content of `2.json5`. `.json5` is equivalent to `.json` to the server.
+- `/api/v1/users` returns the content of `users.csv` as list.
+
+
+
+
+`fallback-respond-dir`
+
+
+
+
+
+
+
 
 ## Tutorials
 

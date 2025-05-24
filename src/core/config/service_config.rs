@@ -8,9 +8,7 @@ use std::path::Path;
 pub mod strategy;
 mod util;
 
-use super::constant::{
-    PRINT_DELIMITER, SERVICE_DEFAULT_FALLBACK_RESPOND_DIR, SERVICE_DEFAULT_RULE_SET_FILE_PATH,
-};
+use super::constant::{PRINT_DELIMITER, SERVICE_DEFAULT_FALLBACK_RESPOND_DIR};
 use crate::core::server::{
     middleware::Middleware,
     parsed_request::ParsedRequest,
@@ -25,7 +23,7 @@ pub struct ServiceConfig {
     // routing
     pub strategy: Option<Strategy>,
     #[serde(rename = "rule_sets")]
-    pub rule_sets_file_paths: Vec<String>,
+    pub rule_sets_file_paths: Option<Vec<String>>,
     #[serde(skip)]
     pub rule_sets: Vec<RuleSet>,
 
@@ -94,26 +92,18 @@ impl ServiceConfig {
     /// handle on `rule_sets`
     pub async fn rule_set_response(
         &self,
-        request: &ParsedRequest,
+        received_request: &ParsedRequest,
     ) -> Option<Result<hyper::Response<BoxBody>, hyper::http::Error>> {
         for (rule_set_idx, rule_set) in self.rule_sets.iter().enumerate() {
-            for (rule_idx, rule) in rule_set.rules.iter().enumerate() {
-                let is_match = rule.when.is_match(request, rule_idx, rule_set_idx);
-                if is_match {
+            match rule_set.find_matched(received_request, self.strategy.as_ref(), rule_set_idx) {
+                Some(respond) => {
                     let dir_prefix = rule_set.dir_prefix();
-
-                    let response = rule.respond.response(dir_prefix.as_str()).await;
-
-                    // todo : last match in the future ?
-                    match self.strategy {
-                        Some(Strategy::FirstMatch) | None => {
-                            return Some(response);
-                        }
-                    }
+                    let response = respond.response(dir_prefix.as_str()).await;
+                    return Some(response);
                 }
+                None => (),
             }
         }
-
         None
     }
 
@@ -164,15 +154,9 @@ impl ServiceConfig {
 
 impl Default for ServiceConfig {
     fn default() -> Self {
-        let rule_sets_file_paths = if Path::new(SERVICE_DEFAULT_RULE_SET_FILE_PATH).exists() {
-            vec![SERVICE_DEFAULT_RULE_SET_FILE_PATH.to_owned()]
-        } else {
-            vec![]
-        };
-
         ServiceConfig {
             strategy: Some(Strategy::default()),
-            rule_sets_file_paths,
+            rule_sets_file_paths: None,
             rule_sets: vec![],
             middlewares_file_paths: None,
             middlewares: vec![],
