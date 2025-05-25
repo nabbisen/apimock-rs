@@ -9,30 +9,15 @@
 
 ---
 
-## 🛠️ App overhaul announcement
-
-### ⚠️ Major update in development (v4)
-
-v4 introduces a fundamental shift in design. Existing configuration files will no longer work as-is. Some features will be deprecated.
-In return: cleaner configs, dynamic resolution, and better extensibility.
-
-Notice below is around v4 and current stable version is [v3](https://github.com/apimokka/apimock-rs/tree/3.2.2).
-
----
-
 ## 🪄 Mock APIs easily — no setup stress, just JSON and go
 
 If you’re building or testing APIs, this tool makes mocking painless. You don’t need to write any config files — just use folders and JSON. It’s super fast, efficient, and flexible when you need it to be.
 
-    🎈 No config needed to get started
-
-    🥷 Fast to launch, light on memory, out of your way
-
-    🧩 Moreover, advanced matching and custom scripting supported
+- 🎈 No config needed to get started
+- 🥷 Fast to launch, light on memory, out of your way
+- 🧩 Moreover, advanced matching and custom scripting supported
 
 It’s rebuilt from the ground up in version 4. Designed to help developers of all levels.
-
-![demo](docs/.assets/demo.gif)
 
 ### Getting started
 
@@ -66,6 +51,14 @@ For more details, check out [the docs](https://apimokka.github.io/apimock-rs/).
 ### 💻️ GUI bundle
 
 [apimokka](https://github.com/apimokka/apimokka), featherlight GUI bundle, is also available.
+
+---
+
+## 🛠️ App overhaul announcement
+
+### ⚠️ v4, our new major version, was released. Compatibility Note
+
+v4 is a complete rewrite, breaking compatibility with v3. A direct migration isn't supported; please opt to continue with v3 or start fresh with v4. V4's streamlined file-based and rule-based architecture aims to make new response configurations less burdensome.
 
 ---
 

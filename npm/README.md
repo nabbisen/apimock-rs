@@ -4,15 +4,11 @@
 
 If you’re building or testing APIs, this tool makes mocking painless. You don’t need to write any config files — just use folders and JSON. It’s super fast, efficient, and flexible when you need it to be.
 
-    🎈 No config needed to get started
-
-    🥷 Fast to launch, light on memory, out of your way
-
-    🧩 Moreover, advanced matching and custom scripting supported
+- 🎈 No config needed to get started
+- 🥷 Fast to launch, light on memory, out of your way
+- 🧩 Moreover, advanced matching and custom scripting supported
 
 It’s rebuilt from the ground up in version 4. Designed to help developers of all levels.
-
-![demo](https://github.com/apimokka/apimock-rs/blob/main/docs/.assets/demo.gif?raw=true)
 
 ```sh
 # install
