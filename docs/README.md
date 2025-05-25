@@ -14,7 +14,9 @@
   <img src=".assets/logo.png">
 </div>
 
-A developer-friendly, robust and functional HTTP mock server built in Rust. While this is a CLI tool, a featherlight GUI wrapper named [API mokka](https://github.com/apimokka/apimokka) is also available.
+A developer-friendly, robust and functional HTTP mock server built in Rust.
+
+While this is a CLI tool, a featherlight GUI wrapper named [API mokka](https://github.com/apimokka/apimokka) will be also available. (development in progress)
 
 ### Who is this for?
 
