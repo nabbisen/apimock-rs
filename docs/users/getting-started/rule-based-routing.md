@@ -6,13 +6,33 @@ Now, let's dive into `apimock-rule-set.toml` and define some powerful rules ! Ea
 
 Here are examples of how you can set up different types of rules in `apimock-rule-set.toml`:
 
-### Example 1: Match with Request URL Path
+### Example 1: Match with Request URL Paths
+
+These examples show how to define responses based on the incoming request's URL path.
 
 ```toml
 [[rules]]
 when.request.url_path = ""
-respond = { file_path = "root.json" }
+respond = { text = "I'm at root." }
 ```
+
+```toml
+[[rules]]
+when.request.url_path = "home"
+# Make sure to create `home.json` in a JSON format!
+respond.file_path = "home.json"
+```
+
+**Test:**
+
+```sh
+curl http://localhost:3001/
+# I'm at root.
+
+curl http://localhost:3001/home
+# (home.json content)
+```
+
 
 <!-- 
 ### Example x: Match with HTTP Method
@@ -27,20 +47,40 @@ respond = { file_path = "root.json" }
 
 ### Example 2: Match with Headers
 
+This example demonstrates how to match requests based on specific HTTP headers. This is useful for simulating authentication or content negotiation.
+
 ```toml
 [[rules]]
 [rules.when.request.headers]
 Authorization = { value = "Bearer eyJhb(...).(...).(...)" }
 [rules.respond]
-file_path = "authorized.json"
+text = "Authorized !"
 ```
 
-### Example 3: Match with Headers
+**Test:**
+
+```sh
+curl -H "Authorization: Bearer eyJhb..." http://localhost:3001/
+# Authorized !
+```
+
+### Example 3: Match with Body JSON data by Dot-Notation JSON Path
+
+This powerful feature lets you match requests based on specific values within the JSON body of an incoming request. You define the target key using a dot-notation path.
 
 ```toml
 [[rules]]
 [rules.when.request.body.json]
 "a.b.c" = { value = "d" }
 [rules.respond]
-file_path = "response.json"
+text = "Body JSON matched !"
+```
+
+**Test:**
+
+```sh
+curl http://localhost:3001/ \
+    -H "Content-Type: application/json" \
+    -d '{"a":{"b":{"c":"d"}}}'
+# Body JSON matched !
 ```

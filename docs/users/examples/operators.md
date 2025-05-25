@@ -1,0 +1,27 @@
+# Using Operators for Flexible Matching
+
+So far, our rule conditions have only used **exact (equal) matching**. For instance, a header had to be exactly "Bearer xyz", or a path had to be exactly "/api/users".
+
+But real-world scenarios often require more flexibility. Your mock server provides powerful **operators** that allow you to define various types of matching behavior:
+
+- **`equal`**: (Default) Matches if the value is exactly the same.
+- **`not_equal`**: Matches if the value is not exactly the same.
+    - **Be careful !** Because it matches anything other than the specified value, it can often lead to broader matches than you intend. Consider if a more specific `equal` or other operator might be better for your use case.
+- **`starts_with`**: Matches if the value begins with a specific string.
+- **`contains`**: Matches if the value includes a specific string anywhere within it.
+- **`wild_card`**: Matches using simple wildcard patterns (`*` for any sequence of characters, `?` for any single character). This is incredibly versatile for dynamic paths or values.
+    - **Recommended for experienced users only.** The `wild_card` operator offers immense flexibility, but it's easy to create unintended matches. Use it with caution and test your rules thoroughly to ensure they behave as expected.
+
+By choosing the right operator, you can define rules that are both precise and adaptable to varying request patterns.
+
+## Example
+
+```toml
+[[rule]]
+rule.when.path = { value = "/disallowed", op = "starts_with" }
+rule.respond.code = 403 # FORBIDDEN
+
+[[rule]]
+rule.when.path = { value = "/delicious/cookie/in-the-can", op = "contains" }
+rule.respond.text = "Cookie found !"
+```
