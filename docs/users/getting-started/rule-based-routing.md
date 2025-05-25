@@ -35,7 +35,7 @@ Authorization = { value = "Bearer eyJhb(...).(...).(...)" }
 file_path = "authorized.json"
 ```
 
-### Example 2: Match with Headers
+### Example 3: Match with Headers
 
 ```toml
 [[rules]]
