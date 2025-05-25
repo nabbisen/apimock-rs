@@ -15,11 +15,12 @@ impl When {
     /// match with condition
     pub fn is_match(
         &self,
-        sent_request: &ParsedRequest,
+        received_request: &ParsedRequest,
         rule_idx: usize,
         rule_set_idx: usize,
     ) -> bool {
-        self.request.is_match(sent_request, rule_idx, rule_set_idx)
+        self.request
+            .is_match(received_request, rule_idx, rule_set_idx)
     }
 
     /// validate

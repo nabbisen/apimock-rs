@@ -27,7 +27,7 @@ impl Request {
     /// match with condition
     pub fn is_match(
         &self,
-        sent_request: &ParsedRequest,
+        received_request: &ParsedRequest,
         rule_idx: usize,
         rule_set_idx: usize,
     ) -> bool {
@@ -36,17 +36,17 @@ impl Request {
                 .url_path
                 .as_ref()
                 .unwrap()
-                .is_match(sent_request.url_path.as_str());
+                .is_match(received_request.url_path.as_str());
 
         let headers_is_match = self.headers.is_none()
             || self.headers.as_ref().unwrap().is_match(
-                &sent_request.component_parts.headers,
+                &received_request.component_parts.headers,
                 rule_idx,
                 rule_set_idx,
             );
 
         let body_is_match =
-            self.body.is_none() || self.body.as_ref().unwrap().is_match(&sent_request);
+            self.body.is_none() || self.body.as_ref().unwrap().is_match(&received_request);
 
         url_path_is_match && headers_is_match && body_is_match
     }
