@@ -34,6 +34,6 @@
 - [Technical Referrence](./technical-referrence/README.md)
     - [Architecture](./technical-referrence/architecture.md)
     - [Features](./technical-referrence/features.md)
-    <!-- todo
-    - [Specifications](./technical-referrence/specifications.md)
-    -->
+    - [Design](./technical-referrence/design/README.md)
+        - [Server launch](./technical-referrence/design/server-launch.md)
+        - [Service response](./technical-referrence/design/service-response.md)
