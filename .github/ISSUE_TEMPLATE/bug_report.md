@@ -20,9 +20,9 @@ Steps to reproduce the behavior:
 What you expected to happen.
 
 **Environment (please complete the following information):**
-- OS: [e.g. Linux/macOS/Windows]
+- OS: [e.g. Linux / macOS / Windows]
 - Version of this software
-- How you started the server (command/flags)
+- How you started the server (command / flags)
 
 **Additional context**
 Add any other context, logs, or screenshots about the problem here.
