@@ -19,7 +19,7 @@ By choosing the right operator, you can define rules that are both precise and a
 ```toml
 [[rules]]
 when.request.url_path = { value = "/disallowed", op = "starts_with" }
-respond.code = 403 # FORBIDDEN
+respond.status = 403 # FORBIDDEN
 
 [[rules]]
 when.request.url_path = { value = "/delicious/cookie/in-the-can", op = "contains" }

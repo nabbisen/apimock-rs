@@ -9,7 +9,7 @@
 //         log::info!(
 //             "[path] {} => [{}]{}{}",
 //             style(paths.get_key_value(key).unwrap().0).yellow(),
-//             paths.get(key).unwrap().code.as_u16(),
+//             paths.get(key).unwrap().status.as_u16(),
 //             if let Some(data_src) = &paths.get(key).unwrap().data_src {
 //                 style(format!(" {}", data_src.as_str())).green()
 //             } else {

@@ -24,7 +24,7 @@ Returns the specified string as the response body. The `Content-Type` header is 
 respond.text = "My reply !"
 ```
 
-## `respond.code`
+## `respond.status`
 
 Sets the HTTP status code for the response (e.g., `200` for OK, `404` for Not Found).
 
@@ -32,7 +32,7 @@ Sets the HTTP status code for the response (e.g., `200` for OK, `404` for Not Fo
 # apimock-rule-set.toml
 [[rules]]
 # when ...
-respond.code = 401
+respond.status = 401
 ```
 
 ## Limitation

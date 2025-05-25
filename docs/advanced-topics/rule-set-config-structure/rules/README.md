@@ -25,7 +25,7 @@ classDiagram
     class Respond {
         +String file_path
         +String text
-        +Integer code
+        +Integer status
     }
 
     RuleSet --|> Prefix : contains 1
@@ -53,4 +53,4 @@ Here's an overview of the rule data structure in a nested Markdown format:
         - `respond` (Table): Specifies the response to be returned if the rule matches.
             - **`file_path`:** Returns content from a file (mutually exclusive with body).
             - **`text`:** Returns a string as the response body (mutually exclusive with file_path).
-            - **`code`:** Sets the HTTP status code.
+            - **`status`:** Sets the HTTP status code.

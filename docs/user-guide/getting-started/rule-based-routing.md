@@ -41,7 +41,7 @@ curl http://localhost:3001/home
 # (in the future)
 # [[rules]]
 # when.request.method = "GET"
-# respond = { code = 403 }
+# respond = { status = 403 }
 ```
 -->
 
