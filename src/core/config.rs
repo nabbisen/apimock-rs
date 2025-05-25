@@ -24,8 +24,8 @@ pub struct Config {
     #[serde(skip)]
     file_path: Option<String>,
 
-    pub listener: ListenerConfig,
-    pub log: LogConfig,
+    pub listener: Option<ListenerConfig>,
+    pub log: Option<LogConfig>,
     pub service: ServiceConfig,
 }
 
@@ -65,7 +65,15 @@ impl Config {
             let toml_string = fs::read_to_string(config_file_path.as_str()).unwrap();
             let mut config: Config = match toml::from_str(&toml_string) {
                 Ok(x) => x,
-                Err(err) => panic!("{}: invalid toml content\n({})", config_file_path, err),
+                Err(err) => panic!(
+                    "invalid toml content: {} ({})\n({})",
+                    config_file_path,
+                    Path::new(config_file_path)
+                        .canonicalize()
+                        .unwrap_or_default()
+                        .to_string_lossy(),
+                    err
+                ),
             };
 
             config.file_path = Some(config_file_path.to_owned());
@@ -155,7 +163,12 @@ impl Config {
 
     /// address listened to
     pub fn listener_address(&self) -> String {
-        format!("{}:{}", self.listener.ip_address, self.listener.port)
+        let listener = if let Some(listener) = self.listener.as_ref() {
+            listener
+        } else {
+            &ListenerConfig::default()
+        };
+        format!("{}:{}", listener.ip_address, listener.port)
     }
 
     /// update `fallback_respond_dir`
@@ -194,11 +207,11 @@ impl Default for Config {
     fn default() -> Self {
         Config {
             file_path: None,
-            listener: ListenerConfig {
+            listener: Some(ListenerConfig {
                 ip_address: LISTENER_DEFAULT_IP_ADDRESS.to_owned(),
                 port: LISTENER_DEFAULT_PORT,
-            },
-            log: LogConfig::default(),
+            }),
+            log: Some(LogConfig::default()),
             service: ServiceConfig::default(),
         }
     }
@@ -206,7 +219,8 @@ impl Default for Config {
 
 impl std::fmt::Display for Config {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let _ = write!(f, "{}", self.log);
+        let log = self.log.clone().unwrap_or_default();
+        let _ = write!(f, "{}", log);
         let _ = writeln!(f, "{}", PRINT_DELIMITER);
         let _ = write!(f, "{}", self.service);
         Ok(())

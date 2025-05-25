@@ -39,7 +39,15 @@ impl RuleSet {
         let deserialized = toml::from_str::<Self>(&toml_string);
         let mut ret = match deserialized {
             Ok(x) => x,
-            Err(err) => panic!("{}: invalid toml content\n({})", rule_set_file_path, err),
+            Err(err) => panic!(
+                "invalid toml content: {} ({})\n({})",
+                rule_set_file_path,
+                Path::new(rule_set_file_path)
+                    .canonicalize()
+                    .unwrap_or_default()
+                    .to_string_lossy(),
+                err
+            ),
         };
 
         // - prefix
