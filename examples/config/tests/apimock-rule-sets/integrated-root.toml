@@ -1,0 +1,7 @@
+[prefix]
+# url_path = ""
+respond_dir = "apimock-rule-sets/@respond-dir"
+
+[[rules]]
+when.request.url_path = ""
+respond = { file_path = "home.json" }

@@ -7,6 +7,8 @@ use crate::core::server::routing::rule_set::rule::{
     when::condition_statement::ConditionStatement, ConditionKey,
 };
 
+use super::util::fmt_condition_connector;
+
 #[derive(Clone, Debug, Deserialize)]
 #[serde(transparent)]
 pub struct Headers(pub HashMap<ConditionKey, ConditionStatement>);
@@ -58,9 +60,14 @@ impl Headers {
 
 impl std::fmt::Display for Headers {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        for (header_key, header_statement) in self.0.iter() {
-            let _ = write!(f, "{}{}", header_key, header_statement);
-        }
+        let s = self
+            .0
+            .iter()
+            .map(|(header_key, header_statement)| format!("{}{}", header_key, header_statement))
+            .collect::<Vec<String>>()
+            .join(fmt_condition_connector().as_str());
+
+        let _ = write!(f, "[headers] {}", s);
 
         Ok(())
     }
