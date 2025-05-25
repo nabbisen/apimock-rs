@@ -15,12 +15,13 @@ Here's an example where we combine **a URL path** with **two HTTP headers** as c
 ```toml
 # rule No.1 (priority)
 [[rules]]
+[rules.when.request]
 url_path = "/api/check"
-[rules.when.headers]
+[rules.when.request.headers]
 User = { value = "user1" }
 X-Request-Id = { value = "abc123" }
-[rules.when.body.json]
-a.b.c = { value = "d" }
+[rules.when.request.body.json]
+"a.b.c" = { value = "d" }
 
 [rules.respond]
 # Make sure to create `strictly-matched.json` in a JSON format!
@@ -28,9 +29,8 @@ file_path = "strictly-matched.json"
 
 # rule No.2
 [[rules]]
-url_path = "/api/check"
-[rules.when.headers]
-User = { value = "user1" }
+when.request.url_path = "/api/check"
+when.request.headers.User = { value = "user1" }
 
 [rules.respond]
 text = "matched"

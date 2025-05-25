@@ -62,6 +62,9 @@ You can use hyphens (`-`) in key names, not just underscores (`_`). While you ca
 api-key = "my-secret-token"
 # Same as above, quotes are optional here
 "api-key" = "my-secret-token"
+
+# quotes are required here because the key contains the special character `.`
+"a.b.c" = { value = "d" }
 ```
 
 ## Array of Tables (Lists of Dictionaries)

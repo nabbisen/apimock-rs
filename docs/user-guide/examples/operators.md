@@ -20,8 +20,10 @@ By choosing the right operator, you can define rules that are both precise and a
 [[rules]]
 when.request.url_path = { value = "/disallowed", op = "starts_with" }
 respond.status = 403 # FORBIDDEN
+# you can't access both `http://localhost:3001/disallowed` and `http://localhost:3001/disallowed/some/room` (403 Forbidden) but can `http://localhost:3001/allowed/disallowed` (perhaps 404 Not Found)
 
 [[rules]]
-when.request.url_path = { value = "/delicious/cookie/in-the-can", op = "contains" }
+when.request.url_path = { value = "cookie", op = "contains" }
 respond.text = "Cookie found !"
+# test with `curl http://localhost:3001/delicious/cookie/in-the-can`
 ```

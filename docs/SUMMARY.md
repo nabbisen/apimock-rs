@@ -26,6 +26,7 @@
         - [`rules` array of tables](./advanced-topics/rule-set-config-structure/rules/README.md)
             - [`when` table](./advanced-topics/rule-set-config-structure/rules/when.md)
             - [`respond` table](./advanced-topics/rule-set-config-structure/rules/respond.md)
+    - [Configuration overview](./advanced-topics/configuration-overview.md)
     - [Middleware with Rhai scripts](./advanced-topics/middleware-with-rhai-scripts.md)
 
 ---
@@ -33,14 +34,6 @@
 - [Technical Referrence](./technical-referrence/README.md)
     - [Architecture](./technical-referrence/architecture.md)
     - [Features](./technical-referrence/features.md)
+    <!-- todo
     - [Specifications](./technical-referrence/specifications.md)
-
-
-    <!-- - [Configuration](./advanced-topics/configuration/README.md)
-        - [Root configuration](./advanced-topics/configuration/root-configuration.md)
-        - [File-based routing](./advanced-topics/configuration/file-based-routing.md)
-        - [Rule-based routing](./advanced-topics/configuration/rule-based-routing/README.md)
-            - [Prefix section](./advanced-topics/configuration/rule-based-routing/prefix-section.md)
-            - [When section](./advanced-topics/configuration/rule-based-routing/when-section.md)
-            - [Respond section](./advanced-topics/configuration/rule-based-routing/respond-section.md)
-        - [Scripting matching](./advanced-topics/configuration/scripting-mappings.md) -->
+    -->

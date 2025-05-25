@@ -26,6 +26,8 @@ classDiagram
         +String file_path
         +String text
         +Integer status
+        +String csv_records_key
+        +Integer delay_response_milliseconds
     }
 
     RuleSet --|> Prefix : contains 1
@@ -54,3 +56,9 @@ Here's an overview of the rule data structure in a nested Markdown format:
             - **`file_path`:** Returns content from a file (mutually exclusive with body).
             - **`text`:** Returns a string as the response body (mutually exclusive with file_path).
             - **`status`:** Sets the HTTP status code.
+            - **`csv_records_key`:** Replace csv list key which is `records` by default.
+            - **`delay_response_milliseconds`:** Mimic network delay.
+
+---
+
+Besides, the overall configuration overview is [here](../../configuration-overview.md).
