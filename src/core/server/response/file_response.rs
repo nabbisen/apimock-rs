@@ -5,12 +5,15 @@ use serde_json::{Map, Value};
 use std::collections::HashMap;
 
 use crate::core::{
-    server::{constant::CSV_RECORDS_DEFAULT_KEY, types::BoxBody},
+    server::{
+        constant::CSV_RECORDS_DEFAULT_KEY, response::error_response::not_found_response,
+        types::BoxBody,
+    },
     util::json::resolve_with_json_compatible_extensions,
 };
 
 use super::{
-    error_response::{bad_request_response, internal_server_error_response},
+    error_response::internal_server_error_response,
     text_response::text_response,
     util::{
         binary_content_builder, file_extension, json_content_builder, json_value_with_jsonpath_key,
@@ -56,13 +59,11 @@ impl FileResponse {
         let file_path = match resolve_with_json_compatible_extensions(self.file_path.as_str()) {
             Some(x) => x,
             None => {
-                return bad_request_response(
-                    format!(
-                        "{} is not a file. must be missing or a directory",
-                        self.file_path
-                    )
-                    .as_str(),
-                )
+                log::warn!(
+                    "{} is not a file. must be missing or a directory",
+                    self.file_path
+                );
+                return not_found_response();
             }
         };
         self.file_path = file_path;

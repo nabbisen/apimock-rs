@@ -1,6 +1,6 @@
 [prefix]
 url_path = "body"
-respond_dir = "apimock-rule-set-data/server/routing/rule_set/rule/when/request"
+respond_dir = "@respond-dir"
 
 [[rules]]
 [rules.when.request.body.json]

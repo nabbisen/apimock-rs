@@ -6,13 +6,18 @@ use hyper::{
 };
 use serde_json::json;
 
-use crate::util::{
-    http_response_default, http_response_headers_condition, response_body_str, setup,
+use crate::{
+    constant::root_config_dir,
+    util::{
+        http::{http_response_default, http_response_headers_condition, response_body_str},
+        test_setup::TestSetup,
+    },
 };
 
 #[tokio::test]
 async fn matches_equal_1() {
     let port: u16 = setup().await;
+
     let response = http_response_default("/rule-op/equal/1", port).await;
 
     assert_eq!(response.status(), StatusCode::OK);
@@ -29,6 +34,7 @@ async fn matches_equal_1() {
 #[tokio::test]
 async fn not_matches_equal_1() {
     let port: u16 = setup().await;
+
     let response = http_response_default("/rule-op/equal/2", port).await;
 
     assert_eq!(response.status(), StatusCode::NOT_FOUND);
@@ -37,6 +43,7 @@ async fn not_matches_equal_1() {
 #[tokio::test]
 async fn not_matches_equal_2() {
     let port: u16 = setup().await;
+
     let response = http_response_default("/rule-op/equal/", port).await;
 
     assert_eq!(response.status(), StatusCode::NOT_FOUND);
@@ -45,6 +52,7 @@ async fn not_matches_equal_2() {
 #[tokio::test]
 async fn matches_not_equal_1() {
     let port: u16 = setup().await;
+
     let headers: HeaderMap<HeaderValue> = [("user", "not-equal-unique-request")]
         .iter()
         .map(|(k, v)| {
@@ -70,6 +78,7 @@ async fn matches_not_equal_1() {
 #[tokio::test]
 async fn matches_not_equal_2() {
     let port: u16 = setup().await;
+
     let headers: HeaderMap<HeaderValue> = [("user", "not-equal-unique-request")]
         .iter()
         .map(|(k, v)| {
@@ -95,6 +104,7 @@ async fn matches_not_equal_2() {
 #[tokio::test]
 async fn not_matches_not_equal_1() {
     let port: u16 = setup().await;
+
     let headers: HeaderMap<HeaderValue> = [("user", "not-equal-unique-request")]
         .iter()
         .map(|(k, v)| {
@@ -112,6 +122,7 @@ async fn not_matches_not_equal_1() {
 #[tokio::test]
 async fn matches_starts_with_1() {
     let port: u16 = setup().await;
+
     let response = http_response_default("/rule-op/starts-with/12", port).await;
 
     assert_eq!(response.status(), StatusCode::OK);
@@ -128,6 +139,7 @@ async fn matches_starts_with_1() {
 #[tokio::test]
 async fn matches_starts_with_2() {
     let port: u16 = setup().await;
+
     let response = http_response_default("/rule-op/starts-with/123", port).await;
 
     assert_eq!(response.status(), StatusCode::OK);
@@ -144,6 +156,7 @@ async fn matches_starts_with_2() {
 #[tokio::test]
 async fn not_matches_starts_with_1() {
     let port: u16 = setup().await;
+
     let response = http_response_default("/rule-op/starts-with/1", port).await;
 
     assert_eq!(response.status(), StatusCode::NOT_FOUND);
@@ -152,6 +165,7 @@ async fn not_matches_starts_with_1() {
 #[tokio::test]
 async fn not_matches_starts_with_2() {
     let port: u16 = setup().await;
+
     let response = http_response_default("/rule-op/starts-with/2", port).await;
 
     assert_eq!(response.status(), StatusCode::NOT_FOUND);
@@ -160,6 +174,7 @@ async fn not_matches_starts_with_2() {
 #[tokio::test]
 async fn not_matches_starts_with_3() {
     let port: u16 = setup().await;
+
     let response = http_response_default("/rule-op/starts-with/312", port).await;
 
     assert_eq!(response.status(), StatusCode::NOT_FOUND);
@@ -168,6 +183,7 @@ async fn not_matches_starts_with_3() {
 #[tokio::test]
 async fn not_matches_starts_with_4() {
     let port: u16 = setup().await;
+
     let response = http_response_default("/rule-op/starts-with/", port).await;
 
     assert_eq!(response.status(), StatusCode::NOT_FOUND);
@@ -176,6 +192,7 @@ async fn not_matches_starts_with_4() {
 #[tokio::test]
 async fn matches_contains_1() {
     let port: u16 = setup().await;
+
     let response = http_response_default("/rule-op/contains/1", port).await;
 
     assert_eq!(response.status(), StatusCode::OK);
@@ -192,6 +209,7 @@ async fn matches_contains_1() {
 #[tokio::test]
 async fn matches_contains_2() {
     let port: u16 = setup().await;
+
     let response = http_response_default("/rule-op/contains/12", port).await;
 
     assert_eq!(response.status(), StatusCode::OK);
@@ -208,6 +226,7 @@ async fn matches_contains_2() {
 #[tokio::test]
 async fn matches_contains_3() {
     let port: u16 = setup().await;
+
     let response = http_response_default("/rule-op/a/contains/1/b/", port).await;
 
     assert_eq!(response.status(), StatusCode::OK);
@@ -224,6 +243,7 @@ async fn matches_contains_3() {
 #[tokio::test]
 async fn not_matches_contains_1() {
     let port: u16 = setup().await;
+
     let response = http_response_default("/rule-op/contains/2", port).await;
 
     assert_eq!(response.status(), StatusCode::NOT_FOUND);
@@ -232,6 +252,7 @@ async fn not_matches_contains_1() {
 #[tokio::test]
 async fn matches_wild_card_1() {
     let port: u16 = setup().await;
+
     let response = http_response_default("/rule-op/wild-card/123/a/", port).await;
 
     assert_eq!(response.status(), StatusCode::OK);
@@ -248,6 +269,7 @@ async fn matches_wild_card_1() {
 #[tokio::test]
 async fn matches_wild_card_2() {
     let port: u16 = setup().await;
+
     let response = http_response_default("/rule-op/wild-card/ABC/12/", port).await;
 
     assert_eq!(response.status(), StatusCode::OK);
@@ -264,6 +286,7 @@ async fn matches_wild_card_2() {
 #[tokio::test]
 async fn matches_wild_card_3() {
     let port: u16 = setup().await;
+
     let response = http_response_default("/rule-op/wild-card/123", port).await;
 
     assert_eq!(response.status(), StatusCode::NOT_FOUND);
@@ -281,6 +304,7 @@ async fn not_matches_wild_card_2() {
 #[tokio::test]
 async fn not_matches_wild_card_3() {
     let port: u16 = setup().await;
+
     let response = http_response_default("/rule-op/wild-card/12/a", port).await;
 
     assert_eq!(response.status(), StatusCode::NOT_FOUND);
@@ -289,7 +313,16 @@ async fn not_matches_wild_card_3() {
 #[tokio::test]
 async fn not_matches_wild_card_4() {
     let port: u16 = setup().await;
+
     let response = http_response_default("/rule-op/wild-card/1234/a", port).await;
 
     assert_eq!(response.status(), StatusCode::NOT_FOUND);
+}
+
+/// internal setup fn
+async fn setup() -> u16 {
+    let test_setup =
+        TestSetup::default_with_root_config_dir(root_config_dir::RULE_WHEN_REQUEST_RULE_OP);
+    let port = test_setup.launch().await;
+    port
 }

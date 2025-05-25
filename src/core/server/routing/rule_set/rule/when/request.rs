@@ -4,10 +4,12 @@ mod body;
 mod headers;
 pub mod rule_op;
 pub mod url_path;
+mod util;
 
 use body::Body;
 use headers::Headers;
 use url_path::{UrlPath, UrlPathConfig};
+use util::fmt_condition_connector;
 
 use crate::core::server::parsed_request::ParsedRequest;
 
@@ -97,15 +99,19 @@ impl Request {
 
 impl std::fmt::Display for Request {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut s: Vec<String> = vec![];
+
         if let Some(x) = self.url_path_config.as_ref() {
-            let _ = write!(f, "{} ", x);
+            s.push(format!("{}", x));
         }
         if let Some(x) = self.headers.as_ref() {
-            let _ = write!(f, "{} ", x);
+            s.push(format!("{}", x));
         }
         if let Some(x) = self.body.as_ref() {
-            let _ = write!(f, "{} ", x);
+            s.push(format!("{}", x));
         }
+
+        let _ = write!(f, "{} ", s.join(fmt_condition_connector().as_str()));
         Ok(())
     }
 }

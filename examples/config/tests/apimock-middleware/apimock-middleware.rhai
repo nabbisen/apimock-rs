@@ -7,7 +7,7 @@
 // case `cargo run`:
 // let returned_json_file_path = "examples/config/full/apimock-rule-set-data/middleware-test.json";
 // case `cargo test`:
-let returned_json_file_path = "../apimock-rule-set-data/middleware-test.json";
+let returned_json_file_path = "@respond-dir/middleware-test.json";
 
 // print(url_path);
 if url_path == "/middleware-test" {

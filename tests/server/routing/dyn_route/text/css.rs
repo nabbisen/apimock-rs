@@ -1,10 +1,14 @@
 use hyper::StatusCode;
 
-use crate::util::{http_response_default, response_body_str, setup};
+use crate::util::{
+    env_args::SetupArgs,
+    http::{http_response_default, response_body_bytes},
+};
 
 #[tokio::test]
 async fn dyn_data_dir_css() {
-    let port = setup().await;
+    let port = TestSetup::default().launch().await;
+
     let response = http_response_default("/text/css/style.css", port).await;
 
     assert_eq!(response.status(), StatusCode::OK);

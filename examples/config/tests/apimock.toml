@@ -1,6 +1,3 @@
-# Configure:
-# https://github.com/apimokka/apimock-rs/blob/main/docs/CONFIGURE.md
-
 [listener]
 ip_address = "127.0.0.1"
 port = 3001
@@ -8,15 +5,9 @@ port = 3001
 verbose = { header = false, body = false }
 [service]
 rule_sets = [
-    "apimock-rule-sets/common.toml",
-    "apimock-rule-sets/server/routing/rule_set/prefix.toml",
-    "apimock-rule-sets/server/routing/rule_set/rule/when/request/rule_op.toml",
-    "apimock-rule-sets/server/routing/rule_set/rule/when/request/url_path.toml",
-    "apimock-rule-sets/server/routing/rule_set/rule/when/request/headers.toml",
-    "apimock-rule-sets/server/routing/rule_set/rule/when/request/body.toml",
-    "apimock-rule-sets/server/response/file_response.toml",
-    "apimock-rule-sets/server/response/error_response.toml",
-    "@extra-test-cases/less-prioritized.toml",
+    "apimock-rule-sets/integrated-root.toml",
+    "apimock-rule-sets/integrated-api.toml",
+    "apimock-rule-sets/@extra-test-cases/less-prioritized.toml",
 ]
 # middlewares = []
 fallback_respond_dir = "apimock-dyn-route"

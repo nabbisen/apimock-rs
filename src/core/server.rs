@@ -102,7 +102,7 @@ pub async fn service(
     // app handle driven by config
     let config = shared_app_state.config;
 
-    request.capture_in_log(config.log.verbose);
+    request.capture_in_log(config.log.unwrap_or_default().verbose);
 
     match config.service.middleware_response(&request) {
         Some(x) => return x,

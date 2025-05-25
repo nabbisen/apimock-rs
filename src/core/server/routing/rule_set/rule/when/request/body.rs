@@ -14,6 +14,8 @@ use crate::core::{
     util::json::json_value_by_jsonpath,
 };
 
+use super::util::fmt_condition_connector;
+
 #[derive(Clone, Debug, Deserialize)]
 #[serde(transparent)]
 pub struct Body(pub HashMap<BodyKind, HashMap<ConditionKey, ConditionStatement>>);
@@ -77,13 +79,13 @@ impl Body {
 impl std::fmt::Display for Body {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         for (body_kind, body_condition) in self.0.iter() {
-            let body_condition_fmt = body_condition
+            let s = body_condition
                 .iter()
                 .map(|(key, statement)| format!("{}{}", key, statement))
                 .collect::<Vec<String>>()
-                .join(", ");
+                .join(fmt_condition_connector().as_str());
 
-            let _ = write!(f, "[{}] {}", body_kind, body_condition_fmt);
+            let _ = write!(f, "[{}] {}", body_kind, s);
         }
 
         Ok(())

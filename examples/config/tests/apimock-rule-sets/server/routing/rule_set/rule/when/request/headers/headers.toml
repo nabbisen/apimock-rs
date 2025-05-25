@@ -1,15 +1,14 @@
 [prefix]
 url_path = "/headers"
-respond_dir = "apimock-rule-set-data"
 
 [[rules]]
 [rules.when.request.headers]
 user = { value = "user1" }
 [rules.respond]
-file_path = "home.json"
+text = "headers user.equal matched"
 
 [[rules]]
 [rules.when.request.headers]
-authorization = { value = "some-hash", op = "contains" }
+authorization = { value = "Bearer eyJhb", op = "contains" }
 [rules.respond]
-file_path = "home.json"
+text = "headers authorization.contains matched"

@@ -1,5 +1,5 @@
 [prefix]
-respond_dir = "apimock-rule-set-data"
+respond_dir = "apimock-rule-sets/@respond-dir"
 
 [[rules]]
 when.request.url_path = "/api/v1/"

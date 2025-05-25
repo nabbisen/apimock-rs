@@ -1,6 +1,6 @@
 [prefix]
 url_path = "file-response"
-respond_dir = "apimock-rule-set-data/server/response/file_response"
+respond_dir = "@respond-dir"
 
 [[rules]]
 when.request.url_path = "json-ext-w-or-wo"

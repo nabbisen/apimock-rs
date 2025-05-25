@@ -1,0 +1,10 @@
+[prefix]
+url_path = "/prefix/"
+
+[[rules]]
+when.request.url_path = "equal"
+respond = { text = "url path prefix if" }
+
+[[rules]]
+when.request.url_path = { value = "equal", op = "not_equal" }
+respond = { text = "url path prefix else" }

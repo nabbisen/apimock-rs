@@ -1,10 +1,14 @@
 use hyper::StatusCode;
 
-use crate::util::{http_response_default, response_body_bytes, setup};
+use crate::util::{
+    http::{http_response_default, response_body_bytes},
+    test_setup::TestSetup,
+};
 
 #[tokio::test]
 async fn dyn_data_dir_image_png() {
-    let port = setup().await;
+    let port = TestSetup::default().launch().await;
+
     let response = http_response_default("/binary/image/image.png", port).await;
 
     assert_eq!(response.status(), StatusCode::OK);
@@ -20,7 +24,8 @@ async fn dyn_data_dir_image_png() {
 
 #[tokio::test]
 async fn dyn_data_dir_image_jpeg() {
-    let port = setup().await;
+    let port = TestSetup::default().launch().await;
+
     let response = http_response_default("/binary/image/image.jpg", port).await;
 
     assert_eq!(response.status(), StatusCode::OK);
@@ -39,7 +44,8 @@ async fn dyn_data_dir_image_jpeg() {
 
 #[tokio::test]
 async fn dyn_data_dir_image_gif() {
-    let port = setup().await;
+    let port = TestSetup::default().launch().await;
+
     let response = http_response_default("/binary/image/image.gif", port).await;
 
     assert_eq!(response.status(), StatusCode::OK);

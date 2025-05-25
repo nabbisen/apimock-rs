@@ -4,6 +4,7 @@ pub mod app_state;
 pub mod constant;
 
 use super::args::EnvArgs;
+use super::config::listener_config::ListenerConfig;
 use super::config::Config;
 use super::logger::init_logger;
 use super::server::Server;
@@ -29,7 +30,13 @@ impl App {
 
         // overwrite port if the arg is specified
         if let Some(port) = env_args.port {
-            config.listener.port = port;
+            let mut listener = if let Some(listener) = config.listener {
+                listener
+            } else {
+                ListenerConfig::default()
+            };
+            listener.port = port;
+            config.listener = Some(listener);
         }
 
         let app_state = AppState { config };

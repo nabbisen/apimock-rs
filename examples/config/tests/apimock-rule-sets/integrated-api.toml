@@ -1,0 +1,19 @@
+[prefix]
+url_path = "/api/v1/"
+respond_dir = "apimock-rule-sets/@respond-dir"
+
+[[rules]]
+when.request.url_path = "complicated"
+when.request.headers.authoziation = { value = "Bearer eyJhb", op = "starts_with" }
+when.request.headers.user = { value = "user1" }
+when.request.body.json.someField = { value = "some-value" }
+respond = { text = "Strictly authorized !" }
+
+[[rules]]
+when.request.url_path = ""
+when.request.headers.authoziation = { value = "Bearer eyJhb", op = "contains" }
+respond = { text = "Authorized !" }
+
+[[rules]]
+when.request.url_path = ""
+respond = { code = 403 }

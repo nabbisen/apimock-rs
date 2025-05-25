@@ -1,10 +1,17 @@
 use hyper::StatusCode;
 
-use crate::util::{http_response_default, response_body_bytes, setup, DUMMY_BINARY_DATA};
+use crate::{
+    constant::DUMMY_BINARY_DATA,
+    util::{
+        http::{http_response_default, response_body_bytes},
+        test_setup::TestSetup,
+    },
+};
 
 #[tokio::test]
 async fn dyn_data_dir_video_mp4() {
-    let port = setup().await;
+    let port = TestSetup::default().launch().await;
+
     let response = http_response_default("/binary/video/video.mp4", port).await;
 
     assert_eq!(response.status(), StatusCode::OK);
