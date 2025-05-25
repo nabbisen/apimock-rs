@@ -28,12 +28,13 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
       
-      - name: Install mdBook
+      - name: Install Rust
+        run: bash .github/workflows/scripts/install-rust.sh stable ${{ matrix.target }}
+      
+      - name: Install mdBook and extension(s)
         run: |
-          curl -sL https://api.github.com/repos/rust-lang/mdBook/releases/latest \
-          | jq -r '.assets[] | select(.name | test("x86_64-unknown-linux-gnu\\.tar\\.gz$")) | .browser_download_url' \
-          | xargs curl -L | tar -xz
-          sudo mv mdbook /usr/local/bin/
+          cargo install mdbook
+          cargo install mdbook-mermaid
       
       - name: mdbook build
         env:
