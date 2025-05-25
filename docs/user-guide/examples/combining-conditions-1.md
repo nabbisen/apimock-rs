@@ -6,8 +6,9 @@ Here's an example where we combine a URL path with two HTTP headers as condition
 
 ```toml
 [[rules]]
+[rules.when.request]
 url_path = "/api/check"
-[rules.when.headers]
+[rules.when.request.headers]
 User = { value = "user1" }
 X-Request-Id = { value = "abc123" }
 

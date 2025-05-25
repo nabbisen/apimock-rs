@@ -34,7 +34,7 @@ Besides, if you use natively built executable, run `./apimock` instead.
 From another terminal (as web client), access the server:
 
 ```sh
-curl -i http://localhost:3000/
+curl -i http://localhost:3001/
 ```
 
 Expected response: HTTP Status Code 404 (NOT FOUND)

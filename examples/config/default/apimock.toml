@@ -5,7 +5,7 @@
 ip_address = "127.0.0.1"
 port = 3001
 [log]
-verbose = { header = true, body = true }
+verbose = { header = false, body = false }
 [service]
 rule_sets = ["apimock-rule-set.toml"]
 # middlewares = []
