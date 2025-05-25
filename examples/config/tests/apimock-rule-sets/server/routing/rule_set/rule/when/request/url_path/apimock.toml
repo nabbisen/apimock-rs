@@ -1,0 +1,5 @@
+[service]
+rule_sets = [
+    "url_path.toml",
+]
+fallback_respond_dir = "."

@@ -1,0 +1,7 @@
+[prefix]
+url_path = "/respond/"
+respond_dir = "@respond-dir"
+
+[[rules]]
+when.request.url_path = "/csv/records/jsonpath"
+respond = { file_path = "records.csv", csv_records_key = "a.b.c" }

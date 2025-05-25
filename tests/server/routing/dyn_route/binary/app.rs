@@ -1,10 +1,16 @@
 use hyper::StatusCode;
 
-use crate::util::{http_response_default, response_body_bytes, setup, DUMMY_BINARY_DATA};
+use crate::{
+    constant::DUMMY_BINARY_DATA,
+    util::{
+        http::{http_response_default, response_body_bytes},
+        test_setup::TestSetup,
+    },
+};
 
 #[tokio::test]
 async fn dyn_data_dir_doc_pdf() {
-    let port = setup().await;
+    let port = TestSetup::default().launch().await;
     let response = http_response_default("/binary/app/doc.pdf", port).await;
 
     assert_eq!(response.status(), StatusCode::OK);
@@ -20,7 +26,8 @@ async fn dyn_data_dir_doc_pdf() {
 
 #[tokio::test]
 async fn dyn_data_dir_archive_zip() {
-    let port = setup().await;
+    let port = TestSetup::default().launch().await;
+
     let response = http_response_default("/binary/app/archive.zip", port).await;
 
     assert_eq!(response.status(), StatusCode::OK);

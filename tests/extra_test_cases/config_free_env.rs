@@ -2,11 +2,18 @@ use apimock::core::server::constant::CSV_RECORDS_DEFAULT_KEY;
 use hyper::StatusCode;
 use serde_json::json;
 
-use crate::util::{http_response_default, response_body_str, setup_as_config_free_env};
+use crate::{
+    constant::root_config_dir,
+    util::{
+        http::{http_response_default, response_body_str},
+        test_setup::TestSetup,
+    },
+};
 
 #[tokio::test]
 async fn config_free_env_root_1() {
-    let port = setup_as_config_free_env().await;
+    let port = setup().await;
+
     let response = http_response_default("/", port).await;
 
     assert_eq!(response.status(), StatusCode::NOT_FOUND);
@@ -14,7 +21,8 @@ async fn config_free_env_root_1() {
 
 #[tokio::test]
 async fn matches_config_free_env_level1_1() {
-    let port = setup_as_config_free_env().await;
+    let port = setup().await;
+
     let response = http_response_default("/level1", port).await;
 
     assert_eq!(response.status(), StatusCode::OK);
@@ -30,7 +38,8 @@ async fn matches_config_free_env_level1_1() {
 
 #[tokio::test]
 async fn matches_config_free_env_level1_2() {
-    let port = setup_as_config_free_env().await;
+    let port = setup().await;
+
     let response = http_response_default("/level1.json", port).await;
 
     assert_eq!(response.status(), StatusCode::OK);
@@ -46,7 +55,8 @@ async fn matches_config_free_env_level1_2() {
 
 #[tokio::test]
 async fn not_matches_config_free_env_level1_1() {
-    let port = setup_as_config_free_env().await;
+    let port = setup().await;
+
     let response = http_response_default("/level1.json5", port).await;
 
     assert_eq!(response.status(), StatusCode::NOT_FOUND);
@@ -54,7 +64,8 @@ async fn not_matches_config_free_env_level1_1() {
 
 #[tokio::test]
 async fn matches_config_free_env_level2_1() {
-    let port = setup_as_config_free_env().await;
+    let port = setup().await;
+
     let response = http_response_default("/level1/level2", port).await;
 
     assert_eq!(response.status(), StatusCode::OK);
@@ -70,7 +81,8 @@ async fn matches_config_free_env_level2_1() {
 
 #[tokio::test]
 async fn matches_config_free_env_level2_2() {
-    let port = setup_as_config_free_env().await;
+    let port = setup().await;
+
     let response = http_response_default("/level1/level2.json5", port).await;
 
     assert_eq!(response.status(), StatusCode::OK);
@@ -86,7 +98,8 @@ async fn matches_config_free_env_level2_2() {
 
 #[tokio::test]
 async fn not_matches_config_free_env_level2_1() {
-    let port = setup_as_config_free_env().await;
+    let port = setup().await;
+
     let response = http_response_default("/level1/level2.json", port).await;
 
     assert_eq!(response.status(), StatusCode::NOT_FOUND);
@@ -94,7 +107,8 @@ async fn not_matches_config_free_env_level2_1() {
 
 #[tokio::test]
 async fn matches_config_free_env_level3_1() {
-    let port = setup_as_config_free_env().await;
+    let port = setup().await;
+
     let response = http_response_default("/level1/level2/level3", port).await;
 
     assert_eq!(response.status(), StatusCode::OK);
@@ -113,7 +127,8 @@ async fn matches_config_free_env_level3_1() {
 
 #[tokio::test]
 async fn matches_config_free_env_level3_2() {
-    let port = setup_as_config_free_env().await;
+    let port = setup().await;
+
     let response = http_response_default("/level1/level2/level3.csv", port).await;
 
     assert_eq!(response.status(), StatusCode::OK);
@@ -132,7 +147,8 @@ async fn matches_config_free_env_level3_2() {
 
 #[tokio::test]
 async fn not_matches_config_free_env_level3_1() {
-    let port = setup_as_config_free_env().await;
+    let port = setup().await;
+
     let response = http_response_default("/level1/level2/level3.json", port).await;
 
     assert_eq!(response.status(), StatusCode::NOT_FOUND);
@@ -140,7 +156,8 @@ async fn not_matches_config_free_env_level3_1() {
 
 #[tokio::test]
 async fn matches_config_free_env_level4_1() {
-    let port = setup_as_config_free_env().await;
+    let port = setup().await;
+
     let response = http_response_default("/level1/level2/level3/level4.txt", port).await;
 
     assert_eq!(response.status(), StatusCode::OK);
@@ -156,7 +173,8 @@ async fn matches_config_free_env_level4_1() {
 
 #[tokio::test]
 async fn not_matches_config_free_env_level4_1() {
-    let port = setup_as_config_free_env().await;
+    let port = setup().await;
+
     let response = http_response_default("/level1/level2/level3/level4", port).await;
 
     assert_eq!(response.status(), StatusCode::NOT_FOUND);
@@ -164,8 +182,18 @@ async fn not_matches_config_free_env_level4_1() {
 
 #[tokio::test]
 async fn not_matches_config_free_env_level4_2() {
-    let port = setup_as_config_free_env().await;
+    let port = setup().await;
+
     let response = http_response_default("/level1/level2/level3/level4.json", port).await;
 
     assert_eq!(response.status(), StatusCode::NOT_FOUND);
+}
+
+/// internal setup fn
+async fn setup() -> u16 {
+    let mut test_setup = TestSetup::default();
+    test_setup.current_dir_path = Some(root_config_dir::CONFIG_FREE_ENV.to_owned());
+    test_setup.root_config_file_path = None;
+    let port = test_setup.launch().await;
+    port
 }

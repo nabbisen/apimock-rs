@@ -1,6 +1,6 @@
 [prefix]
 # url_path = ""
-respond_dir = "apimock-rule-set-data"
+respond_dir = "apimock-rule-sets/@respond-dir"
 
 # [guard.request.headers]
 
@@ -14,7 +14,3 @@ respond = { file_path = "home.json" }
 [[rules]]
 when.request.url_path = "/api/v1/"
 respond = { file_path = "home.json" }
-
-[[rules]]
-when.request.url_path = "/csv/records/jsonpath"
-respond = { file_path = "records.csv", csv_records_key = "a.b.c" }

@@ -1,0 +1,10 @@
+[prefix]
+url_path = "/url-path/"
+
+[[rules]]
+when.request.url_path = ""
+respond = { text = "url-path matched" }
+
+[[rules]]
+when.request.url_path = "home"
+respond = { text = "url-path.home matched" }

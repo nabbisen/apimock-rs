@@ -1,13 +1,20 @@
 use hyper::StatusCode;
 use serde_json::json;
 
-use crate::util::{
-    http_response_body_condition, http_response_json_body_condition, response_body_str, setup,
+use crate::{
+    constant::root_config_dir,
+    util::{
+        http::{
+            http_response_body_condition, http_response_json_body_condition, response_body_str,
+        },
+        test_setup::TestSetup,
+    },
 };
 
 #[tokio::test]
 async fn matches_single_level_1() {
     let port = setup().await;
+
     let body = json!({"a": "1"});
     let response =
         http_response_json_body_condition("/body", port, body.to_string().as_str()).await;
@@ -29,6 +36,7 @@ async fn matches_single_level_1() {
 #[tokio::test]
 async fn not_matches_single_level_1() {
     let port = setup().await;
+
     let body = json!({"a": "2"});
     let response =
         http_response_json_body_condition("/body", port, body.to_string().as_str()).await;
@@ -39,6 +47,7 @@ async fn not_matches_single_level_1() {
 #[tokio::test]
 async fn not_matches_single_level_2() {
     let port = setup().await;
+
     let body = json!({"b": "1"});
     let response =
         http_response_json_body_condition("/body", port, body.to_string().as_str()).await;
@@ -49,6 +58,7 @@ async fn not_matches_single_level_2() {
 #[tokio::test]
 async fn matches_multiple_levels_1() {
     let port = setup().await;
+
     let body = json!({"a": {"b": {"c": "1"}}});
     let response =
         http_response_json_body_condition("/body", port, body.to_string().as_str()).await;
@@ -70,6 +80,7 @@ async fn matches_multiple_levels_1() {
 #[tokio::test]
 async fn not_matches_multiple_levels_1() {
     let port = setup().await;
+
     let body = json!({"a": {"b": {"c": "2"}}});
     let response =
         http_response_json_body_condition("/body", port, body.to_string().as_str()).await;
@@ -80,6 +91,7 @@ async fn not_matches_multiple_levels_1() {
 #[tokio::test]
 async fn not_matches_multiple_levels_2() {
     let port = setup().await;
+
     let body = json!({"a": {"b": ""}});
     let response =
         http_response_json_body_condition("/body", port, body.to_string().as_str()).await;
@@ -90,6 +102,7 @@ async fn not_matches_multiple_levels_2() {
 #[tokio::test]
 async fn matches_additional_field_1() {
     let port = setup().await;
+
     let body = json!({"a": {"b": {"c": "1", "d": ""}}});
     let response =
         http_response_json_body_condition("/body", port, body.to_string().as_str()).await;
@@ -111,6 +124,7 @@ async fn matches_additional_field_1() {
 #[tokio::test]
 async fn matches_additional_field_2() {
     let port = setup().await;
+
     let body = json!({"a": {"b": {"c": "1"}, "d": ""}});
     let response =
         http_response_json_body_condition("/body", port, body.to_string().as_str()).await;
@@ -132,6 +146,7 @@ async fn matches_additional_field_2() {
 #[tokio::test]
 async fn matches_multiple_condition_1() {
     let port = setup().await;
+
     let body = json!({"a": {"b": {"c": "1", "d": "0"}}});
     let response =
         http_response_json_body_condition("/body", port, body.to_string().as_str()).await;
@@ -153,6 +168,7 @@ async fn matches_multiple_condition_1() {
 #[tokio::test]
 async fn not_matches_multiple_condition_1() {
     let port = setup().await;
+
     let body = json!({"a": {"b": {"c": "0", "d": "0"}}});
     let response =
         http_response_json_body_condition("/body", port, body.to_string().as_str()).await;
@@ -163,6 +179,7 @@ async fn not_matches_multiple_condition_1() {
 #[tokio::test]
 async fn matches_non_string_type_value_1() {
     let port = setup().await;
+
     let body = "{\"a\":{\"b\":{\"c\":1}}}";
     let response = http_response_json_body_condition("/body", port, body).await;
 
@@ -183,6 +200,7 @@ async fn matches_non_string_type_value_1() {
 #[tokio::test]
 async fn matches_non_string_type_value_2() {
     let port = setup().await;
+
     let body = "{\"a\":{\"b\":{\"c\":\"1\",\"d\":0}}}";
     let response = http_response_json_body_condition("/body", port, body).await;
 
@@ -203,6 +221,7 @@ async fn matches_non_string_type_value_2() {
 #[tokio::test]
 async fn json_request_broken_json_body_1() {
     let port = setup().await;
+
     let body = "{\"a\":{\"b\":{\"c\":\"1\",\"d\":}}}";
     // content-type: application/json
     let response = http_response_json_body_condition("/body", port, body).await;
@@ -213,6 +232,7 @@ async fn json_request_broken_json_body_1() {
 #[tokio::test]
 async fn not_json_request_broken_json_body_1() {
     let port = setup().await;
+
     let body = "{\"a\":{\"b\":{\"c\":\"1\",\"d\":}}}";
     // content-type: NOT application/json
     let response = http_response_body_condition("/body", port, None, body).await;
@@ -223,6 +243,7 @@ async fn not_json_request_broken_json_body_1() {
 #[tokio::test]
 async fn matches_empty_1() {
     let port = setup().await;
+
     let body = "{\"a\":{\"b\":{\"e\":\"\"}}}";
     let response = http_response_json_body_condition("/body", port, body).await;
 
@@ -243,6 +264,7 @@ async fn matches_empty_1() {
 #[tokio::test]
 async fn not_matches_empty_1() {
     let port = setup().await;
+
     let body = "{\"a\":{\"b\":{\"e\":0}}}";
     let response = http_response_json_body_condition("/body", port, body).await;
 
@@ -252,6 +274,7 @@ async fn not_matches_empty_1() {
 #[tokio::test]
 async fn matches_array_1() {
     let port = setup().await;
+
     let body = json!({"a": {"b": {"c": {"f": ["array"]}}}});
     let response =
         http_response_json_body_condition("/body", port, body.to_string().as_str()).await;
@@ -273,6 +296,7 @@ async fn matches_array_1() {
 #[tokio::test]
 async fn matches_array_2() {
     let port = setup().await;
+
     let body = json!({"a": {"b": {"c": {"f": ["array", "additional-item"]}}}});
     let response =
         http_response_json_body_condition("/body", port, body.to_string().as_str()).await;
@@ -294,6 +318,7 @@ async fn matches_array_2() {
 #[tokio::test]
 async fn matches_array_3() {
     let port = setup().await;
+
     let body = json!({"a": {"b": {"c": {"g": ["1", "2", "3"]}}}});
     let response =
         http_response_json_body_condition("/body", port, body.to_string().as_str()).await;
@@ -315,6 +340,7 @@ async fn matches_array_3() {
 #[tokio::test]
 async fn not_matches_array_1() {
     let port = setup().await;
+
     let body = json!({"a": {"b": {"c": {"f": "array2"}}}});
     let response =
         http_response_json_body_condition("/body", port, body.to_string().as_str()).await;
@@ -325,6 +351,7 @@ async fn not_matches_array_1() {
 #[tokio::test]
 async fn not_matches_array_2() {
     let port = setup().await;
+
     let body = json!({"a": {"b": {"c": {"f": []}}}});
     let response =
         http_response_json_body_condition("/body", port, body.to_string().as_str()).await;
@@ -335,6 +362,7 @@ async fn not_matches_array_2() {
 #[tokio::test]
 async fn not_matches_array_3() {
     let port = setup().await;
+
     let body = json!({"a": {"b": {"c": {"f": ""}}}});
     let response =
         http_response_json_body_condition("/body", port, body.to_string().as_str()).await;
@@ -345,6 +373,7 @@ async fn not_matches_array_3() {
 #[tokio::test]
 async fn not_matches_array_4() {
     let port = setup().await;
+
     let body = json!({"a": {"b": {"c": {"g": ["2"]}}}});
     let response =
         http_response_json_body_condition("/body", port, body.to_string().as_str()).await;
@@ -355,9 +384,18 @@ async fn not_matches_array_4() {
 #[tokio::test]
 async fn not_matches_array_5() {
     let port = setup().await;
+
     let body = json!({"a": {"b": {"c": {"g": ["2", "1"]}}}});
     let response =
         http_response_json_body_condition("/body", port, body.to_string().as_str()).await;
 
     assert_eq!(response.status(), StatusCode::NOT_FOUND);
+}
+
+/// internal setup fn
+async fn setup() -> u16 {
+    let test_setup =
+        TestSetup::default_with_root_config_dir(root_config_dir::RULE_WHEN_REQUEST_BODY);
+    let port = test_setup.launch().await;
+    port
 }

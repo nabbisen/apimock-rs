@@ -1,6 +1,6 @@
 [prefix]
 url_path = "/rule-op/"
-respond_dir = "apimock-rule-set-data/server/routing/rule_set/rule/when/request/rule_op"
+respond_dir = "@respond-dir"
 
 [[rules]]
 when.request.url_path = { value = "equal/1", op = "equal" }

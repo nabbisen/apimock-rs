@@ -1,0 +1,10 @@
+[prefix]
+url_path = "/error-response/"
+
+[[rules]]
+when.request.url_path = "401"
+respond = { code = 401 }
+
+[[rules]]
+when.request.url_path = "api-403"
+respond = { code = 403 }
