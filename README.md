@@ -7,7 +7,7 @@
 [![App Docs Workflow](https://github.com/apimokka/apimock-rs/actions/workflows/docs.yaml/badge.svg)](https://github.com/apimokka/apimock-rs/actions/workflows/docs.yaml)
 [![License](https://img.shields.io/github/license/apimokka/apimock-rs)](https://github.com/apimokka/apimock-rs/blob/main/LICENSE)
 
----
+<img src="docs/.assets/logo.png" style="height: 4.4em;">
 
 ## 🪄 Mock APIs easily — no setup stress, just JSON and go
 

@@ -1,5 +1,19 @@
 # API mock (apimock-rs) Documentation
 
+<div class="logo">
+  <style>
+    .logo {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+    }
+    .logo img {
+        height: 4.4em;
+    }
+  </style>
+  <img src=".assets/logo.png">
+</div>
+
 A developer-friendly, robust and functional HTTP mock server built in Rust. While this is a CLI tool, a featherlight GUI wrapper named [API mokka](https://github.com/apimokka/apimokka) is also available.
 
 ### Who is this for?
