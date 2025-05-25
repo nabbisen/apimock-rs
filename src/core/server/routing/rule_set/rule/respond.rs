@@ -24,7 +24,7 @@ pub struct Respond {
     pub file_path: Option<String>,
     pub csv_records_key: Option<String>,
     pub text: Option<String>,
-    pub code: Option<u16>,
+    pub status: Option<u16>,
     #[serde(skip)]
     pub status_code: Option<StatusCode>,
     pub headers: Option<HashMap<String, Option<String>>>,
@@ -72,11 +72,11 @@ impl Respond {
 
     /// validate
     pub fn validate(&self, dir_prefix: &str, rule_idx: usize, rule_set_idx: usize) -> bool {
-        let all_missing_of_file_path_text_code =
-            self.file_path.is_none() && self.text.is_none() && self.code.is_none();
-        if all_missing_of_file_path_text_code {
+        let all_missing_of_file_path_text_status =
+            self.file_path.is_none() && self.text.is_none() && self.status.is_none();
+        if all_missing_of_file_path_text_status {
             log::error!(
-                "require at least either of file_path, text or code (rule #{} in rule set #{})",
+                "require at least either of file_path, text or status (rule #{} in rule set #{})",
                 rule_idx + 1,
                 rule_set_idx + 1
             );
@@ -93,10 +93,10 @@ impl Respond {
             return false;
         }
 
-        let file_path_with_code = self.file_path.is_some() && self.code.is_some();
-        if file_path_with_code {
+        let file_path_with_status = self.file_path.is_some() && self.status.is_some();
+        if file_path_with_status {
             log::error!(
-                "code only supports text. file_path is not (rule #{} in rule set #{})",
+                "status only supports text. file_path is not (rule #{} in rule set #{})",
                 rule_idx + 1,
                 rule_set_idx + 1
             );

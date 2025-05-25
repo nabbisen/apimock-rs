@@ -10,3 +10,9 @@ src = "."
 
 [build]
 build-dir = ".book"
+
+# mermaid extension
+[preprocessor.mermaid]
+command = "mdbook-mermaid"
+[output.html]
+additional-js = [".mdbook/mermaid.min.js", ".mdbook/mermaid-init.js"]

@@ -1,5 +1,5 @@
-# Configure:
-# https://github.com/apimokka/apimock-rs/blob/main/docs/CONFIGURE.md
+# Users Guide:
+# https://apimokka.github.io/apimock-rs/
 
 [listener]
 ip_address = "127.0.0.1"

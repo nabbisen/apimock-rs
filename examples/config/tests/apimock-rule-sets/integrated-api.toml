@@ -16,4 +16,4 @@ respond = { text = "Authorized !" }
 
 [[rules]]
 when.request.url_path = ""
-respond = { code = 403 }
+respond = { status = 403 }

@@ -19,11 +19,11 @@ npx apimock
 
 ## For Users
 
-- [**Users docs**](users/)
+- [**User Guide**](users/)
 
 ---
 
 ## Contribution
 
-- [Developers docs](developers/README.md)
+- [Technical Referrence](technical-referrence/README.md)
 - [Source code (GitHub)](https://github.com/apimokka/apimock-rs)

@@ -42,7 +42,7 @@
 url_path = "/login"
 
 [rules.respond]
-code = 200
+status = 200
 text = "{\"token\":\"abc123\"}"
 ```
 

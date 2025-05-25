@@ -54,12 +54,12 @@ impl Rule {
         ret.when.request.url_path = url_path;
 
         // - status_code
-        if let Some(code) = ret.respond.code {
+        if let Some(status) = ret.respond.status {
             let status_code = Some(
-                StatusCode::from_u16(code).expect(
+                StatusCode::from_u16(status).expect(
                     format!(
-                        "failed to get status code from code {} (rule #{} in rule set #{})",
-                        code,
+                        "failed to get status code from status {} (rule #{} in rule set #{})",
+                        status,
                         rule_idx + 1,
                         rule_set_idx + 1
                     )

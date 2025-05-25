@@ -22,9 +22,9 @@ pub struct Body(pub HashMap<BodyKind, HashMap<ConditionKey, ConditionStatement>>
 
 impl Body {
     /// check if `body` in `when` matches
-    pub fn is_match(&self, sent_request: &ParsedRequest) -> bool {
+    pub fn is_match(&self, received_request: &ParsedRequest) -> bool {
         // todo: support other types than json (such as form value) in the future
-        let request_body_json = match sent_request.body_json.as_ref() {
+        let request_body_json = match received_request.body_json.as_ref() {
             Some(x) => x,
             None => return false,
         };

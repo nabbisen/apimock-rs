@@ -4,28 +4,43 @@
 
 ---
 
-- [Users docs](./users/README.md)
-    - [Getting started](./users/getting-started/README.md)
-        - [File-based routing](./users/getting-started/file-based-routing.md)
-        - [Root configuration](./users/getting-started/root-configuration.md)
-        - [Rule-based routing](./users/getting-started/rule-based-routing.md)
-    - [Examples](./users/examples/README.md)
-        - [Combining conditions 1](./users/examples/combining-conditions-1.md)
-        - [Combining conditions 2](./users/examples/combining-conditions-2.md)
-        - [Operators](./users/examples/operators.md)
-    - [FAQ](./users/faq.md)
-    - [Configuration](./users/configuration/README.md)
-        - [Root configuration](./users/configuration/root-configuration.md)
-        - [File-based routing](./users/configuration/file-based-routing.md)
-        - [Rule-based routing](./users/configuration/rule-based-routing/README.md)
-            - [Prefix section](./users/configuration/rule-based-routing/prefix-section.md)
-            - [When section](./users/configuration/rule-based-routing/when-section.md)
-            - [Respond section](./users/configuration/rule-based-routing/respond-section.md)
-        - [Scripting matching](./users/configuration/scripting-mappings.md)
+- [User Guide](./user-guide/README.md)
+    - [Getting started](./user-guide/getting-started/README.md)
+        - [File-based routing](./user-guide/getting-started/file-based-routing.md)
+        - [Root configuration](./user-guide/getting-started/root-configuration.md)
+        - [Rule-based routing](./user-guide/getting-started/rule-based-routing.md)
+        - [TOML configuration](./user-guide/toml-configuration.md)
+    - [Examples](./user-guide/examples/README.md)
+        - [Combining conditions 1](./user-guide/examples/combining-conditions-1.md)
+        - [Combining conditions 2](./user-guide/examples/combining-conditions-2.md)
+        - [Operators](./user-guide/examples/operators.md)
+    - [FAQ](./user-guide/faq.md)
+- [Wrapping Up](./user-guide/conclusion.md)
 
 ---
 
-- [Contributors docs](./developers/README.md)
-    - [Architecture](./developers/architecture.md)
-    - [Features](./developers/features.md)
-    - [Specifications](./developers/specifications.md)
+- [Advanced Topics](./advanced-topics/README.md)
+    - [Response decision flow](./advanced-topics/response-decision-flow.md)
+    - [Rule set config structure](./advanced-topics/rule-set-config-structure/README.md)
+        - [`prefix` table](./advanced-topics/rule-set-config-structure/prefix.md)
+        - [`rules` array of tables](./advanced-topics/rule-set-config-structure/rules/README.md)
+            - [`when` table](./advanced-topics/rule-set-config-structure/rules/when.md)
+            - [`respond` table](./advanced-topics/rule-set-config-structure/rules/respond.md)
+    - [Middleware with Rhai scripts](./advanced-topics/middleware-with-rhai-scripts.md)
+
+---
+
+- [Technical Referrence](./technical-referrence/README.md)
+    - [Architecture](./technical-referrence/architecture.md)
+    - [Features](./technical-referrence/features.md)
+    - [Specifications](./technical-referrence/specifications.md)
+
+
+    <!-- - [Configuration](./advanced-topics/configuration/README.md)
+        - [Root configuration](./advanced-topics/configuration/root-configuration.md)
+        - [File-based routing](./advanced-topics/configuration/file-based-routing.md)
+        - [Rule-based routing](./advanced-topics/configuration/rule-based-routing/README.md)
+            - [Prefix section](./advanced-topics/configuration/rule-based-routing/prefix-section.md)
+            - [When section](./advanced-topics/configuration/rule-based-routing/when-section.md)
+            - [Respond section](./advanced-topics/configuration/rule-based-routing/respond-section.md)
+        - [Scripting matching](./advanced-topics/configuration/scripting-mappings.md) -->

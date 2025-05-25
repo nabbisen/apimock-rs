@@ -4,7 +4,7 @@
 A: Yes. `url_path`, `headers` and `body` are options.
 
 **Q: How are rules loaded?**
-A: At startup via TOML deserialization (see `src/core/config.rs`).
+A: At startup (via TOML deserialization).
 
 **Q: Can I return binary data?**
 A: Yes, binary data such as image, audio, video and archive is returned with their specific content-type.

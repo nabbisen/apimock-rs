@@ -17,19 +17,19 @@ impl Headers {
     /// check if `headers` in `when` matches
     pub fn is_match(
         &self,
-        sent_request_headers: &HeaderMap<HeaderValue>,
+        received_request_headers: &HeaderMap<HeaderValue>,
         rule_idx: usize,
         rule_set_idx: usize,
     ) -> bool {
         self.0
             .iter()
             .all(|(matcher_header_key, matcher_header_value)| {
-                let sent_request_header_value = match sent_request_headers.get(matcher_header_key) {
+                let received_request_header_value = match received_request_headers.get(matcher_header_key) {
                     Some(x) => x,
                     None => return false,
                 };
 
-                let sent_request_header_value = match sent_request_header_value.to_str() {
+                let received_request_header_value = match received_request_header_value.to_str() {
                     Ok(x) => x,
                     Err(err) => {
                         log::error!(
@@ -47,7 +47,7 @@ impl Headers {
                     .op
                     .clone()
                     .unwrap_or_default()
-                    .is_match(sent_request_header_value, &matcher_header_value.value);
+                    .is_match(received_request_header_value, &matcher_header_value.value);
                 ret
             })
     }

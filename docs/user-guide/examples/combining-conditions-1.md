@@ -9,10 +9,10 @@ Here's an example where we combine a URL path with two HTTP headers as condition
 url_path = "/api/check"
 [rules.when.headers]
 User = { value = "user1" }
-"X-Request-Id" = { value = "abc123" }
+X-Request-Id = { value = "abc123" }
 
 [rules.respond]
-text = "Matched with header"
+text = "Matched with headers"
 ```
 
 ### Important Note on Combined Conditions

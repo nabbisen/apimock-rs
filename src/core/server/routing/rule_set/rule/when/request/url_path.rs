@@ -38,12 +38,12 @@ pub struct UrlPath {
 
 impl UrlPath {
     /// check if `url_path` in `when` matches
-    pub fn is_match(&self, sent_request_url_path: &str) -> bool {
+    pub fn is_match(&self, received_request_url_path: &str) -> bool {
         let op = self.op.clone().unwrap_or_default();
         match op {
             // contains op works with raw value (aka without url_path prefix)
-            RuleOp::Contains => op.is_match(sent_request_url_path, self.value.as_str()),
-            _ => op.is_match(sent_request_url_path, self.value_with_prefix.as_str()),
+            RuleOp::Contains => op.is_match(received_request_url_path, self.value.as_str()),
+            _ => op.is_match(received_request_url_path, self.value_with_prefix.as_str()),
         }
     }
 
