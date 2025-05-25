@@ -17,11 +17,11 @@ By choosing the right operator, you can define rules that are both precise and a
 ## Example
 
 ```toml
-[[rule]]
-rule.when.path = { value = "/disallowed", op = "starts_with" }
-rule.respond.code = 403 # FORBIDDEN
+[[rules]]
+when.request.url_path = { value = "/disallowed", op = "starts_with" }
+respond.code = 403 # FORBIDDEN
 
-[[rule]]
-rule.when.path = { value = "/delicious/cookie/in-the-can", op = "contains" }
-rule.respond.text = "Cookie found !"
+[[rules]]
+when.request.url_path = { value = "/delicious/cookie/in-the-can", op = "contains" }
+respond.text = "Cookie found !"
 ```
