@@ -15,7 +15,7 @@ async fn dyn_data_dir_js() {
 
     assert_eq!(
         response.headers().get("content-type").unwrap(),
-        "application/javascript"
+        "application/javascript; charset=utf-8"
     );
 
     let body_str = response_body_str(response).await;

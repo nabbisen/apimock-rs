@@ -18,7 +18,7 @@ async fn matches_prefix_url_path_prefix_1() {
 
     assert_eq!(
         response.headers().get("content-type").unwrap(),
-        "text/plain"
+        "text/plain; charset=utf-8"
     );
 
     let body_str = response_body_str(response).await;
@@ -35,7 +35,7 @@ async fn matches_prefix_url_path_prefix_2() {
 
     assert_eq!(
         response.headers().get("content-type").unwrap(),
-        "text/plain"
+        "text/plain; charset=utf-8"
     );
 
     let body_str = response_body_str(response).await;

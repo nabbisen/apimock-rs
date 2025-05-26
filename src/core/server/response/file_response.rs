@@ -1,5 +1,4 @@
-use http_body_util::{BodyExt, Full};
-use hyper::body::Bytes;
+use hyper::HeaderMap;
 use serde_json::{Map, Value};
 
 use std::collections::HashMap;
@@ -7,7 +6,7 @@ use std::collections::HashMap;
 use crate::core::{
     server::{
         constant::CSV_RECORDS_DEFAULT_KEY, response::error_response::not_found_response,
-        types::BoxBody,
+        response_handler::ResponseHandler, types::BoxBody,
     },
     util::json::resolve_with_json_compatible_extensions,
 };
@@ -16,8 +15,7 @@ use super::{
     error_response::internal_server_error_response,
     text_response::text_response,
     util::{
-        binary_content_builder, file_extension, json_content_builder, json_value_with_jsonpath_key,
-        text_file_content_type,
+        binary_content_type, file_extension, json_value_with_jsonpath_key, text_file_content_type,
     },
 };
 
@@ -27,17 +25,23 @@ pub struct FileResponse {
     text_content: Option<String>,
     binary_content: Option<Vec<u8>>,
     custom_headers: Option<HashMap<String, Option<String>>>,
+    request_headers: HeaderMap,
 }
 
 impl FileResponse {
     /// create instance
-    pub fn new(file_path: &str, custom_headers: Option<&HashMap<String, Option<String>>>) -> Self {
+    pub fn new(
+        file_path: &str,
+        custom_headers: Option<&HashMap<String, Option<String>>>,
+        request_headers: &HeaderMap,
+    ) -> Self {
         FileResponse {
             file_path: file_path.to_owned(),
             csv_records_key: None,
             text_content: None,
             binary_content: None,
             custom_headers: custom_headers.cloned(),
+            request_headers: request_headers.clone(),
         }
     }
 
@@ -46,8 +50,9 @@ impl FileResponse {
         file_path: &str,
         custom_headers: Option<&HashMap<String, Option<String>>>,
         csv_records_key: Option<String>,
+        request_headers: &HeaderMap,
     ) -> Self {
-        let mut ret = FileResponse::new(file_path, custom_headers);
+        let mut ret = FileResponse::new(file_path, custom_headers, request_headers);
         ret.csv_records_key = csv_records_key;
         ret
     }
@@ -63,7 +68,7 @@ impl FileResponse {
                     "{} is not a file. must be missing or a directory",
                     self.file_path
                 );
-                return not_found_response();
+                return not_found_response(&self.request_headers);
             }
         };
         self.file_path = file_path;
@@ -76,10 +81,11 @@ impl FileResponse {
             Err(_) => match std::fs::read(self.file_path.as_str()) {
                 Ok(content) => {
                     self.binary_content = Some(content);
-                    self.binary_file_content_response()
+                    self.binary_content_type_response()
                 }
                 Err(err) => internal_server_error_response(
                     format!("{}: failed to read file - {}", self.file_path, err).as_str(),
+                    &self.request_headers,
                 ),
             },
         }
@@ -93,14 +99,16 @@ impl FileResponse {
                 "csv" => self.csv_file_content_response(),
                 _ => text_response(
                     self.text_content.clone().unwrap_or_default().as_str(),
-                    Some(text_file_content_type(ext.as_str()).as_str()),
+                    Some(text_file_content_type(ext).as_str()),
                     None,
+                    &self.request_headers,
                 ),
             },
             None => text_response(
                 self.text_content.clone().unwrap_or_default().as_str(),
                 None,
                 None,
+                &self.request_headers,
             ),
         }
     }
@@ -108,13 +116,10 @@ impl FileResponse {
     /// json file response
     fn json_file_content_response(&self) -> Result<hyper::Response<BoxBody>, hyper::http::Error> {
         match json5::from_str::<Value>(self.text_content.clone().unwrap_or_default().as_str()) {
-            Ok(content) => {
-                let body = content.to_string();
-                json_content_builder(self.custom_headers.as_ref())
-                    .body(Full::new(Bytes::from(body)).boxed())
-            }
+            Ok(content) => self.json_content_type_response(content.to_string().as_str()),
             _ => internal_server_error_response(
                 format!("{}: invalid json content", self.file_path.as_str()).as_str(),
+                &self.request_headers,
             ),
         }
     }
@@ -131,6 +136,7 @@ impl FileResponse {
         } else {
             return internal_server_error_response(
                 format!("{}: failed to analyze csv headers", self.file_path.as_str()).as_str(),
+                &self.request_headers,
             );
         };
 
@@ -158,8 +164,7 @@ impl FileResponse {
 
                 let body = serde_json::to_string(&json_value);
                 match body {
-                    Ok(body) => json_content_builder(self.custom_headers.as_ref())
-                        .body(Full::new(Bytes::from(body)).boxed()),
+                    Ok(body) => self.json_content_type_response(body.as_str()),
                     Err(err) => internal_server_error_response(
                         format!(
                             "{}: failed to convert csv records to json response - {}",
@@ -167,6 +172,7 @@ impl FileResponse {
                             err
                         )
                         .as_str(),
+                        &self.request_headers,
                     ),
                 }
             }
@@ -177,14 +183,38 @@ impl FileResponse {
                     err
                 )
                 .as_str(),
+                &self.request_headers,
             ),
         }
     }
 
+    fn json_content_type_response(
+        &self,
+        body: &str,
+    ) -> Result<hyper::Response<BoxBody>, hyper::http::Error> {
+        let mut response_handler = ResponseHandler::default();
+
+        if let Some(custom_headers) = self.custom_headers.clone() {
+            response_handler = response_handler.with_headers(custom_headers);
+        }
+
+        response_handler
+            .with_json_body(body)
+            .into_response(&self.request_headers)
+    }
+
     /// binary file response
-    fn binary_file_content_response(&self) -> Result<hyper::Response<BoxBody>, hyper::http::Error> {
+    fn binary_content_type_response(&self) -> Result<hyper::Response<BoxBody>, hyper::http::Error> {
+        let mut response_handler = ResponseHandler::default();
+
+        if let Some(custom_headers) = self.custom_headers.clone() {
+            response_handler = response_handler.with_headers(custom_headers);
+        }
+
         let content = self.binary_content.clone().unwrap_or_default().to_owned();
-        binary_content_builder(self.file_path.as_str(), self.custom_headers.as_ref())
-            .body(Full::new(Bytes::from(content)).boxed())
+        let content_type = binary_content_type(self.file_path.as_str());
+        response_handler
+            .with_binary_body(content, Some(content_type))
+            .into_response(&self.request_headers)
     }
 }

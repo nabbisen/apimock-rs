@@ -1,4 +1,3 @@
-use default_respond::DefaultRespond;
 use serde::Deserialize;
 
 use std::{fs, path::Path};
@@ -8,14 +7,14 @@ mod guard;
 mod prefix;
 pub mod rule;
 
-use guard::Guard;
-use prefix::Prefix;
-use rule::{respond::Respond, Rule};
-
 use crate::core::{
     config::service_config::strategy::Strategy, server::parsed_request::ParsedRequest,
     util::http::normalize_url_path,
 };
+use default_respond::DefaultRespond;
+use guard::Guard;
+use prefix::Prefix;
+use rule::{respond::Respond, Rule};
 
 #[derive(Clone, Deserialize, Debug)]
 pub struct RuleSet {
@@ -98,13 +97,13 @@ impl RuleSet {
     /// find rule matching request and return its respond content
     pub fn find_matched(
         &self,
-        received_request: &ParsedRequest,
+        parsed_request: &ParsedRequest,
         strategy: Option<&Strategy>,
         rule_set_idx: usize,
     ) -> Option<Respond> {
         let _ = match self.prefix.as_ref() {
             Some(prefix) if prefix.url_path_prefix.is_some() => {
-                if !received_request
+                if !parsed_request
                     .url_path
                     .starts_with(prefix.url_path_prefix.as_ref().unwrap())
                 {
@@ -115,7 +114,7 @@ impl RuleSet {
         };
 
         for (rule_idx, rule) in self.rules.iter().enumerate() {
-            let is_match = rule.when.is_match(received_request, rule_idx, rule_set_idx);
+            let is_match = rule.when.is_match(parsed_request, rule_idx, rule_set_idx);
             if is_match {
                 // todo: last match in the future ?
                 match strategy {
