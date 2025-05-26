@@ -1,6 +1,6 @@
 {
   "name": "@apimock-rs/bin-linux-x64-gnu",
-  "version": "4.0.4",
+  "version": "4.0.5",
   "os": [
     "linux"
   ],
@@ -10,7 +10,7 @@
   "files": [
     "apimock"
   ],
-  "description": "HTTP server generating REST/JSON responses. Aims to be mocking helper to develop microservices and APIs.",
+  "description": "A developer-friendly, robust and functional HTTP mock server built in Rust.",
   "author": "nabbisen<nabbisen@scqr.net>",
   "license": "Apache-2.0",
   "repository": {

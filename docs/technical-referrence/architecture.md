@@ -19,5 +19,5 @@
 - **`src/core/server/routing.rs`**  
   Contains core logic including request routing, matching rules, response rendering, and script evaluation.
 
-- **`tests/` directory**  
+- **`tests/`**  
   Includes test cases run by `cargo test`.

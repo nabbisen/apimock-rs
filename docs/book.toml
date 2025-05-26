@@ -1,7 +1,7 @@
 [book]
 title = "API mock (apimock-rs) Docs"
 authors = ["nabbisen<nabbisen@scqr.net>"]
-description = "Documentation about API mock (apimock-rs)"
+description = "API mock (apimock-rs) Docs: A developer-friendly, robust and functional HTTP mock server built in Rust."
 
 language = "en"
 multilingual = false
@@ -16,3 +16,7 @@ build-dir = ".book"
 command = "mdbook-mermaid"
 [output.html]
 additional-js = [".mdbook/mermaid.min.js", ".mdbook/mermaid-init.js"]
+
+# general [output.html]
+git-repository-url = "https://github.com/apimokka/apimock-rs"
+edit-url-template = "https://github.com/apimokka/apimock-rs/edit/main/docs/{path}"

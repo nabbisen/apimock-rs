@@ -1,7 +1,5 @@
-//! API mock Server generating HTTP/JSON responses
-//!
-//! Mocking helper to develop microservices and APIs.
-//! [hyper](https://hyper.rs/)-based HTTP server generating REST responses containing JSON ones.
+//! A developer-friendly, robust and functional HTTP mock server
+//! built in Rust, based on [hyper](https://hyper.rs/) and [tokio](https://tokio.rs/).
 
 pub mod core;
 use core::app::App;
