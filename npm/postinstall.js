@@ -13,13 +13,13 @@ function srcDestBinaryPath() {
 
     switch (platform) {
         case "linux":
-            platformPackage = "linux-x64-gnu"
+            platformPackage = "bin-linux-x64-gnu"
             break
         case "darwin":
-            platformPackage = "darwin-arm64"
+            platformPackage = "bin-darwin-arm64"
             break
         case "win32":
-            platformPackage = "win32-x64-msvc"
+            platformPackage = "bin-win32-x64-msvc"
             extension = ".exe"
             break
         default:
