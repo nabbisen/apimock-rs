@@ -1,7 +1,7 @@
 use hyper::{
     header::{
         HeaderValue, ACCESS_CONTROL_ALLOW_HEADERS, ACCESS_CONTROL_ALLOW_METHODS,
-        ACCESS_CONTROL_ALLOW_ORIGIN, CACHE_CONTROL, CONTENT_TYPE,
+        ACCESS_CONTROL_ALLOW_ORIGIN, CACHE_CONTROL, CONNECTION, CONTENT_TYPE,
     },
     http::response::Builder,
 };
@@ -20,7 +20,8 @@ pub fn default_builder() -> Builder {
             ACCESS_CONTROL_ALLOW_METHODS,
             HeaderValue::from_static("GET, POST, OPTIONS, HEAD"),
         )
-        .header(CACHE_CONTROL, HeaderValue::from_static("no-store"));
+        .header(CACHE_CONTROL, HeaderValue::from_static("no-store"))
+        .header(CONNECTION, HeaderValue::from_static("keep-alive"));
     builder
 }
 
