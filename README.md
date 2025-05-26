@@ -46,9 +46,9 @@ npx apimock --init
 
 ### 📖 Documentation
 
-For more details, check out [the docs](https://apimokka.github.io/apimock-rs/).
+For more details, **🧭 check out [the docs](https://apimokka.github.io/apimock-rs/)**.
 
-### 💻️ GUI bundle (development in progress)
+### 💻️ GUI wrapper (development in progress)
 
 [apimokka](https://github.com/apimokka/apimokka), featherlight GUI bundle, will be also available.
 
