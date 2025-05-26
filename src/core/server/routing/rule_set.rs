@@ -33,8 +33,10 @@ impl RuleSet {
         current_dir_to_config_dir_relative_path: &str,
         rule_set_idx: usize,
     ) -> Self {
-        let toml_string = fs::read_to_string(rule_set_file_path)
-            .expect(format!("failed to read rule set toml `{}`", rule_set_file_path).as_str());
+        let toml_string = fs::read_to_string(rule_set_file_path).expect(&format!(
+            "failed to read rule set toml `{}`",
+            rule_set_file_path
+        ));
         let deserialized = toml::from_str::<Self>(&toml_string);
         let mut ret = match deserialized {
             Ok(x) => x,

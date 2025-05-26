@@ -12,7 +12,7 @@ pub fn current_dir_to_file_parent_dir_relative_path(file_path: &str) -> io::Resu
         env::current_dir()?.as_path(),
         Path::new(file_path)
             .parent()
-            .expect(format!("failed to get parent dir: {}", file_path).as_str()),
+            .expect(&format!("failed to get parent dir: {}", file_path)),
     )
 }
 
