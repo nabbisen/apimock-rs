@@ -6,12 +6,11 @@ pub mod rule_op;
 pub mod url_path;
 mod util;
 
+use crate::core::server::parsed_request::ParsedRequest;
 use body::Body;
 use headers::Headers;
 use url_path::{UrlPath, UrlPathConfig};
 use util::fmt_condition_connector;
-
-use crate::core::server::parsed_request::ParsedRequest;
 
 #[derive(Clone, Deserialize, Debug)]
 pub struct Request {
@@ -27,7 +26,7 @@ impl Request {
     /// match with condition
     pub fn is_match(
         &self,
-        received_request: &ParsedRequest,
+        parsed_request: &ParsedRequest,
         rule_idx: usize,
         rule_set_idx: usize,
     ) -> bool {
@@ -36,17 +35,17 @@ impl Request {
                 .url_path
                 .as_ref()
                 .unwrap()
-                .is_match(received_request.url_path.as_str());
+                .is_match(parsed_request.url_path.as_str());
 
         let headers_is_match = self.headers.is_none()
             || self.headers.as_ref().unwrap().is_match(
-                &received_request.component_parts.headers,
+                &parsed_request.component_parts.headers,
                 rule_idx,
                 rule_set_idx,
             );
 
         let body_is_match =
-            self.body.is_none() || self.body.as_ref().unwrap().is_match(&received_request);
+            self.body.is_none() || self.body.as_ref().unwrap().is_match(&parsed_request);
 
         url_path_is_match && headers_is_match && body_is_match
     }

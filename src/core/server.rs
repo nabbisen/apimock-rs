@@ -4,7 +4,6 @@ use hyper_util::{
     rt::{TokioExecutor, TokioIo},
     server::conn::auto::Builder,
 };
-use response::error_response::internal_server_error_response;
 use tokio::net::TcpListener;
 use tokio::sync::Mutex;
 
@@ -15,6 +14,7 @@ pub mod constant;
 pub mod middleware;
 pub mod parsed_request;
 pub mod response;
+mod response_handler;
 pub mod routing;
 mod routing_analysis;
 pub mod types;
@@ -22,6 +22,7 @@ pub mod types;
 use crate::core::app::app_state::AppState;
 use crate::core::app::constant::APP_NAME;
 use parsed_request::ParsedRequest;
+use response::error_response::internal_server_error_response;
 use routing::dyn_route::dyn_route_content;
 use types::BoxBody;
 
@@ -92,9 +93,11 @@ pub async fn service(
     request: hyper::Request<body::Incoming>,
     app_state: Arc<Mutex<AppState>>,
 ) -> Result<hyper::Response<BoxBody>, hyper::http::Error> {
+    let request_headers = request.headers().clone();
+
     let request = match ParsedRequest::from(request).await {
         Ok(x) => x,
-        Err(err) => return internal_server_error_response(err.as_str()),
+        Err(err) => return internal_server_error_response(err.as_str(), &request_headers),
     };
 
     let shared_app_state = { app_state.lock().await.clone() };
@@ -117,5 +120,6 @@ pub async fn service(
     dyn_route_content(
         request.url_path.as_str(),
         config.service.fallback_respond_dir.as_str(),
+        &request_headers,
     )
 }

@@ -1,14 +1,6 @@
-use hyper::{
-    header::{HeaderValue, CONTENT_TYPE},
-    http::response::Builder,
-    StatusCode,
-};
 use serde_json::{Map, Value};
 
-use std::{collections::HashMap, path::Path};
-
-use super::{default_builder, json_builder};
-use crate::core::server::constant::DEFAULT_PLAIN_TEXT_CONTENT_TYPE;
+use std::path::Path;
 
 /// file extension string from file path
 pub fn file_extension(file_path: &str) -> Option<String> {
@@ -24,49 +16,14 @@ pub fn file_extension(file_path: &str) -> Option<String> {
 }
 
 /// content type from text file extension
-pub fn text_file_content_type(ext: &str) -> String {
-    let ret = match ext {
-        "html" => "text/html",
-        "css" => "text/css",
-        "js" => "application/javascript",
-        _ => DEFAULT_PLAIN_TEXT_CONTENT_TYPE,
+pub fn text_file_content_type(ext: impl AsRef<str>) -> String {
+    let ret = match ext.as_ref() {
+        "html" => "text/html; charset=utf-8",
+        "css" => "text/css; charset=utf-8",
+        "js" => "application/javascript; charset=utf-8",
+        _ => "text/plain; charset=utf-8",
     };
     ret.to_owned()
-}
-
-/// generate response builder for json compatible file
-pub fn json_content_builder(custom_headers: Option<&HashMap<String, Option<String>>>) -> Builder {
-    let mut builder = json_builder().status(StatusCode::OK);
-
-    if let Some(headers) = custom_headers {
-        builder = headers
-            .iter()
-            .fold(builder, |builder, (header_key, header_value)| {
-                builder.header(header_key, header_value.clone().unwrap_or_default())
-            });
-    }
-
-    builder
-}
-
-/// generate response builder for binary file
-pub fn binary_content_builder(
-    file_path: &str,
-    custom_headers: Option<&HashMap<String, Option<String>>>,
-) -> Builder {
-    let mut builder = default_builder()
-        .status(StatusCode::OK)
-        .header(CONTENT_TYPE, binary_content_type(file_path));
-
-    if let Some(headers) = custom_headers {
-        builder = headers
-            .iter()
-            .fold(builder, |builder, (header_key, header_value)| {
-                builder.header(header_key, header_value.clone().unwrap_or_default())
-            });
-    }
-
-    builder
 }
 
 /// json value with jsonpath as key
@@ -85,7 +42,8 @@ pub fn json_value_with_jsonpath_key(jsonpath_key: &str, value: Value) -> Value {
     ret
 }
 
-fn binary_content_type(file_path: &str) -> HeaderValue {
+/// content-type from file ext
+pub fn binary_content_type(file_path: &str) -> String {
     let content_type = match file_extension(file_path).unwrap_or_default().as_str() {
         // - image
         "png" => "image/png",
@@ -120,5 +78,6 @@ fn binary_content_type(file_path: &str) -> HeaderValue {
         // - (else)
         _ => "application/octet-stream",
     };
-    HeaderValue::from_static(content_type)
+
+    content_type.to_owned()
 }

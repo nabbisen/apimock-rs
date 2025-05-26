@@ -3,11 +3,10 @@ use serde::Deserialize;
 
 use std::collections::HashMap;
 
+use super::util::fmt_condition_connector;
 use crate::core::server::routing::rule_set::rule::{
     when::condition_statement::ConditionStatement, ConditionKey,
 };
-
-use super::util::fmt_condition_connector;
 
 #[derive(Clone, Debug, Deserialize)]
 #[serde(transparent)]
@@ -17,19 +16,19 @@ impl Headers {
     /// check if `headers` in `when` matches
     pub fn is_match(
         &self,
-        received_request_headers: &HeaderMap<HeaderValue>,
+        parsed_request_headers: &HeaderMap<HeaderValue>,
         rule_idx: usize,
         rule_set_idx: usize,
     ) -> bool {
         self.0
             .iter()
             .all(|(matcher_header_key, matcher_header_value)| {
-                let received_request_header_value = match received_request_headers.get(matcher_header_key) {
+                let parsed_request_header_value = match parsed_request_headers.get(matcher_header_key) {
                     Some(x) => x,
                     None => return false,
                 };
 
-                let received_request_header_value = match received_request_header_value.to_str() {
+                let parsed_request_header_value = match parsed_request_header_value.to_str() {
                     Ok(x) => x,
                     Err(err) => {
                         log::error!(
@@ -47,7 +46,7 @@ impl Headers {
                     .op
                     .clone()
                     .unwrap_or_default()
-                    .is_match(received_request_header_value, &matcher_header_value.value);
+                    .is_match(parsed_request_header_value, &matcher_header_value.value);
                 ret
             })
     }

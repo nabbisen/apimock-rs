@@ -39,14 +39,16 @@ impl ServiceConfig {
     /// handle middleware(s)
     pub fn middleware_response(
         &self,
-        request: &ParsedRequest,
+        parsed_request: &ParsedRequest,
     ) -> Option<Result<hyper::Response<BoxBody>, hyper::http::Error>> {
         for middleware in self.middlewares.iter() {
-            let middleware_response_file_path =
-                match middleware.handle(request.url_path.as_str(), request.body_json.as_ref()) {
-                    Some(x) => x,
-                    None => continue,
-                };
+            let middleware_response_file_path = match middleware.handle(
+                parsed_request.url_path.as_str(),
+                parsed_request.body_json.as_ref(),
+            ) {
+                Some(x) => x,
+                None => continue,
+            };
 
             let response_file_path =
                 if Path::new(middleware_response_file_path.as_str()).is_absolute() {
@@ -63,6 +65,7 @@ impl ServiceConfig {
                                     middleware.file_path.as_str(),
                                 )
                                 .as_str(),
+                                &parsed_request.component_parts.headers,
                             ))
                         }
                     };
@@ -77,13 +80,19 @@ impl ServiceConfig {
                                     middleware_response_file_path
                                 )
                                 .as_str(),
+                                &parsed_request.component_parts.headers,
                             ))
                         }
                     }
                 };
 
             return Some(
-                FileResponse::new(response_file_path.as_str(), None).file_content_response(),
+                FileResponse::new(
+                    response_file_path.as_str(),
+                    None,
+                    &parsed_request.component_parts.headers,
+                )
+                .file_content_response(),
             );
         }
         None
@@ -92,13 +101,13 @@ impl ServiceConfig {
     /// handle on `rule_sets`
     pub async fn rule_set_response(
         &self,
-        received_request: &ParsedRequest,
+        parsed_request: &ParsedRequest,
     ) -> Option<Result<hyper::Response<BoxBody>, hyper::http::Error>> {
         for (rule_set_idx, rule_set) in self.rule_sets.iter().enumerate() {
-            match rule_set.find_matched(received_request, self.strategy.as_ref(), rule_set_idx) {
+            match rule_set.find_matched(parsed_request, self.strategy.as_ref(), rule_set_idx) {
                 Some(respond) => {
                     let dir_prefix = rule_set.dir_prefix();
-                    let response = respond.response(dir_prefix.as_str()).await;
+                    let response = respond.response(dir_prefix.as_str(), &parsed_request).await;
                     return Some(response);
                 }
                 None => (),

@@ -1,25 +1,25 @@
-use http_body_util::{BodyExt, Empty, Full};
-use hyper::{body::Bytes, StatusCode};
+use hyper::{HeaderMap, StatusCode};
 
-use crate::core::server::types::BoxBody;
-
-use super::default_builder;
+use crate::core::server::{response_handler::ResponseHandler, types::BoxBody};
 
 /// custom status code response (body is empty)
 pub fn status_code_response(
     status_code: &StatusCode,
+    request_headers: &HeaderMap,
 ) -> Result<hyper::Response<BoxBody>, hyper::http::Error> {
-    default_builder()
-        .status(status_code)
-        .body(Empty::new().boxed())
+    ResponseHandler::default()
+        .with_status(status_code)
+        .into_response(request_headers)
 }
 
 /// custom status code response with message in body
 pub fn status_code_response_with_message(
     status_code: &StatusCode,
     message: &str,
+    request_headers: &HeaderMap,
 ) -> Result<hyper::Response<BoxBody>, hyper::http::Error> {
-    default_builder()
-        .status(status_code)
-        .body(Full::new(Bytes::from(message.to_owned())).boxed())
+    ResponseHandler::default()
+        .with_status(status_code)
+        .with_text(message, None)
+        .into_response(request_headers)
 }

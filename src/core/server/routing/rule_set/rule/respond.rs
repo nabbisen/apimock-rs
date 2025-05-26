@@ -8,6 +8,7 @@ mod util;
 
 use crate::core::{
     server::{
+        parsed_request::ParsedRequest,
         response::{
             error_response::internal_server_error_response,
             file_response::FileResponse,
@@ -36,6 +37,7 @@ impl Respond {
     pub async fn response(
         &self,
         dir_prefix: &str,
+        parsed_request: &ParsedRequest,
     ) -> Result<hyper::Response<BoxBody>, hyper::http::Error> {
         if let Some(delay_response_milliseconds) = self.delay_response_milliseconds {
             delay_response(delay_response_milliseconds).await;
@@ -49,24 +51,40 @@ impl Respond {
                     self.file_path.clone().unwrap_or_default().as_str(),
                     dir_prefix
                 );
-                return internal_server_error_response("failed to get response file");
+                return internal_server_error_response(
+                    "failed to get response file",
+                    &parsed_request.component_parts.headers,
+                );
             }
             FileResponse::new_with_csv_records_jsonpath(
                 full_file_path.unwrap().as_str(),
                 self.headers.as_ref(),
                 self.csv_records_key.clone(),
+                &parsed_request.component_parts.headers,
             )
             .file_content_response()
         } else if let Some(text) = self.text.as_ref() {
             if let Some(status_code) = self.status_code.as_ref() {
-                status_code_response_with_message(status_code, text.as_str())
+                status_code_response_with_message(
+                    status_code,
+                    text.as_str(),
+                    &parsed_request.component_parts.headers,
+                )
             } else {
-                text_response(text.as_str(), None, self.headers.as_ref())
+                text_response(
+                    text.as_str(),
+                    None,
+                    self.headers.as_ref(),
+                    &parsed_request.component_parts.headers,
+                )
             }
         } else if let Some(status_code) = self.status_code.as_ref() {
-            status_code_response(status_code)
+            status_code_response(status_code, &parsed_request.component_parts.headers)
         } else {
-            internal_server_error_response("invalid respond def")
+            internal_server_error_response(
+                "invalid respond def",
+                &parsed_request.component_parts.headers,
+            )
         }
     }
 

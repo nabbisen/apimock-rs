@@ -1,4 +1,3 @@
-use body_kind::BodyKind;
 use serde::Deserialize;
 use serde_json::Value;
 
@@ -6,6 +5,7 @@ use std::collections::HashMap;
 
 mod body_kind;
 
+use super::util::fmt_condition_connector;
 use crate::core::{
     server::{
         parsed_request::ParsedRequest,
@@ -13,8 +13,7 @@ use crate::core::{
     },
     util::json::json_value_by_jsonpath,
 };
-
-use super::util::fmt_condition_connector;
+use body_kind::BodyKind;
 
 #[derive(Clone, Debug, Deserialize)]
 #[serde(transparent)]
@@ -22,9 +21,9 @@ pub struct Body(pub HashMap<BodyKind, HashMap<ConditionKey, ConditionStatement>>
 
 impl Body {
     /// check if `body` in `when` matches
-    pub fn is_match(&self, received_request: &ParsedRequest) -> bool {
+    pub fn is_match(&self, parsed_request: &ParsedRequest) -> bool {
         // todo: support other types than json (such as form value) in the future
-        let request_body_json = match received_request.body_json.as_ref() {
+        let request_body_json = match parsed_request.body_json.as_ref() {
             Some(x) => x,
             None => return false,
         };

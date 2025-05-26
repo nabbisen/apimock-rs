@@ -64,7 +64,7 @@ async fn http_response(
     let addr = format!("{}:{}", host, port);
     let stream = TcpStream::connect(addr)
         .await
-        .expect(format!("tcp connect failed with {}:{}", host, port).as_str());
+        .expect(&format!("tcp connect failed with {}:{}", host, port));
     let io = TokioIo::new(stream);
 
     let (mut sender, conn) = hyper::client::conn::http1::handshake(io).await.unwrap();

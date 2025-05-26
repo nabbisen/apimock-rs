@@ -188,7 +188,7 @@ impl Config {
             Some(x) => {
                 let relative_dir_path =
                     current_dir_to_file_parent_dir_relative_path(x.as_str())
-                    .expect(format!("failed to get relative path from current dir to config toml file dir: config toml = {}", self.file_path.clone().unwrap_or_default()).as_str());
+                    .expect(&format!("failed to get relative path from current dir to config toml file dir: config toml = {}", self.file_path.clone().unwrap_or_default()));
                 let relative_dir_path = relative_dir_path.to_str().expect(
                     format!(
                         "failed to get relative file str: {}",

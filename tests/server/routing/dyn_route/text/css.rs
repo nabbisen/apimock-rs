@@ -13,7 +13,10 @@ async fn dyn_data_dir_css() {
 
     assert_eq!(response.status(), StatusCode::OK);
 
-    assert_eq!(response.headers().get("content-type").unwrap(), "text/css");
+    assert_eq!(
+        response.headers().get("content-type").unwrap(),
+        "text/css; charset=utf-8"
+    );
 
     let body_str = response_body_str(response).await;
     assert_eq!(

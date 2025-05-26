@@ -32,7 +32,7 @@ async fn match_headers_key_1() {
 
     assert_eq!(
         response.headers().get("content-type").unwrap(),
-        "text/plain"
+        "text/plain; charset=utf-8"
     );
 
     let body_str = response_body_str(response).await;
@@ -58,7 +58,7 @@ async fn match_headers_key_2() {
 
     assert_eq!(
         response.headers().get("content-type").unwrap(),
-        "text/plain"
+        "text/plain; charset=utf-8"
     );
 
     let body_str = response_body_str(response).await;
@@ -84,7 +84,7 @@ async fn match_headers_key_3() {
 
     assert_eq!(
         response.headers().get("content-type").unwrap(),
-        "text/plain"
+        "text/plain; charset=utf-8"
     );
 
     let body_str = response_body_str(response).await;
@@ -110,7 +110,7 @@ async fn match_headers_key_4() {
 
     assert_eq!(
         response.headers().get("content-type").unwrap(),
-        "text/plain"
+        "text/plain; charset=utf-8"
     );
 
     let body_str = response_body_str(response).await;
@@ -136,7 +136,7 @@ async fn match_headers_key_5() {
 
     assert_eq!(
         response.headers().get("content-type").unwrap(),
-        "text/plain"
+        "text/plain; charset=utf-8"
     );
 
     let body_str = response_body_str(response).await;
