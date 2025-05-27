@@ -184,9 +184,18 @@ pub fn default_response_headers(request_headers: &HeaderMap) -> HeaderMap {
     );
 
     // - access-control-allow-origin, vary
-    let (origin, vary) = match request_headers.get(ORIGIN) {
-        Some(x) => (x.to_owned(), HeaderValue::from_static("Origin")),
-        None => (HeaderValue::from_static("*"), HeaderValue::from_static("*")),
+    let origin = if is_likely_authenticated_request(request_headers) {
+        match request_headers.get(ORIGIN) {
+            Some(x) => Some(x.to_owned()),
+            None => None,
+        }
+    } else {
+        None
+    };
+    let (origin, vary) = if let Some(origin) = origin {
+        (origin, HeaderValue::from_static("Origin"))
+    } else {
+        (HeaderValue::from_static("*"), HeaderValue::from_static("*"))
     };
     header_map_src.push((
         ACCESS_CONTROL_ALLOW_ORIGIN.to_string(),
@@ -227,4 +236,9 @@ pub fn default_response_headers(request_headers: &HeaderMap) -> HeaderMap {
     }});
 
     ret
+}
+
+/// guess if the request is likely related to authentication
+fn is_likely_authenticated_request(request_headers: &HeaderMap) -> bool {
+    request_headers.contains_key("cookie") || request_headers.contains_key("authorization")
 }
