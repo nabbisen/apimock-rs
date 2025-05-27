@@ -84,7 +84,7 @@ impl ParsedRequest {
             Version::HTTP_3 => "HTTP/3",
             Version::HTTP_2 => "HTTP/2",
             Version::HTTP_11 => "HTTP/1.1",
-            _ => "HTTP/1.0 or before",
+            _ => "HTTP/1.0 or earlier, or HTTP/4 or later",
         };
 
         let origin = if let Some(origin) = self.component_parts.headers.get(ORIGIN) {
@@ -105,7 +105,7 @@ impl ParsedRequest {
             self.component_parts.method,
         );
         if let Some(origin) = origin {
-            printed.push_str(&format!("[ORIGIN {}]", origin));
+            printed.push_str(&format!(" [ORIGIN {}]", origin));
         }
         printed.push_str(&format!(
             " [{}] request received (at {} UTC)",
@@ -125,7 +125,7 @@ impl ParsedRequest {
                 .collect::<String>();
             let printed_headers = format!("{}", headers);
             printed.push_str(&format!(
-                "   [headers]{}\n",
+                "   [request.headers]{}\n",
                 style(printed_headers).magenta()
             ));
         }
@@ -135,11 +135,13 @@ impl ParsedRequest {
         if verbose.body {
             let query = self.component_parts.uri.query();
             if let Some(query) = query {
-                printed.push_str(&format!("   [query] {}\n", query));
+                printed.push_str(&format!("   [request.query] {}\n", query));
                 is_verbose_body = true;
             }
 
             if let Some(request_body_json_value) = &self.body_json {
+                printed.push_str("   [request.body.json]\n");
+
                 let body_str = match to_string_pretty(request_body_json_value) {
                     Ok(x) => x,
                     Err(err) => {
@@ -151,7 +153,13 @@ impl ParsedRequest {
                         request_body_json_value.to_string()
                     }
                 };
-                printed.push_str(&format!("   [body.json]\n{}", style(body_str).green()));
+                let styled_body_str = body_str
+                    .split("\n")
+                    .map(|s| style(s).green().to_string())
+                    .collect::<Vec<String>>()
+                    .join("\n");
+                printed.push_str(styled_body_str.as_str());
+
                 is_verbose_body = true;
             }
         }

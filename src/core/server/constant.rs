@@ -8,5 +8,4 @@ pub const DEFAULT_RESPONSE_HEADERS: &[(&str, &str)] = &[
     ("access-control-allow-methods", DEFAULT_ALLOWED_METHODS),
     ("x-content-type-options", "nosniff"),
     ("connection", "keep-alive"),
-    ("transfer-encoding", "chunked"),
 ];

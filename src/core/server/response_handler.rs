@@ -1,7 +1,7 @@
 use http_body_util::{BodyExt, Empty, Full};
 use hyper::{
     body::Bytes,
-    header::{HeaderName, HeaderValue, ACCESS_CONTROL_ALLOW_ORIGIN, ORIGIN},
+    header::{HeaderName, HeaderValue, ACCESS_CONTROL_ALLOW_ORIGIN, CONTENT_LENGTH, ORIGIN},
     http::response::Builder,
     HeaderMap, StatusCode,
 };
@@ -38,7 +38,7 @@ impl ResponseHandler {
         mut self,
         request_headers: &HeaderMap,
     ) -> Result<hyper::Response<BoxBody>, hyper::http::Error> {
-        // - default headers
+        // - default headers but content-length (later)
         self.response_builder = default_response_headers(request_headers).into_iter().fold(
             self.response_builder,
             |builder, (header_key, header_value)| {
@@ -88,13 +88,15 @@ impl ResponseHandler {
         };
         self.response_builder = self.response_builder.status(status);
 
-        // - body
+        // - body + content-length
         let ret = match self.body_kind {
             BodyKind::Text(s) => self
                 .response_builder
+                .header(CONTENT_LENGTH, s.as_bytes().len())
                 .body(Full::new(Bytes::from(s.to_owned())).boxed()),
             BodyKind::Binary(b) => self
                 .response_builder
+                .header(CONTENT_LENGTH, b.len())
                 .body(Full::new(Bytes::from(b)).boxed()),
             BodyKind::Empty => self.response_builder.body(Empty::new().boxed()),
         };
