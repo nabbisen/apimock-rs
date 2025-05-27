@@ -1,6 +1,6 @@
 use http_body_util::{BodyExt, Empty, Full};
 use hyper::{
-    body::Bytes,
+    body::{Body, Bytes},
     header::{HeaderName, HeaderValue, ACCESS_CONTROL_ALLOW_ORIGIN, CONTENT_LENGTH, ORIGIN, VARY},
     http::response::Builder,
     HeaderMap, StatusCode,
@@ -8,7 +8,9 @@ use hyper::{
 
 use std::{collections::HashMap, str::FromStr};
 
-use super::constant::DEFAULT_RESPONSE_HEADERS;
+use super::{
+    constant::DEFAULT_RESPONSE_HEADERS, response::error_response::internal_server_error_response,
+};
 use crate::core::server::types::BoxBody;
 
 #[derive(Clone)]
@@ -35,73 +37,74 @@ pub struct ResponseHandler {
 impl ResponseHandler {
     /// build response
     pub fn into_response(
-        mut self,
+        self,
         request_headers: &HeaderMap,
     ) -> Result<hyper::Response<BoxBody>, hyper::http::Error> {
-        // - default headers but content-length (later)
-        self.response_builder = default_response_headers(request_headers).into_iter().fold(
-            self.response_builder,
-            |builder, (header_key, header_value)| {
-                if let Some(header_key) = header_key {
-                    builder.header(header_key, header_value)
-                } else {
-                    builder
-                }
-            },
-        );
-
-        // - additional custom headers passed from caller
-        self.response_builder =
-            self.headers
-                .iter()
-                .fold(
-                    self.response_builder,
-                    |response_builder, (header_key, header_value)| match HeaderName::from_str(header_key) {
-                        Ok(header_key) => {
-                            match HeaderValue::from_str(
-                                header_value.clone().unwrap_or_default().as_str(),
-                            ) {
-                                Ok(header_value) => response_builder.header(header_key, header_value),
-                                Err(err) => {
-                                    log::warn!(
-                                        "only header key set because failed to get header value: {} [key = {}] ({})",
-                                        header_value.clone().unwrap_or_default(),
-                                        header_key,
-                                        err
-                                    );
-                                    response_builder.header(header_key, HeaderValue::from_static(""))
-                                }
-                            }
-                        }
-                        Err(err) => {
-                            log::warn!("failed to set header key: {} ({})", header_key, err);
-                            response_builder
-                        }
-                    },
-                );
-
-        // - http status code
-        let status = if let Some(status) = self.status {
-            status
-        } else {
-            StatusCode::OK
-        };
-        self.response_builder = self.response_builder.status(status);
-
         // - body + content-length
-        let ret = match self.body_kind {
+        let response = match self.body_kind {
             BodyKind::Text(s) => self
                 .response_builder
-                .header(CONTENT_LENGTH, s.as_bytes().len())
                 .body(Full::new(Bytes::from(s.to_owned())).boxed()),
             BodyKind::Binary(b) => self
                 .response_builder
-                .header(CONTENT_LENGTH, b.len())
                 .body(Full::new(Bytes::from(b)).boxed()),
             BodyKind::Empty => self.response_builder.body(Empty::new().boxed()),
         };
 
-        ret
+        let mut response = match response {
+            Ok(x) => x,
+            Err(err) => {
+                return internal_server_error_response(
+                    &format!("failed to create response: {}", err),
+                    request_headers,
+                )
+            }
+        };
+
+        *response.status_mut() = if let Some(status) = self.status {
+            status
+        } else {
+            StatusCode::OK
+        };
+
+        let content_length = response.body().size_hint().exact().unwrap_or_default();
+
+        let headers = response.headers_mut();
+
+        headers.insert(CONTENT_LENGTH, HeaderValue::from(content_length));
+
+        // - default headers but content-length (later)
+        for (header_key, header_value) in default_response_headers(request_headers).iter() {
+            headers.insert(header_key, header_value.to_owned());
+        }
+
+        // - additional custom headers passed from caller
+        for (header_key, header_value) in self.headers {
+            let _ = match HeaderName::from_str(header_key.as_str()) {
+                Ok(header_key) => {
+                    match HeaderValue::from_str(header_value.unwrap_or_default().as_str()) {
+                        Ok(header_value) => {
+                            headers.insert(header_key, header_value);
+                        }
+                        Err(err) => {
+                            log::warn!(
+                                "failed to create header with the header value (header key = {}) ({})",
+                                header_key,
+                                err
+                            );
+                            headers.insert(header_key, HeaderValue::from_static(""));
+                        }
+                    }
+                }
+                Err(err) => log::warn!(
+                    "failed to create header with the header key: {} ({})",
+                    header_key,
+                    err
+                ),
+            };
+        }
+
+        Ok(response)
     }
 
     /// set http status code
