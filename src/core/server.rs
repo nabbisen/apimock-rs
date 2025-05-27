@@ -1,9 +1,11 @@
 use console::style;
-use hyper::{body, service::service_fn};
+use http_body_util::{BodyExt, Empty};
+use hyper::{body, service::service_fn, HeaderMap, Response};
 use hyper_util::{
     rt::{TokioExecutor, TokioIo},
     server::conn::auto::Builder,
 };
+use response_handler::default_response_headers;
 use tokio::net::TcpListener;
 use tokio::sync::Mutex;
 
@@ -95,6 +97,11 @@ pub async fn service(
 ) -> Result<hyper::Response<BoxBody>, hyper::http::Error> {
     let request_headers = request.headers().clone();
 
+    let _ = match request.method() {
+        &hyper::Method::OPTIONS => return handle_options(&request_headers),
+        _ => (),
+    };
+
     let request = match ParsedRequest::from(request).await {
         Ok(x) => x,
         Err(err) => return internal_server_error_response(err.as_str(), &request_headers),
@@ -122,4 +129,24 @@ pub async fn service(
         config.service.fallback_respond_dir.as_str(),
         &request_headers,
     )
+}
+
+/// OPTIONS request handler
+fn handle_options(
+    request_headers: &HeaderMap,
+) -> Result<hyper::Response<BoxBody>, hyper::http::Error> {
+    let mut response = Response::new(Empty::new().boxed());
+    *response.status_mut() = hyper::StatusCode::OK;
+    response = default_response_headers(request_headers).into_iter().fold(
+        response,
+        |mut response, (header_key, header_value)| {
+            if let Some(header_key) = header_key {
+                response.headers_mut().insert(header_key, header_value);
+                response
+            } else {
+                response
+            }
+        },
+    );
+    Ok(response)
 }

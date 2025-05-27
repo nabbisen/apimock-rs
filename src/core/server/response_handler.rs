@@ -38,23 +38,15 @@ impl ResponseHandler {
         mut self,
         request_headers: &HeaderMap,
     ) -> Result<hyper::Response<BoxBody>, hyper::http::Error> {
-        // - access-control-allow-origin (one of the default headers)
-        let fallback_origin = HeaderValue::from_static("*");
-        let client_origin = request_headers
-            .get(ORIGIN)
-            .unwrap_or_else(|| &fallback_origin);
-        self.response_builder = self
-            .response_builder
-            .header(ACCESS_CONTROL_ALLOW_ORIGIN, client_origin);
-
-        // - the other default headers
-        self.response_builder = DEFAULT_RESPONSE_HEADERS.iter().fold(
+        // - default headers
+        self.response_builder = default_response_headers(request_headers).into_iter().fold(
             self.response_builder,
             |builder, (header_key, header_value)| {
-                builder.header(
-                    HeaderName::from_static(header_key),
-                    HeaderValue::from_static(header_value),
-                )
+                if let Some(header_key) = header_key {
+                    builder.header(header_key, header_value)
+                } else {
+                    builder
+                }
             },
         );
 
@@ -175,4 +167,56 @@ impl ResponseHandler {
 
         self
     }
+}
+
+/// default response headers key-value pairs
+pub fn default_response_headers(request_headers: &HeaderMap) -> HeaderMap {
+    let mut header_map_src = Vec::with_capacity(DEFAULT_RESPONSE_HEADERS.len() + 1);
+
+    // - the other default headers but access-control-allow-origin
+    header_map_src.extend(
+        DEFAULT_RESPONSE_HEADERS
+            .iter()
+            .map(|(k, v)| (k.to_string(), v.to_string())),
+    );
+
+    // - access-control-allow-origin
+    let fallback_origin = HeaderValue::from_static("*");
+    let client_origin = request_headers
+        .get(ORIGIN)
+        .unwrap_or_else(|| &fallback_origin);
+    header_map_src.push((
+        ACCESS_CONTROL_ALLOW_ORIGIN.to_string(),
+        client_origin.to_str().unwrap_or_default().to_owned(),
+    ));
+
+    let ret = header_map_src.iter().fold(HeaderMap::new(),|mut ret,(header_key, header_value)| {
+        match HeaderName::from_str(header_key) {
+            Ok(header_key) => {
+                match HeaderValue::from_str(
+                    header_value.as_str(),
+                ) {
+                    Ok(header_value) => {
+                        ret.insert(header_key, header_value);
+                        ret
+                    },
+                    Err(err) => {
+                        log::warn!(
+                            "only header key set because failed to get header value: {} [key = {}] ({})",
+                            header_value.as_str(),
+                            header_key,
+                            err
+                        );
+                        ret.insert(header_key, HeaderValue::from_static(""));
+                        ret
+                    }
+                }
+            }
+            Err(err) => {
+                log::warn!("failed to set header key: {} ({})", header_key, err);
+                ret
+            }
+    }});
+
+    ret
 }
