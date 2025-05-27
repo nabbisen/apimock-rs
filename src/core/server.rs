@@ -58,7 +58,7 @@ impl Server {
     /// app start
     pub async fn start(&self) {
         log::info!(
-            "\nGreetings from {APP_NAME} !!\nListening on {} ...\n",
+            "Greetings from {APP_NAME} !!\nListening on {} ...\n",
             style(format!("http://{}", self.addr)).cyan()
         );
         let app_state = Arc::new(Mutex::new(self.app_state.clone()));
