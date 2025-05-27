@@ -6,6 +6,9 @@
 flowchart TD
 
     A[request received]
+    OP1(OPTIONS method ?)
+    OP2[200 OK]
+    OP3((end))
     B[logger dumps request]
     C(middlewares enabled?)
     MW[[middleware]]
@@ -21,7 +24,11 @@ flowchart TD
     Z2[not found response]
     Z2Z((end))
 
-    A --> B --> C
+    A --> OP1
+    OP1 -->|Yes| OP2
+    OP1 -->|No| B
+    OP2 --> OP3
+    B --> C
     C -->|Yes| MW
     C -->|No| D
     MW --> MWC

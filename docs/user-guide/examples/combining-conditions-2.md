@@ -10,7 +10,7 @@ Combining conditions gives you tighter control over when a mock response is retu
 
 ## Example
 
-Here's an example where we combine **a URL path** with **two HTTP headers** as conditions:
+Here's an example where we combine **a URL path** with **two HTTP headers** and **a body JSON Path** as conditions:
 
 ```toml
 # rule No.1 (priority)
