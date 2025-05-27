@@ -1,6 +1,11 @@
 use console::style;
 use http_body_util::{BodyExt, Empty};
-use hyper::{body, service::service_fn, HeaderMap, Response};
+use hyper::{
+    body,
+    header::{HeaderValue, CONTENT_LENGTH},
+    service::service_fn,
+    HeaderMap, Response,
+};
 use hyper_util::{
     rt::{TokioExecutor, TokioIo},
     server::conn::auto::Builder,
@@ -136,7 +141,14 @@ fn handle_options(
     request_headers: &HeaderMap,
 ) -> Result<hyper::Response<BoxBody>, hyper::http::Error> {
     let mut response = Response::new(Empty::new().boxed());
-    *response.status_mut() = hyper::StatusCode::OK;
+
+    // empty
+    *response.status_mut() = hyper::StatusCode::NO_CONTENT;
+    response
+        .headers_mut()
+        .insert(CONTENT_LENGTH, HeaderValue::from_static("0"));
+
+    // default headers
     response = default_response_headers(request_headers).into_iter().fold(
         response,
         |mut response, (header_key, header_value)| {

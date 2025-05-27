@@ -1,7 +1,7 @@
 use http_body_util::{BodyExt, Empty, Full};
 use hyper::{
     body::Bytes,
-    header::{HeaderName, HeaderValue, ACCESS_CONTROL_ALLOW_ORIGIN, CONTENT_LENGTH, ORIGIN},
+    header::{HeaderName, HeaderValue, ACCESS_CONTROL_ALLOW_ORIGIN, CONTENT_LENGTH, ORIGIN, VARY},
     http::response::Builder,
     HeaderMap, StatusCode,
 };
@@ -175,23 +175,29 @@ impl ResponseHandler {
 pub fn default_response_headers(request_headers: &HeaderMap) -> HeaderMap {
     let mut header_map_src = Vec::with_capacity(DEFAULT_RESPONSE_HEADERS.len() + 1);
 
-    // - the other default headers but access-control-allow-origin
+    // resource
+    // - the other default headers but access-control-allow-origin, vary
     header_map_src.extend(
         DEFAULT_RESPONSE_HEADERS
             .iter()
             .map(|(k, v)| (k.to_string(), v.to_string())),
     );
 
-    // - access-control-allow-origin
-    let fallback_origin = HeaderValue::from_static("*");
-    let client_origin = request_headers
-        .get(ORIGIN)
-        .unwrap_or_else(|| &fallback_origin);
+    // - access-control-allow-origin, vary
+    let (origin, vary) = match request_headers.get(ORIGIN) {
+        Some(x) => (x.to_owned(), HeaderValue::from_static("Origin")),
+        None => (HeaderValue::from_static("*"), HeaderValue::from_static("*")),
+    };
     header_map_src.push((
         ACCESS_CONTROL_ALLOW_ORIGIN.to_string(),
-        client_origin.to_str().unwrap_or_default().to_owned(),
+        origin.to_str().unwrap_or_default().to_owned(),
+    ));
+    header_map_src.push((
+        VARY.to_string(),
+        vary.to_str().unwrap_or_default().to_owned(),
     ));
 
+    // header map
     let ret = header_map_src.iter().fold(HeaderMap::new(),|mut ret,(header_key, header_value)| {
         match HeaderName::from_str(header_key) {
             Ok(header_key) => {
