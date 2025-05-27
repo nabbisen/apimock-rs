@@ -36,7 +36,6 @@ use types::BoxBody;
 /// server
 pub struct Server {
     pub addr: SocketAddr,
-    pub listener: TcpListener,
     pub app_state: AppState,
 }
 
@@ -49,27 +48,24 @@ impl Server {
             .expect("invalid listend address or port")
             .next()
             .expect("failed to resolve address");
-        let listener = TcpListener::bind(addr)
-            .await
-            .expect("tcp listener failed to bind address");
 
-        Server {
-            addr,
-            listener,
-            app_state,
-        }
+        Server { addr, app_state }
     }
 
     /// app start
     pub async fn start(&self) {
+        let listener = TcpListener::bind(self.addr)
+            .await
+            .expect("tcp listener failed to bind address");
+
         log::info!(
             "Greetings from {APP_NAME} !!\nListening on {} ...\n",
             style(format!("http://{}", self.addr)).cyan()
         );
+
         let app_state = Arc::new(Mutex::new(self.app_state.clone()));
         loop {
-            let (stream, _) = self
-                .listener
+            let (stream, _) = listener
                 .accept()
                 .await
                 .expect("tcp listener failed to accept");
@@ -77,9 +73,7 @@ impl Server {
 
             let app_state = app_state.clone();
             tokio::task::spawn(async move {
-                // Finally, we bind the incoming connection to our `hello` service
                 if let Err(err) = Builder::new(TokioExecutor::new())
-                    // `service_fn` converts our function in a `Service`
                     .serve_connection(
                         io,
                         service_fn(move |request: hyper::Request<body::Incoming>| {
@@ -107,7 +101,7 @@ pub async fn service(
         _ => (),
     };
 
-    let request = match ParsedRequest::from(request).await {
+    let parsed_request = match ParsedRequest::from(request).await {
         Ok(x) => x,
         Err(err) => return internal_server_error_response(err.as_str(), &request_headers),
     };
@@ -117,20 +111,20 @@ pub async fn service(
     // app handle driven by config
     let config = shared_app_state.config;
 
-    request.capture_in_log(config.log.unwrap_or_default().verbose);
+    parsed_request.capture_in_log(config.log.unwrap_or_default().verbose);
 
-    match config.service.middleware_response(&request) {
+    match config.service.middleware_response(&parsed_request) {
         Some(x) => return x,
         None => (),
     }
 
-    match config.service.rule_set_response(&request).await {
+    match config.service.rule_set_response(&parsed_request).await {
         Some(x) => return x,
         None => (),
     }
 
     dyn_route_content(
-        request.url_path.as_str(),
+        parsed_request.url_path.as_str(),
         config.service.fallback_respond_dir.as_str(),
         &request_headers,
     )

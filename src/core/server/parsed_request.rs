@@ -1,5 +1,6 @@
 use console::style;
 use http_body_util::BodyExt;
+use hyper::body::Buf;
 use hyper::header::ORIGIN;
 use hyper::http::request::Parts;
 use hyper::{body::Incoming, Version};
@@ -23,19 +24,17 @@ impl ParsedRequest {
     pub async fn from(request: hyper::Request<Incoming>) -> Result<Self, String> {
         let (component_parts, body) = request.into_parts();
 
-        let body_bytes = match body.boxed().collect().await {
-            Ok(x) => Some(x.to_bytes()),
+        let body_buf = match body.collect().await {
+            Ok(x) => Some(x.aggregate()),
             Err(err) => {
                 log::warn!("failed to collect request incoming body: {}", err);
                 None
             }
         };
 
-        let has_body = body_bytes.is_some() && !body_bytes.as_ref().unwrap().is_empty();
-
         let mut body_json: Option<Value> = None;
-        if has_body {
-            let raw_body_json = serde_json::from_slice::<Option<Value>>(&body_bytes.unwrap());
+        if let Some(body_buf) = body_buf {
+            let raw_body_json = serde_json::from_reader(body_buf.reader());
 
             let _ = match content_type_is_application_json(&component_parts.headers) {
                 // case application/json: get json body
