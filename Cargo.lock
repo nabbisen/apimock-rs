@@ -33,7 +33,7 @@ dependencies = [
 
 [[package]]
 name = "apimock"
-version = "4.0.11"
+version = "4.0.12"
 dependencies = [
  "console",
  "csv",
