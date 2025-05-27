@@ -1,6 +1,6 @@
 {
   "name": "@apimock-rs/bin-darwin-arm64",
-  "version": "4.0.12",
+  "version": "4.0.13",
   "os": [
     "darwin"
   ],

@@ -1,7 +1,10 @@
 use http_body_util::{BodyExt, Empty, Full};
 use hyper::{
     body::{Body, Bytes},
-    header::{HeaderName, HeaderValue, ACCESS_CONTROL_ALLOW_ORIGIN, CONTENT_LENGTH, ORIGIN, VARY},
+    header::{
+        HeaderName, HeaderValue, ACCESS_CONTROL_ALLOW_CREDENTIALS, ACCESS_CONTROL_ALLOW_ORIGIN,
+        CONTENT_LENGTH, ORIGIN, VARY,
+    },
     http::response::Builder,
     HeaderMap, StatusCode,
 };
@@ -61,19 +64,21 @@ impl ResponseHandler {
             }
         };
 
+        // - http status code
         *response.status_mut() = if let Some(status) = self.status {
             status
         } else {
             StatusCode::OK
         };
 
+        // - content-length
         let content_length = response.body().size_hint().exact().unwrap_or_default();
 
         let headers = response.headers_mut();
 
         headers.insert(CONTENT_LENGTH, HeaderValue::from(content_length));
 
-        // - default headers but content-length (later)
+        // - the other default headers
         for (header_key, header_value) in default_response_headers(request_headers).iter() {
             headers.insert(header_key, header_value.to_owned());
         }
@@ -196,6 +201,11 @@ pub fn default_response_headers(request_headers: &HeaderMap) -> HeaderMap {
         None
     };
     let (origin, vary) = if let Some(origin) = origin {
+        header_map_src.push((
+            ACCESS_CONTROL_ALLOW_CREDENTIALS.to_string(),
+            "true".to_owned(),
+        ));
+
         (origin, HeaderValue::from_static("Origin"))
     } else {
         (HeaderValue::from_static("*"), HeaderValue::from_static("*"))

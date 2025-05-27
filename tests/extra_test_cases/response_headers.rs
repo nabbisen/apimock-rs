@@ -8,7 +8,6 @@ const HEADERS_RESPONSE_MUST_HAVE: &[(&str, Option<&str>)] = &[
     ("vary", None),
     ("access-control-allow-origin", None),
     ("cache-control", Some("no-store")),
-    ("access-control-allow-credentials", Some("true")),
     ("access-control-allow-headers", Some("*")),
     ("access-control-max-age", Some("86400")),
     (

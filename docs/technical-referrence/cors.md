@@ -20,7 +20,8 @@ pub const DEFAULT_RESPONSE_HEADERS: &[(&str, &str)] = &[
 
 - access-control-allow-origin and vary
     if successful to get origin from request
-      (origin), "Origin"
+      (got origin value), "Origin"
+      + ACCESS_CONTROL_ALLOW_CREDENTIALS "true"
     else
       "*", "*"
 
