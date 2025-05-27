@@ -1,8 +1,9 @@
 use console::style;
 use http_body_util::BodyExt;
-use hyper::body::Incoming;
+use hyper::header::ORIGIN;
 use hyper::http::request::Parts;
-use serde_json::Value;
+use hyper::{body::Incoming, Version};
+use serde_json::{to_string_pretty, Value};
 
 use std::time::{SystemTime, UNIX_EPOCH};
 
@@ -68,6 +69,7 @@ impl ParsedRequest {
 
     /// print out logs
     pub fn capture_in_log(&self, verbose: VerboseConfig) {
+        // server log (timestamp)
         let now = SystemTime::now()
             .duration_since(UNIX_EPOCH)
             .unwrap()
@@ -77,14 +79,40 @@ impl ParsedRequest {
         let seconds = now % 60;
         let timestamp = format!("{:02}:{:02}:{:02}", hours, minutes, seconds);
 
-        // url and timestamp (base)
-        let mut printed = format!(
-            "<- {} (request got at {} UTC)",
-            style(self.url_path.as_str()).yellow(),
-            timestamp
-        );
+        // request info (url path, origin etc.)
+        let version = match self.component_parts.version {
+            Version::HTTP_3 => "HTTP/3",
+            Version::HTTP_2 => "HTTP/2",
+            Version::HTTP_11 => "HTTP/1.1",
+            _ => "HTTP/1.0 or before",
+        };
 
-        // headers
+        let origin = if let Some(origin) = self.component_parts.headers.get(ORIGIN) {
+            if let Ok(origin) = origin.to_str() {
+                Some(origin)
+            } else {
+                None
+            }
+        } else {
+            None
+        };
+
+        // print
+        // - server info and request info
+        let mut printed = format!(
+            "<- {}\n   [{}]",
+            style(self.url_path.as_str()).yellow(),
+            self.component_parts.method,
+        );
+        if let Some(origin) = origin {
+            printed.push_str(&format!("[ORIGIN {}]", origin));
+        }
+        printed.push_str(&format!(
+            " [{}] request received (at {} UTC)",
+            version, timestamp
+        ));
+
+        // - headers
         if verbose.header || verbose.body {
             printed.push_str("\n");
         }
@@ -95,18 +123,35 @@ impl ParsedRequest {
                 .iter()
                 .map(|x| format!("\n{}: {}", x.0, x.1.to_str().unwrap()))
                 .collect::<String>();
-            let printed_headers = format!(
-                "({:?}, {}){}",
-                self.component_parts.version, self.component_parts.method, headers
-            );
-            printed = format!("{}{}", printed, style(printed_headers).magenta());
+            let printed_headers = format!("{}", headers);
+            printed.push_str(&format!(
+                "   [headers]{}\n",
+                style(printed_headers).magenta()
+            ));
         }
-        // body (json params)
+
+        // - body (url query, json params)
         let mut is_verbose_body = false;
         if verbose.body {
+            let query = self.component_parts.uri.query();
+            if let Some(query) = query {
+                printed.push_str(&format!("   [query] {}\n", query));
+                is_verbose_body = true;
+            }
+
             if let Some(request_body_json_value) = &self.body_json {
-                let body_str = request_body_json_value.to_string();
-                printed = format!("{}\n{}", printed, style(body_str).green());
+                let body_str = match to_string_pretty(request_body_json_value) {
+                    Ok(x) => x,
+                    Err(err) => {
+                        log::warn!(
+                            "failed to prettify JSON: {} ({})",
+                            request_body_json_value,
+                            err
+                        );
+                        request_body_json_value.to_string()
+                    }
+                };
+                printed.push_str(&format!("   [body.json]\n{}", style(body_str).green()));
                 is_verbose_body = true;
             }
         }
