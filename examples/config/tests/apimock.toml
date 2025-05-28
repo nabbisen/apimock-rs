@@ -5,7 +5,6 @@ port = 3001
 verbose = { header = false, body = false }
 [service]
 rule_sets = [
-    "apimock-rule-sets/integrated-root.toml",
     "apimock-rule-sets/integrated-api.toml",
     "apimock-rule-sets/@extra-test-cases/less-prioritized.toml",
 ]

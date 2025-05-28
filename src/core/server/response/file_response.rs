@@ -1,7 +1,8 @@
 use hyper::HeaderMap;
 use serde_json::{Map, Value};
+use tokio::task;
 
-use std::collections::HashMap;
+use std::{collections::HashMap, fs};
 
 use crate::core::{
     server::{
@@ -58,7 +59,7 @@ impl FileResponse {
     }
 
     /// response from file path
-    pub fn file_content_response(
+    pub async fn file_content_response(
         &mut self,
     ) -> Result<hyper::Response<BoxBody>, hyper::http::Error> {
         let file_path = match resolve_with_json_compatible_extensions(self.file_path.as_str()) {
@@ -71,24 +72,51 @@ impl FileResponse {
                 return not_found_response(&self.request_headers);
             }
         };
-        self.file_path = file_path;
+        self.file_path = file_path.clone();
 
-        match std::fs::read_to_string(self.file_path.as_str()) {
-            Ok(content) => {
+        // read file as text file in non-blocking task
+        let file_path_to_read_text_file = file_path.clone();
+        let content =
+            task::spawn_blocking(move || fs::read_to_string(file_path_to_read_text_file)).await;
+
+        let response = match content {
+            Ok(Ok(content)) => {
                 self.text_content = Some(content);
                 self.text_file_content_response()
             }
-            Err(_) => match std::fs::read(self.file_path.as_str()) {
-                Ok(content) => {
-                    self.binary_content = Some(content);
-                    self.binary_content_type_response()
+            Ok(Err(_)) => {
+                // read file as binary in non-blocking task
+                let file_path_to_read_binary = file_path.clone();
+                let content =
+                    task::spawn_blocking(move || fs::read(file_path_to_read_binary)).await;
+                match content {
+                    Ok(Ok(content)) => {
+                        self.binary_content = Some(content);
+                        self.binary_content_type_response()
+                    }
+                    Ok(Err(err)) => {
+                        return internal_server_error_response(
+                            &format!("{}: failed to read file - {}", self.file_path, err),
+                            &self.request_headers,
+                        )
+                    }
+                    Err(err) => {
+                        return internal_server_error_response(
+                            &format!("{}: async task failed - {}", self.file_path, err),
+                            &self.request_headers,
+                        )
+                    }
                 }
-                Err(err) => internal_server_error_response(
-                    format!("{}: failed to read file - {}", self.file_path, err).as_str(),
+            }
+            Err(err) => {
+                return internal_server_error_response(
+                    &format!("{}: async task failed - {}", self.file_path, err),
                     &self.request_headers,
-                ),
-            },
-        }
+                )
+            }
+        };
+
+        response
     }
 
     /// text file response
@@ -118,7 +146,7 @@ impl FileResponse {
         match json5::from_str::<Value>(self.text_content.clone().unwrap_or_default().as_str()) {
             Ok(content) => self.json_content_type_response(content.to_string().as_str()),
             _ => internal_server_error_response(
-                format!("{}: invalid json content", self.file_path.as_str()).as_str(),
+                &format!("{}: invalid json content", self.file_path.as_str()),
                 &self.request_headers,
             ),
         }
@@ -135,7 +163,7 @@ impl FileResponse {
             csv_headers.clone()
         } else {
             return internal_server_error_response(
-                format!("{}: failed to analyze csv headers", self.file_path.as_str()).as_str(),
+                &format!("{}: failed to analyze csv headers", self.file_path.as_str()),
                 &self.request_headers,
             );
         };
@@ -166,23 +194,21 @@ impl FileResponse {
                 match body {
                     Ok(body) => self.json_content_type_response(body.as_str()),
                     Err(err) => internal_server_error_response(
-                        format!(
+                        &format!(
                             "{}: failed to convert csv records to json response - {}",
                             self.file_path.as_str(),
                             err
-                        )
-                        .as_str(),
+                        ),
                         &self.request_headers,
                     ),
                 }
             }
             Err(err) => internal_server_error_response(
-                format!(
+                &format!(
                     "{}: failed to analyze csv records - {}",
                     self.file_path.as_str(),
                     err
-                )
-                .as_str(),
+                ),
                 &self.request_headers,
             ),
         }

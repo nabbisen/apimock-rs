@@ -9,3 +9,5 @@ pub const DEFAULT_RESPONSE_HEADERS: &[(&str, &str)] = &[
     ("connection", "keep-alive"),
     ("x-content-type-options", "nosniff"),
 ];
+
+pub const ROOT_DIRECTORY_FILE_NAME: &str = "index";

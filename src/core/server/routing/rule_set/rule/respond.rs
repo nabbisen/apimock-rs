@@ -63,6 +63,7 @@ impl Respond {
                 &parsed_request.component_parts.headers,
             )
             .file_content_response()
+            .await
         } else if let Some(text) = self.text.as_ref() {
             if let Some(status_code) = self.status_code.as_ref() {
                 status_code_response_with_message(

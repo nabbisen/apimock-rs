@@ -37,7 +37,7 @@ pub struct ServiceConfig {
 
 impl ServiceConfig {
     /// handle middleware(s)
-    pub fn middleware_response(
+    pub async fn middleware_response(
         &self,
         parsed_request: &ParsedRequest,
     ) -> Option<Result<hyper::Response<BoxBody>, hyper::http::Error>> {
@@ -60,11 +60,10 @@ impl ServiceConfig {
                         Some(x) => x.join(middleware_response_file_path.as_str()),
                         None => {
                             return Some(internal_server_error_response(
-                                format!(
+                                &format!(
                                     "failed to get middleware parent dir: {}",
                                     middleware.file_path.as_str(),
-                                )
-                                .as_str(),
+                                ),
                                 &parsed_request.component_parts.headers,
                             ))
                         }
@@ -74,12 +73,11 @@ impl ServiceConfig {
                         Some(x) => x.to_owned(),
                         None => {
                             return Some(internal_server_error_response(
-                                format!(
+                                &format!(
                                     "middleware response file path is invalid: {}/{}",
                                     middleware.file_path.as_str(),
                                     middleware_response_file_path
-                                )
-                                .as_str(),
+                                ),
                                 &parsed_request.component_parts.headers,
                             ))
                         }
@@ -92,7 +90,8 @@ impl ServiceConfig {
                     None,
                     &parsed_request.component_parts.headers,
                 )
-                .file_content_response(),
+                .file_content_response()
+                .await,
             );
         }
         None
