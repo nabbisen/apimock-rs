@@ -113,7 +113,7 @@ pub async fn service(
 
     parsed_request.capture_in_log(config.log.unwrap_or_default().verbose);
 
-    match config.service.middleware_response(&parsed_request) {
+    match config.service.middleware_response(&parsed_request).await {
         Some(x) => return x,
         None => (),
     }
@@ -128,6 +128,7 @@ pub async fn service(
         config.service.fallback_respond_dir.as_str(),
         &request_headers,
     )
+    .await
 }
 
 /// OPTIONS request handler
