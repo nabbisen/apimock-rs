@@ -1,4 +1,5 @@
 use hyper::StatusCode;
+use serde_json::json;
 
 use crate::util::{
     http::{http_response_default, response_body_str},
@@ -19,7 +20,7 @@ async fn matches_dyn_route_json_root_json_ext_none() {
     );
 
     let body_str = response_body_str(response).await;
-    assert_eq!(body_str.as_str(), "{\"name\":\"root1.json\"}");
+    assert_eq!(body_str.as_str(), json!({"name": "root1.json"}).to_string());
 }
 
 #[tokio::test]
@@ -36,7 +37,7 @@ async fn matches_dyn_route_json_root_json_ext_json() {
     );
 
     let body_str = response_body_str(response).await;
-    assert_eq!(body_str.as_str(), "{\"name\":\"root1.json\"}");
+    assert_eq!(body_str.as_str(), json!({"name": "root1.json"}).to_string());
 }
 
 #[tokio::test]
@@ -53,7 +54,10 @@ async fn matches_dyn_route_json_root_json_ext_json5() {
     );
 
     let body_str = response_body_str(response).await;
-    assert_eq!(body_str.as_str(), "{\"name\":\"root1.json5\"}");
+    assert_eq!(
+        body_str.as_str(),
+        json!({"name": "root1.json5"}).to_string()
+    );
 }
 
 #[tokio::test]
@@ -70,7 +74,10 @@ async fn matches_dyn_route_json_root_json5() {
     );
 
     let body_str = response_body_str(response).await;
-    assert_eq!(body_str.as_str(), "{\"name\":\"root1.json5\"}");
+    assert_eq!(
+        body_str.as_str(),
+        json!({"name": "root1.json5"}).to_string()
+    );
 }
 
 #[tokio::test]
@@ -87,7 +94,7 @@ async fn matches_dyn_route_json_root_multiple_1() {
     );
 
     let body_str = response_body_str(response).await;
-    assert_eq!(body_str.as_str(), "{\"name\":\"root2.json\"}");
+    assert_eq!(body_str.as_str(), json!({"name": "root2.json"}).to_string());
 }
 
 #[tokio::test]
@@ -113,7 +120,10 @@ async fn matches_dyn_route_json_subdir() {
     );
 
     let body_str = response_body_str(response).await;
-    assert_eq!(body_str.as_str(), "{\"name\":\"subdir.json\"}");
+    assert_eq!(
+        body_str.as_str(),
+        json!({"name": "subdir.json"}).to_string()
+    );
 }
 
 #[tokio::test]
@@ -130,5 +140,5 @@ async fn matches_dyn_route_json_depth() {
     );
 
     let body_str = response_body_str(response).await;
-    assert_eq!(body_str.as_str(), "{\"name\":\"depth.json\"}");
+    assert_eq!(body_str.as_str(), json!({"name": "depth.json"}).to_string());
 }

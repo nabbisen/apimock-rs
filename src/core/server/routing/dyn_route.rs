@@ -23,10 +23,11 @@ pub async fn dyn_route_content(
     let request_path =
         Path::new(fallback_respond_dir).join(url_path.strip_prefix("/").unwrap_or_default());
 
-    let request_file_name = match request_path.file_name() {
-        Some(x) => x.to_str().unwrap_or_default().to_string(),
-        None => return not_found_response(request_headers),
-    };
+    let request_file_name = request_path
+        .file_name()
+        .unwrap_or_default()
+        .to_str()
+        .unwrap_or_default();
 
     let dir = match request_path.parent() {
         Some(dir) => {

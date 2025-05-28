@@ -1,4 +1,5 @@
 use hyper::StatusCode;
+use serde_json::json;
 use util::{
     http::{http_response_default, response_body_str},
     test_setup::TestSetup,
@@ -24,5 +25,5 @@ async fn port_env_arg_overwrites() {
     );
 
     let body_str = response_body_str(response).await;
-    assert_eq!(body_str.as_str(), "{\"hello\":\"world\"}");
+    assert_eq!(body_str.as_str(), json!({"hello": "index"}).to_string());
 }
