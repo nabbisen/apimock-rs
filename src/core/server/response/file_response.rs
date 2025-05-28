@@ -74,6 +74,7 @@ impl FileResponse {
         };
         self.file_path = file_path.clone();
 
+        // read file as text file in non-blocking task
         let file_path_to_read_text_file = file_path.clone();
         let content =
             task::spawn_blocking(move || fs::read_to_string(file_path_to_read_text_file)).await;
@@ -84,6 +85,7 @@ impl FileResponse {
                 self.text_file_content_response()
             }
             Ok(Err(_)) => {
+                // read file as binary in non-blocking task
                 let file_path_to_read_binary = file_path.clone();
                 let content =
                     task::spawn_blocking(move || fs::read(file_path_to_read_binary)).await;
