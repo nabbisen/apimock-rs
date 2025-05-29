@@ -7,7 +7,7 @@ A: Yes. `url_path`, `headers` and `body` are options.
 A: Yes. Two ways: run with `-p` | `--port` argument followed by specific port number. Alternatively, define it in `[listener]` section in `apimock.toml`, the root configuration.
 
 **Q: Why do directory paths like `/api` return a 404 error ?**    
-A: Directory paths such as `/api` or `/api/v1` return a 404 status code **unless they contain a special index file (e.g., `index.json`, `.json5`, or `.csv`)**. If one of these files is present, its content will be served instead.
+A: Directory paths such as `/api` or `/api/v1` return a 404 status code **unless they contain a special index file (e.g., `index.json`, `.json5`, or `.csv`. Also `.html`)**. If one of these files is present, its content will be served instead.
 
 **Q: Can I return binary data ?**    
 A: Yes, binary data such as image, audio, video and archive is returned with their specific content-type.

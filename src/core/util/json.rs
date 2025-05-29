@@ -35,6 +35,18 @@ pub fn resolve_with_json_compatible_extensions(unknown_path: &str) -> Option<Str
         }
     }
 
+    // directory root file name as html
+    let p = Path::new(unknown_path).join(&format!("{}.html", ROOT_DIRECTORY_FILE_NAME));
+    if p.is_file() {
+        return Some(
+            p.canonicalize()
+                .unwrap()
+                .to_str()
+                .unwrap_or_default()
+                .to_string(),
+        );
+    }
+
     // missing
     None
 }

@@ -22,7 +22,7 @@ Here's an example of how you might set up:
 - `/api/v1/user/2` returns the content of `2.json5`. `.json5` is equivalent to `.json` to the server.
 - `/api/v1/users` returns the content of `users.csv` as list.
 - Each of `/`, `/api` and `/api/v1` returns HTTP Status Code 404
-    - unless an "index" file (e.g., **`index.json`, `.json5`, or `.csv`**) is present in the respective directory.
+    - unless an "index" file (e.g., **`index.json`, `.json5`, or `.csv`**. Also **`.html`**) is present in the respective directory.
 
 ## What's next ?
 
