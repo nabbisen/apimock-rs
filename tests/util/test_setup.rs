@@ -1,6 +1,10 @@
 use rand::Rng;
 
-use std::{env, path::Path, time::Duration};
+use std::{
+    env,
+    net::{SocketAddr, TcpListener},
+    path::Path,
+};
 
 use apimock::core::{app::App, args::EnvArgs};
 
@@ -70,10 +74,6 @@ impl TestSetup {
         }
 
         tokio::spawn(async move {
-            let port_conflict_mitigation_milliseconds = rand::rng().random_range(1..=1000);
-            let _ =
-                tokio::time::sleep(Duration::from_millis(port_conflict_mitigation_milliseconds));
-
             let app = App::new(&app_env_args, None, true).await;
             app.server.start().await
         });
@@ -102,7 +102,13 @@ impl Default for TestSetup {
 
 /// select dynamic port randomly
 fn dynamic_port() -> u16 {
-    rand::rng().random_range(49152..=65535)
+    let port = rand::rng().random_range(49152..=65535);
+
+    let addr: SocketAddr = format!("127.0.0.1:{}", port).parse().unwrap();
+    match TcpListener::bind(addr) {
+        Ok(_) => port,
+        Err(_) => dynamic_port(),
+    }
 }
 
 /// env args for testing

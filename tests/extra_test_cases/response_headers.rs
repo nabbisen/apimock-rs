@@ -5,8 +5,6 @@ use crate::util::{http::http_response_default, test_setup::TestSetup};
 const HEADERS_RESPONSE_MUST_HAVE: &[(&str, Option<&str>)] = &[
     ("date", None),
     ("content-length", None),
-    ("vary", None),
-    ("access-control-allow-origin", None),
     ("cache-control", Some("no-store")),
     ("access-control-allow-headers", Some("*")),
     ("access-control-max-age", Some("86400")),
@@ -16,6 +14,8 @@ const HEADERS_RESPONSE_MUST_HAVE: &[(&str, Option<&str>)] = &[
     ),
     ("x-content-type-options", Some("nosniff")),
     ("connection", Some("keep-alive")),
+    ("access-control-allow-origin", Some("*")),
+    ("vary", Some("*")),
 ];
 
 #[tokio::test]
