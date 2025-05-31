@@ -1,6 +1,6 @@
-# Server response
+# Response
 
-## Flow
+## Workflow
 
 ```mermaid
 flowchart TD

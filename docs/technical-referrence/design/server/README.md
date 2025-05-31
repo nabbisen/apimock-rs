@@ -1,6 +1,6 @@
 # Server launch
 
-## Flow
+## Workflow
 
 ```mermaid
 flowchart TD
