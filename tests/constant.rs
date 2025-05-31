@@ -10,6 +10,8 @@ pub mod root_config_dir {
     pub const RULE_SET_PREFIX: &str = "apimock-rule-sets/server/routing/rule_set/prefix";
     pub const RULE_WHEN_REQUEST_URL_PATH: &str =
         "apimock-rule-sets/server/routing/rule_set/rule/when/request/url_path";
+    pub const RULE_WHEN_REQUEST_HTTP_METHOD: &str =
+        "apimock-rule-sets/server/routing/rule_set/rule/when/request/http_method";
     pub const RULE_WHEN_REQUEST_HEADERS: &str =
         "apimock-rule-sets/server/routing/rule_set/rule/when/request/headers";
     pub const RULE_WHEN_REQUEST_BODY: &str =

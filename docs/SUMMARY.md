@@ -32,8 +32,11 @@
 ---
 
 - [Technical Referrence](./technical-referrence/README.md)
+    - [Vision and Goals](./technical-referrence/vision-and-goals.md)
     - [Architecture](./technical-referrence/architecture.md)
-    - [Features](./technical-referrence/features.md)
     - [Design](./technical-referrence/design/README.md)
-        - [Server launch](./technical-referrence/design/server-launch.md)
-        - [Service response](./technical-referrence/design/service-response.md)
+        - [Server](./technical-referrence/design/server/README.md)
+        - [Response](./technical-referrence/design/response/README.md)
+            - [Headers](./technical-referrence/design/response/headers/README.md)
+                - [CORS](./technical-referrence/design/response/headers/cors.md)
+                - [OPTIONS](./technical-referrence/design/response/headers/options.md)

@@ -3,7 +3,7 @@ use hyper::StatusCode;
 use crate::{
     constant::root_config_dir,
     util::{
-        http::{http_response_default, response_body_str},
+        http::{test_request::TestRequest, test_response::response_body_str},
         test_setup::TestSetup,
     },
 };
@@ -12,7 +12,7 @@ use crate::{
 async fn matches_prefix_url_path_prefix_1() {
     let port = setup().await;
 
-    let response = http_response_default("/prefix/equal", port).await;
+    let response = TestRequest::default("/prefix/equal", port).send().await;
 
     assert_eq!(response.status(), StatusCode::OK);
 
@@ -29,7 +29,7 @@ async fn matches_prefix_url_path_prefix_1() {
 async fn matches_prefix_url_path_prefix_2() {
     let port = setup().await;
 
-    let response = http_response_default("/prefix/equal2", port).await;
+    let response = TestRequest::default("/prefix/equal2", port).send().await;
 
     assert_eq!(response.status(), StatusCode::OK);
 

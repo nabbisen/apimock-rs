@@ -3,7 +3,7 @@ use hyper::StatusCode;
 use crate::{
     constant::DUMMY_BINARY_DATA,
     util::{
-        http::{http_response_default, response_body_bytes},
+        http::{test_request::TestRequest, test_response::response_body_bytes},
         test_setup::TestSetup,
     },
 };
@@ -12,7 +12,9 @@ use crate::{
 async fn dyn_data_dir_video_mp4() {
     let port = TestSetup::default().launch().await;
 
-    let response = http_response_default("/binary/video/video.mp4", port).await;
+    let response = TestRequest::default("/binary/video/video.mp4", port)
+        .send()
+        .await;
 
     assert_eq!(response.status(), StatusCode::OK);
 

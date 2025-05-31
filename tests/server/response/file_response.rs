@@ -5,7 +5,7 @@ use serde_json::json;
 use crate::{
     constant::root_config_dir,
     util::{
-        http::{http_response_default, response_body_str},
+        http::{test_request::TestRequest, test_response::response_body_str},
         test_setup::TestSetup,
     },
 };
@@ -14,7 +14,9 @@ use crate::{
 async fn matches_json_wo_ext() {
     let port = setup().await;
 
-    let response = http_response_default("/file-response/json-ext-w-or-wo", port).await;
+    let response = TestRequest::default("/file-response/json-ext-w-or-wo", port)
+        .send()
+        .await;
 
     assert_eq!(response.status(), StatusCode::OK);
 
@@ -32,7 +34,9 @@ async fn matches_json_wo_ext() {
 async fn matches_json_w_ext() {
     let port = setup().await;
 
-    let response = http_response_default("/file-response/json-ext-w-or-wo.json", port).await;
+    let response = TestRequest::default("/file-response/json-ext-w-or-wo.json", port)
+        .send()
+        .await;
 
     assert_eq!(response.status(), StatusCode::NOT_FOUND);
 }
@@ -41,7 +45,9 @@ async fn matches_json_w_ext() {
 async fn json5_wo_ext() {
     let port = setup().await;
 
-    let response = http_response_default("/file-response/json5-ext-w-or-wo", port).await;
+    let response = TestRequest::default("/file-response/json5-ext-w-or-wo", port)
+        .send()
+        .await;
 
     assert_eq!(response.status(), StatusCode::OK);
 
@@ -58,7 +64,9 @@ async fn json5_wo_ext() {
 async fn json5_w_ext() {
     let port = setup().await;
 
-    let response = http_response_default("/json5-ext-w-or-wo.json5", port).await;
+    let response = TestRequest::default("/json5-ext-w-or-wo.json5", port)
+        .send()
+        .await;
 
     assert_eq!(response.status(), StatusCode::NOT_FOUND);
 }
@@ -67,7 +75,9 @@ async fn json5_w_ext() {
 async fn csv_wo_ext() {
     let port = setup().await;
 
-    let response = http_response_default("/file-response/csv-ext-w-or-wo", port).await;
+    let response = TestRequest::default("/file-response/csv-ext-w-or-wo", port)
+        .send()
+        .await;
 
     assert_eq!(response.status(), StatusCode::OK);
 
@@ -87,7 +97,9 @@ async fn csv_wo_ext() {
 async fn csv_w_ext() {
     let port = setup().await;
 
-    let response = http_response_default("/file-response/csv-ext-w-or-wo.csv", port).await;
+    let response = TestRequest::default("/file-response/csv-ext-w-or-wo.csv", port)
+        .send()
+        .await;
 
     assert_eq!(response.status(), StatusCode::NOT_FOUND);
 }
@@ -96,7 +108,9 @@ async fn csv_w_ext() {
 async fn other_wo_ext() {
     let port = setup().await;
 
-    let response = http_response_default("/file-response/txt-ext-w-or-wo", port).await;
+    let response = TestRequest::default("/file-response/txt-ext-w-or-wo", port)
+        .send()
+        .await;
 
     assert_eq!(response.status(), StatusCode::OK);
 
@@ -113,7 +127,9 @@ async fn other_wo_ext() {
 async fn other_w_ext() {
     let port = setup().await;
 
-    let response = http_response_default("/file-response/txt-ext-w-or-wo.txt", port).await;
+    let response = TestRequest::default("/file-response/txt-ext-w-or-wo.txt", port)
+        .send()
+        .await;
 
     assert_eq!(response.status(), StatusCode::NOT_FOUND);
 }

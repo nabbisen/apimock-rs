@@ -1,0 +1,30 @@
+[prefix]
+url_path = "/http-method"
+
+[[rules]]
+[rules.when.request]
+url_path = "/"
+method = "POST"
+[rules.respond]
+text = "http-method POST matched"
+
+[[rules]]
+[rules.when.request]
+url_path = "/get"
+method = "GET"
+[rules.respond]
+text = "http-method GET matched"
+
+[[rules]]
+[rules.when.request]
+url_path = "/put"
+method = "PUT"
+[rules.respond]
+text = "http-method PUT matched"
+
+[[rules]]
+[rules.when.request]
+url_path = "/delete"
+method = "DELETE"
+[rules.respond]
+text = "http-method DELETE matched"

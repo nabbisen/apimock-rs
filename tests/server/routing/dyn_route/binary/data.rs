@@ -3,7 +3,7 @@ use hyper::StatusCode;
 use crate::{
     constant::DUMMY_BINARY_DATA,
     util::{
-        http::{http_response_default, response_body_bytes},
+        http::{test_request::TestRequest, test_response::response_body_bytes},
         test_setup::TestSetup,
     },
 };
@@ -12,7 +12,9 @@ use crate::{
 async fn dyn_data_dir_binary_data() {
     let port = TestSetup::default().launch().await;
 
-    let response = http_response_default("/binary/data/binary.data", port).await;
+    let response = TestRequest::default("/binary/data/binary.data", port)
+        .send()
+        .await;
 
     assert_eq!(response.status(), StatusCode::OK);
 
@@ -29,7 +31,9 @@ async fn dyn_data_dir_binary_data() {
 async fn dyn_data_dir_archive_gzip() {
     let port = TestSetup::default().launch().await;
 
-    let response = http_response_default("/binary/data/archive.gz", port).await;
+    let response = TestRequest::default("/binary/data/archive.gz", port)
+        .send()
+        .await;
 
     assert_eq!(response.status(), StatusCode::OK);
 
@@ -46,7 +50,9 @@ async fn dyn_data_dir_archive_gzip() {
 async fn dyn_data_dir_archive_tar_gzip() {
     let port = TestSetup::default().launch().await;
 
-    let response = http_response_default("/binary/data/archive.tar.gz", port).await;
+    let response = TestRequest::default("/binary/data/archive.tar.gz", port)
+        .send()
+        .await;
 
     assert_eq!(response.status(), StatusCode::OK);
 

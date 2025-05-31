@@ -2,7 +2,7 @@ use hyper::StatusCode;
 use serde_json::json;
 
 use crate::util::{
-    http::{http_response_default, response_body_str},
+    http::{test_request::TestRequest, test_response::response_body_str},
     test_setup::TestSetup,
 };
 
@@ -10,7 +10,7 @@ use crate::util::{
 async fn matches_dyn_route_json_root_json_ext_none() {
     let port = TestSetup::default().launch().await;
 
-    let response = http_response_default("/root1", port).await;
+    let response = TestRequest::default("/root1", port).send().await;
 
     assert_eq!(response.status(), StatusCode::OK);
 
@@ -27,7 +27,7 @@ async fn matches_dyn_route_json_root_json_ext_none() {
 async fn matches_dyn_route_json_root_json_ext_json() {
     let port = TestSetup::default().launch().await;
 
-    let response = http_response_default("/root1.json", port).await;
+    let response = TestRequest::default("/root1.json", port).send().await;
 
     assert_eq!(response.status(), StatusCode::OK);
 
@@ -44,7 +44,7 @@ async fn matches_dyn_route_json_root_json_ext_json() {
 async fn matches_dyn_route_json_root_json_ext_json5() {
     let port = TestSetup::default().launch().await;
 
-    let response = http_response_default("/root1.json5", port).await;
+    let response = TestRequest::default("/root1.json5", port).send().await;
 
     assert_eq!(response.status(), StatusCode::OK);
 
@@ -64,7 +64,7 @@ async fn matches_dyn_route_json_root_json_ext_json5() {
 async fn matches_dyn_route_json_root_json5() {
     let port = TestSetup::default().launch().await;
 
-    let response = http_response_default("/root1.json5", port).await;
+    let response = TestRequest::default("/root1.json5", port).send().await;
 
     assert_eq!(response.status(), StatusCode::OK);
 
@@ -84,7 +84,7 @@ async fn matches_dyn_route_json_root_json5() {
 async fn matches_dyn_route_json_root_multiple_1() {
     let port = TestSetup::default().launch().await;
 
-    let response = http_response_default("/root2.json5", port).await;
+    let response = TestRequest::default("/root2.json5", port).send().await;
 
     assert_eq!(response.status(), StatusCode::OK);
 
@@ -101,7 +101,7 @@ async fn matches_dyn_route_json_root_multiple_1() {
 async fn not_matches_dyn_route_json_root_multiple_1() {
     let port = TestSetup::default().launch().await;
 
-    let response = http_response_default("/root2.json", port).await;
+    let response = TestRequest::default("/root2.json", port).send().await;
 
     assert_eq!(response.status(), StatusCode::NOT_FOUND);
 }
@@ -110,7 +110,7 @@ async fn not_matches_dyn_route_json_root_multiple_1() {
 async fn matches_dyn_route_json_subdir() {
     let port = TestSetup::default().launch().await;
 
-    let response = http_response_default("/json/subdir.json", port).await;
+    let response = TestRequest::default("/json/subdir.json", port).send().await;
 
     assert_eq!(response.status(), StatusCode::OK);
 
@@ -130,7 +130,9 @@ async fn matches_dyn_route_json_subdir() {
 async fn matches_dyn_route_json_depth() {
     let port = TestSetup::default().launch().await;
 
-    let response = http_response_default("/json/another-dir/depth.json", port).await;
+    let response = TestRequest::default("/json/another-dir/depth.json", port)
+        .send()
+        .await;
 
     assert_eq!(response.status(), StatusCode::OK);
 

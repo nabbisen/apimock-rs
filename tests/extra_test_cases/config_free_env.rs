@@ -5,7 +5,7 @@ use serde_json::json;
 use crate::{
     constant::root_config_dir,
     util::{
-        http::{http_response_default, response_body_str},
+        http::{test_request::TestRequest, test_response::response_body_str},
         test_setup::TestSetup,
     },
 };
@@ -14,7 +14,7 @@ use crate::{
 async fn config_free_env_root_1() {
     let port = setup().await;
 
-    let response = http_response_default("/", port).await;
+    let response = TestRequest::default("/", port).send().await;
 
     assert_eq!(response.status(), StatusCode::NOT_FOUND);
 }
@@ -23,7 +23,7 @@ async fn config_free_env_root_1() {
 async fn matches_config_free_env_level1_1() {
     let port = setup().await;
 
-    let response = http_response_default("/level1", port).await;
+    let response = TestRequest::default("/level1", port).send().await;
 
     assert_eq!(response.status(), StatusCode::OK);
 
@@ -40,7 +40,7 @@ async fn matches_config_free_env_level1_1() {
 async fn matches_config_free_env_level1_2() {
     let port = setup().await;
 
-    let response = http_response_default("/level1.json", port).await;
+    let response = TestRequest::default("/level1.json", port).send().await;
 
     assert_eq!(response.status(), StatusCode::OK);
 
@@ -57,7 +57,7 @@ async fn matches_config_free_env_level1_2() {
 async fn not_matches_config_free_env_level1_1() {
     let port = setup().await;
 
-    let response = http_response_default("/level1.json5", port).await;
+    let response = TestRequest::default("/level1.json5", port).send().await;
 
     assert_eq!(response.status(), StatusCode::NOT_FOUND);
 }
@@ -66,7 +66,7 @@ async fn not_matches_config_free_env_level1_1() {
 async fn matches_config_free_env_level2_1() {
     let port = setup().await;
 
-    let response = http_response_default("/level1/level2", port).await;
+    let response = TestRequest::default("/level1/level2", port).send().await;
 
     assert_eq!(response.status(), StatusCode::OK);
 
@@ -83,7 +83,9 @@ async fn matches_config_free_env_level2_1() {
 async fn matches_config_free_env_level2_2() {
     let port = setup().await;
 
-    let response = http_response_default("/level1/level2.json5", port).await;
+    let response = TestRequest::default("/level1/level2.json5", port)
+        .send()
+        .await;
 
     assert_eq!(response.status(), StatusCode::OK);
 
@@ -100,7 +102,9 @@ async fn matches_config_free_env_level2_2() {
 async fn not_matches_config_free_env_level2_1() {
     let port = setup().await;
 
-    let response = http_response_default("/level1/level2.json", port).await;
+    let response = TestRequest::default("/level1/level2.json", port)
+        .send()
+        .await;
 
     assert_eq!(response.status(), StatusCode::NOT_FOUND);
 }
@@ -109,7 +113,9 @@ async fn not_matches_config_free_env_level2_1() {
 async fn matches_config_free_env_level3_1() {
     let port = setup().await;
 
-    let response = http_response_default("/level1/level2/level3", port).await;
+    let response = TestRequest::default("/level1/level2/level3", port)
+        .send()
+        .await;
 
     assert_eq!(response.status(), StatusCode::OK);
 
@@ -129,7 +135,9 @@ async fn matches_config_free_env_level3_1() {
 async fn matches_config_free_env_level3_2() {
     let port = setup().await;
 
-    let response = http_response_default("/level1/level2/level3.csv", port).await;
+    let response = TestRequest::default("/level1/level2/level3.csv", port)
+        .send()
+        .await;
 
     assert_eq!(response.status(), StatusCode::OK);
 
@@ -149,7 +157,9 @@ async fn matches_config_free_env_level3_2() {
 async fn not_matches_config_free_env_level3_1() {
     let port = setup().await;
 
-    let response = http_response_default("/level1/level2/level3.json", port).await;
+    let response = TestRequest::default("/level1/level2/level3.json", port)
+        .send()
+        .await;
 
     assert_eq!(response.status(), StatusCode::NOT_FOUND);
 }
@@ -158,7 +168,9 @@ async fn not_matches_config_free_env_level3_1() {
 async fn matches_config_free_env_level4_1() {
     let port = setup().await;
 
-    let response = http_response_default("/level1/level2/level3/level4.txt", port).await;
+    let response = TestRequest::default("/level1/level2/level3/level4.txt", port)
+        .send()
+        .await;
 
     assert_eq!(response.status(), StatusCode::OK);
 
@@ -175,7 +187,9 @@ async fn matches_config_free_env_level4_1() {
 async fn not_matches_config_free_env_level4_1() {
     let port = setup().await;
 
-    let response = http_response_default("/level1/level2/level3/level4", port).await;
+    let response = TestRequest::default("/level1/level2/level3/level4", port)
+        .send()
+        .await;
 
     assert_eq!(response.status(), StatusCode::NOT_FOUND);
 }
@@ -184,7 +198,9 @@ async fn not_matches_config_free_env_level4_1() {
 async fn not_matches_config_free_env_level4_2() {
     let port = setup().await;
 
-    let response = http_response_default("/level1/level2/level3/level4.json", port).await;
+    let response = TestRequest::default("/level1/level2/level3/level4.json", port)
+        .send()
+        .await;
 
     assert_eq!(response.status(), StatusCode::NOT_FOUND);
 }

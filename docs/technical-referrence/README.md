@@ -1,54 +1,11 @@
-# Technical referrence
+# Technical referrence: A Guide for Developers and Contributors
 
-## Architecture Overview
+This document serves as the comprehensive technical reference for our app, designed for developers and contributors. It provides an in-depth understanding of the project's foundational elements.
 
-```plaintext
-Incoming Request
-      |
-      v
-  Execute Rhai Script (if configured) ? ---> YES ---> Serve File
-      |
-      v
-  Match Rule (URL, Headers, Body) ? ---> YES ---> Return Response
-      |
-      v
-  Match File Path? --------> YES ---> Serve File
-      |
-      v
-  Not Found (404)
-```
+Herein, you will find detailed information regarding:
 
-## Three Modes of Response
+- **Project Vision and Goals:** An outline of the core problems our app aims to solve, its guiding principles.
+- **Architectural Overview:** The necessary context for comprehending the broader system design.
+- **Detailed Design Specifications:** A granular exploration of key design decisions, data structures, algorithms.
 
-1. **File-based** (static response from the filesystem)
-
-   * If `/api/data.json` exists, it's served directly.
-   * Extensions like `.json5`, `.csv` are also supported.
-
-2. **Rule-based** (config-driven conditional responses)
-
-   * Match URL path, headers, or JSON body to return different responses.
-
-3. **Script-based** (dynamic Rhai scripts, optional)
-
-   * A script returns the response path based on logic in the script.
-
-## Rule Matching Logic
-
-```plaintext
-prefix: /api
-   |
-   |-- when:
-   |     url_path == "/hello"
-   |
-   |-- respond:
-         file_path: "hello.json"
-```
-
-## Prioritization
-
-* First matching file wins.
-* Define rules in the order of priority.
-* Relative paths are based on the main config file.
-
-This layered approach allows simple to advanced mock responses with clarity and control.
+**Note:** This technical reference is currently less mature than our user guide or advanced topics documentation. Contributions to its further development and refinement are always appreciated and considered.

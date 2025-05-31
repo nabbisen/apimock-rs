@@ -1,14 +1,8 @@
 # Architecture
 
-## Designed in mind with
-
-- Easy setup / usage
-    - Built as single (and small) executable, integrated configuration. (No need to write scripts, config-less mode is also supported.)
-- Performance
-    - Fast speed, low memory consumption.
-- Cross-platform support
-
 ## Core Components
+
+- based on hyper v1
 
 - **`src/config.rs`**  
   Defines configuration structures for customizable parameters like the server port, root path, logging levels, etc.

@@ -1,7 +1,7 @@
 use hyper::StatusCode;
 use serde_json::json;
 use util::{
-    http::{http_response_default, response_body_str},
+    http::{test_request::TestRequest, test_response::response_body_str},
     test_setup::TestSetup,
 };
 
@@ -15,7 +15,7 @@ async fn port_env_arg_overwrites() {
     test_setup.port = Some(port);
     let _ = test_setup.launch().await;
 
-    let response = http_response_default("/", port).await;
+    let response = TestRequest::default("/", port).send().await;
 
     assert_eq!(response.status(), StatusCode::OK);
 

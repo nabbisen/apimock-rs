@@ -5,10 +5,7 @@ use hyper::{
     HeaderMap, StatusCode,
 };
 
-use crate::util::{
-    http::{http_response_default, http_response_headers_condition},
-    test_setup::TestSetup,
-};
+use crate::util::{http::test_request::TestRequest, test_setup::TestSetup};
 
 const REQUIRED_RESPONSE_HEADERS: &[(&str, Option<&str>)] = &[
     ("date", None),
@@ -39,7 +36,7 @@ const REQUIRED_RESPONSE_HEADERS_ON_REQUEST_WITH_AUTH: &[(&str, Option<&str>)] = 
 async fn http_response_headers_on_request_without_auth() {
     let port = TestSetup::default().launch().await;
 
-    let response = http_response_default("/root1", port).await;
+    let response = TestRequest::default("/root1", port).send().await;
 
     assert_eq!(response.status(), StatusCode::OK);
 
@@ -75,7 +72,10 @@ async fn http_response_headers_on_request_with_auth() {
         )
     })
     .collect();
-    let response = http_response_headers_condition("/root1", port, &headers).await;
+    let response = TestRequest::default("/root1", port)
+        .with_headers(&headers)
+        .send()
+        .await;
 
     assert_eq!(response.status(), StatusCode::OK);
 

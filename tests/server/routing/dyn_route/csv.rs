@@ -1,7 +1,7 @@
 use hyper::StatusCode;
 
 use crate::util::{
-    http::{http_response_default, response_body_str},
+    http::{test_request::TestRequest, test_response::response_body_str},
     test_setup::TestSetup,
 };
 
@@ -9,7 +9,7 @@ use crate::util::{
 async fn matches_dyn_data_dir_csv() {
     let port = TestSetup::default().launch().await;
 
-    let response = http_response_default("/csv/records.csv", port).await;
+    let response = TestRequest::default("/csv/records.csv", port).send().await;
 
     assert_eq!(response.status(), StatusCode::OK);
 
@@ -26,7 +26,7 @@ async fn matches_dyn_data_dir_csv() {
 async fn matches_dyn_data_dir_csv_wo_ext() {
     let port = TestSetup::default().launch().await;
 
-    let response = http_response_default("/csv/records", port).await;
+    let response = TestRequest::default("/csv/records", port).send().await;
 
     assert_eq!(response.status(), StatusCode::OK);
 
