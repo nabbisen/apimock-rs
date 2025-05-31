@@ -3,7 +3,7 @@ use hyper::StatusCode;
 use crate::{
     constant::root_config_dir,
     util::{
-        http::{http_response_default, http_response_json_body_condition, response_body_str},
+        http::{test_request::TestRequest, test_response::response_body_str},
         test_setup::TestSetup,
     },
 };
@@ -12,7 +12,7 @@ use crate::{
 async fn middleware_url_path_handled() {
     let port = setup().await;
 
-    let response = http_response_default("/middleware-test", port).await;
+    let response = TestRequest::default("/middleware-test", port).send().await;
 
     assert_eq!(response.status(), StatusCode::OK);
 
@@ -29,7 +29,9 @@ async fn middleware_url_path_handled() {
 async fn middleware_url_path_missed() {
     let port = setup().await;
 
-    let response = http_response_default("/middleware-test/dummy", port).await;
+    let response = TestRequest::default("/middleware-test/dummy", port)
+        .send()
+        .await;
 
     assert_eq!(response.status(), StatusCode::NOT_FOUND);
 
@@ -42,7 +44,10 @@ async fn middleware_body_handled() {
     let port = setup().await;
     let body = "{\"middleware\": \"isHere\"}";
 
-    let response = http_response_json_body_condition("/middleware-test/dummy", port, body).await;
+    let response = TestRequest::default("/middleware-test/dummy", port)
+        .with_body_as_json(body)
+        .send()
+        .await;
 
     assert_eq!(response.status(), StatusCode::OK);
 
@@ -60,7 +65,10 @@ async fn middleware_body_missed() {
     let port = setup().await;
     let body = "{\"middleware\": \"isHere?\"}";
 
-    let response = http_response_json_body_condition("/middleware-test/dummy", port, body).await;
+    let response = TestRequest::default("/middleware-test/dummy", port)
+        .with_body_as_json(body)
+        .send()
+        .await;
 
     assert_eq!(response.status(), StatusCode::NOT_FOUND);
 

@@ -1,7 +1,7 @@
 use hyper::StatusCode;
 
 use crate::util::{
-    http::{http_response_default, response_body_str},
+    http::{test_request::TestRequest, test_response::response_body_str},
     test_setup::TestSetup,
 };
 
@@ -9,7 +9,7 @@ use crate::util::{
 async fn match_dyn_data_dir_html_1() {
     let port = TestSetup::default().launch().await;
 
-    let response = http_response_default("/html/index.html", port).await;
+    let response = TestRequest::default("/html/index.html", port).send().await;
 
     assert_eq!(response.status(), StatusCode::OK);
 
@@ -29,7 +29,7 @@ async fn match_dyn_data_dir_html_1() {
 async fn match_dyn_data_dir_html_2() {
     let port = TestSetup::default().launch().await;
 
-    let response = http_response_default("/html/", port).await;
+    let response = TestRequest::default("/html/", port).send().await;
 
     assert_eq!(response.status(), StatusCode::OK);
 
@@ -49,7 +49,7 @@ async fn match_dyn_data_dir_html_2() {
 async fn match_dyn_data_dir_html_3() {
     let port = TestSetup::default().launch().await;
 
-    let response = http_response_default("/html", port).await;
+    let response = TestRequest::default("/html", port).send().await;
 
     assert_eq!(response.status(), StatusCode::OK);
 

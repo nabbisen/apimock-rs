@@ -8,7 +8,7 @@ use hyper::{
 use crate::{
     constant::root_config_dir,
     util::{
-        http::{http_response_headers_condition, response_body_str},
+        http::{test_request::TestRequest, test_response::response_body_str},
         test_setup::TestSetup,
     },
 };
@@ -26,7 +26,10 @@ async fn match_headers_key_1() {
             )
         })
         .collect();
-    let response = http_response_headers_condition("/headers", port, &headers).await;
+    let response = TestRequest::default("/headers", port)
+        .with_headers(&headers)
+        .send()
+        .await;
 
     assert_eq!(response.status(), StatusCode::OK);
 
@@ -52,7 +55,10 @@ async fn match_headers_key_2() {
             )
         })
         .collect();
-    let response = http_response_headers_condition("/headers", port, &headers).await;
+    let response = TestRequest::default("/headers", port)
+        .with_headers(&headers)
+        .send()
+        .await;
 
     assert_eq!(response.status(), StatusCode::OK);
 
@@ -78,7 +84,10 @@ async fn match_headers_key_3() {
             )
         })
         .collect();
-    let response = http_response_headers_condition("/headers", port, &headers).await;
+    let response = TestRequest::default("/headers", port)
+        .with_headers(&headers)
+        .send()
+        .await;
 
     assert_eq!(response.status(), StatusCode::OK);
 
@@ -104,7 +113,10 @@ async fn match_headers_key_4() {
             )
         })
         .collect();
-    let response = http_response_headers_condition("/headers", port, &headers).await;
+    let response = TestRequest::default("/headers", port)
+        .with_headers(&headers)
+        .send()
+        .await;
 
     assert_eq!(response.status(), StatusCode::OK);
 
@@ -133,7 +145,10 @@ async fn match_headers_key_5() {
         )
     })
     .collect();
-    let response = http_response_headers_condition("/headers", port, &headers).await;
+    let response = TestRequest::default("/headers", port)
+        .with_headers(&headers)
+        .send()
+        .await;
 
     assert_eq!(response.status(), StatusCode::OK);
 
@@ -154,7 +169,10 @@ async fn not_match_headers_key_1() {
         .iter()
         .map(|(k, v)| (HeaderName::from_static(k), HeaderValue::from_static(v)))
         .collect();
-    let response = http_response_headers_condition("/headers", port, &headers).await;
+    let response = TestRequest::default("/headers", port)
+        .with_headers(&headers)
+        .send()
+        .await;
 
     assert_eq!(response.status(), StatusCode::NOT_FOUND);
 }

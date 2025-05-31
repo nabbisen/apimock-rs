@@ -2,7 +2,7 @@ use hyper::StatusCode;
 use serde_json::json;
 
 use crate::util::{
-    http::{http_response_default, response_body_str},
+    http::{test_request::TestRequest, test_response::response_body_str},
     test_setup::TestSetup,
 };
 
@@ -10,7 +10,7 @@ use crate::util::{
 async fn match_dyn_route_dir_root_1() {
     let port = TestSetup::default().launch().await;
 
-    let response = http_response_default("/", port).await;
+    let response = TestRequest::default("/", port).send().await;
 
     assert_eq!(response.status(), StatusCode::OK);
 
@@ -27,7 +27,7 @@ async fn match_dyn_route_dir_root_1() {
 async fn match_dyn_route_dir_root_2() {
     let port = TestSetup::default().launch().await;
 
-    let response = http_response_default("", port).await;
+    let response = TestRequest::default("", port).send().await;
 
     assert_eq!(response.status(), StatusCode::OK);
 
@@ -44,7 +44,7 @@ async fn match_dyn_route_dir_root_2() {
 async fn match_dyn_route_dir_subdir_1() {
     let port = TestSetup::default().launch().await;
 
-    let response = http_response_default("/subdir", port).await;
+    let response = TestRequest::default("/subdir", port).send().await;
 
     assert_eq!(response.status(), StatusCode::OK);
 
@@ -61,7 +61,7 @@ async fn match_dyn_route_dir_subdir_1() {
 async fn match_dyn_route_dir_subdir_2() {
     let port = TestSetup::default().launch().await;
 
-    let response = http_response_default("/subdir/", port).await;
+    let response = TestRequest::default("/subdir/", port).send().await;
 
     assert_eq!(response.status(), StatusCode::OK);
 
@@ -78,7 +78,7 @@ async fn match_dyn_route_dir_subdir_2() {
 async fn match_dyn_route_dir_json5_1() {
     let port = TestSetup::default().launch().await;
 
-    let response = http_response_default("/subdir", port).await;
+    let response = TestRequest::default("/subdir", port).send().await;
 
     assert_eq!(response.status(), StatusCode::OK);
 
@@ -95,7 +95,7 @@ async fn match_dyn_route_dir_json5_1() {
 async fn match_dyn_route_dir_csv_1() {
     let port = TestSetup::default().launch().await;
 
-    let response = http_response_default("/subdir/deeper", port).await;
+    let response = TestRequest::default("/subdir/deeper", port).send().await;
 
     assert_eq!(response.status(), StatusCode::OK);
 

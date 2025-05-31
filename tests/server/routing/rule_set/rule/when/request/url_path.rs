@@ -3,7 +3,7 @@ use hyper::StatusCode;
 use crate::{
     constant::root_config_dir,
     util::{
-        http::{http_response_default, response_body_str},
+        http::{test_request::TestRequest, test_response::response_body_str},
         test_setup::TestSetup,
     },
 };
@@ -12,7 +12,7 @@ use crate::{
 async fn match_root_1() {
     let port = setup().await;
 
-    let response = http_response_default("/url-path/", port).await;
+    let response = TestRequest::default("/url-path/", port).send().await;
 
     assert_eq!(response.status(), StatusCode::OK);
 
@@ -29,7 +29,7 @@ async fn match_root_1() {
 async fn match_root_empty_1() {
     let port = setup().await;
 
-    let response = http_response_default("/url-path", port).await;
+    let response = TestRequest::default("/url-path", port).send().await;
 
     assert_eq!(response.status(), StatusCode::OK);
 
@@ -46,7 +46,7 @@ async fn match_root_empty_1() {
 async fn match_subdir_1() {
     let port = setup().await;
 
-    let response = http_response_default("/url-path/home", port).await;
+    let response = TestRequest::default("/url-path/home", port).send().await;
 
     assert_eq!(response.status(), StatusCode::OK);
 
@@ -63,7 +63,7 @@ async fn match_subdir_1() {
 async fn not_match_subdir_1() {
     let port = setup().await;
 
-    let response = http_response_default("/url-path/field", port).await;
+    let response = TestRequest::default("/url-path/field", port).send().await;
 
     assert_eq!(response.status(), StatusCode::NOT_FOUND);
 }
@@ -72,7 +72,7 @@ async fn not_match_subdir_1() {
 async fn not_match_out_of_prefix_1() {
     let port = setup().await;
 
-    let response = http_response_default("/", port).await;
+    let response = TestRequest::default("/", port).send().await;
 
     assert_eq!(response.status(), StatusCode::NOT_FOUND);
 }
@@ -81,7 +81,7 @@ async fn not_match_out_of_prefix_1() {
 async fn not_match_out_of_prefix_2() {
     let port = setup().await;
 
-    let response = http_response_default("", port).await;
+    let response = TestRequest::default("", port).send().await;
 
     assert_eq!(response.status(), StatusCode::NOT_FOUND);
 }

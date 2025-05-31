@@ -2,14 +2,16 @@ use hyper::StatusCode;
 
 use crate::{
     constant::root_config_dir,
-    util::{http::http_response_default, test_setup::TestSetup},
+    util::{http::test_request::TestRequest, test_setup::TestSetup},
 };
 
 #[tokio::test]
 async fn error401() {
     let port = setup().await;
 
-    let response = http_response_default("/error-response/401", port).await;
+    let response = TestRequest::default("/error-response/401", port)
+        .send()
+        .await;
 
     assert_eq!(response.status(), StatusCode::UNAUTHORIZED);
 }
@@ -18,7 +20,9 @@ async fn error401() {
 async fn error403() {
     let port = setup().await;
 
-    let response = http_response_default("/error-response/api-403", port).await;
+    let response = TestRequest::default("/error-response/api-403", port)
+        .send()
+        .await;
 
     assert_eq!(response.status(), StatusCode::FORBIDDEN);
 }

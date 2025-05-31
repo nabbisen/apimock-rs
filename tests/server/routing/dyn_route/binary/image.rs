@@ -1,7 +1,7 @@
 use hyper::StatusCode;
 
 use crate::util::{
-    http::{http_response_default, response_body_bytes},
+    http::{test_request::TestRequest, test_response::response_body_bytes},
     test_setup::TestSetup,
 };
 
@@ -9,7 +9,9 @@ use crate::util::{
 async fn dyn_data_dir_image_png() {
     let port = TestSetup::default().launch().await;
 
-    let response = http_response_default("/binary/image/image.png", port).await;
+    let response = TestRequest::default("/binary/image/image.png", port)
+        .send()
+        .await;
 
     assert_eq!(response.status(), StatusCode::OK);
 
@@ -26,7 +28,9 @@ async fn dyn_data_dir_image_png() {
 async fn dyn_data_dir_image_jpeg() {
     let port = TestSetup::default().launch().await;
 
-    let response = http_response_default("/binary/image/image.jpg", port).await;
+    let response = TestRequest::default("/binary/image/image.jpg", port)
+        .send()
+        .await;
 
     assert_eq!(response.status(), StatusCode::OK);
 
@@ -46,7 +50,9 @@ async fn dyn_data_dir_image_jpeg() {
 async fn dyn_data_dir_image_gif() {
     let port = TestSetup::default().launch().await;
 
-    let response = http_response_default("/binary/image/image.gif", port).await;
+    let response = TestRequest::default("/binary/image/image.gif", port)
+        .send()
+        .await;
 
     assert_eq!(response.status(), StatusCode::OK);
 
