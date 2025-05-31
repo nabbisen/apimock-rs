@@ -6,7 +6,6 @@ Each single executable on Win/Mac/Linux are available, thanks to Rust and their 
 
 ## 1. Basic
 
-- GET / POST methods
 - File-based routing frees us around hard setup
 - Support `.json` / `.json5` / `.csv` files treated as JSON Response
 - based on hyper v1

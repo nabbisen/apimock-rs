@@ -20,8 +20,8 @@ A: While not achievable with file-based routing alone, you can define custom rul
 **Q: How do I create a configuration file?**    
 A: Simply run `npx apimock --init`. This command will generate a configuration file set in the current directory. You can then edit `apimock-rule-set.toml` to customize your routing rules.
 
-**Q: Can I match only by URL path ?**    
-A: Yes. `url_path`, `headers` and `body` are options.
+**Q: Which option is supported as matching condition ?**    
+A: You can use `url_path`, `method`, `headers` and `body.json` as conditions, which can be used both alone and combined with each other.
 
 ## Response via script
 
