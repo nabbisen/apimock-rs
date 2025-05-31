@@ -1,4 +1,4 @@
-# Combining Conditions for Powerful Matching 1
+# Combining Conditions
 
 ## Example
 

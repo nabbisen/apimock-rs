@@ -1,4 +1,4 @@
-# Combining Conditions for Powerful Matching 2
+# Combining Conditions: Powerful Matching
 
 ## You can combine conditions in a few ways
 

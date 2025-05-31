@@ -37,6 +37,8 @@ npx apimock
 
 - [**User Guide**](user-guide/)
 
+- [Advanced Topics](advanced-topics/)
+
 ---
 
 ## Contribution
