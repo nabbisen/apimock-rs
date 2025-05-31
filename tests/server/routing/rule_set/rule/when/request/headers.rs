@@ -121,15 +121,18 @@ async fn match_headers_key_4() {
 async fn match_headers_key_5() {
     let port = setup().await;
 
-    let headers: HeaderMap<HeaderValue> = [("Authorization", "Bearer eyJhb ...")]
-        .iter()
-        .map(|(k, v)| {
-            (
-                HeaderName::from_str(k).expect("failed to define header name"),
-                HeaderValue::from_static(v),
-            )
-        })
-        .collect();
+    let headers: HeaderMap<HeaderValue> = [
+        ("Origin", "http://localhost:3001"),
+        ("Authorization", "Bearer eyJhbxxx.xxx.xxx"),
+    ]
+    .iter()
+    .map(|(k, v)| {
+        (
+            HeaderName::from_str(k).expect("failed to define header name"),
+            HeaderValue::from_static(v),
+        )
+    })
+    .collect();
     let response = http_response_headers_condition("/headers", port, &headers).await;
 
     assert_eq!(response.status(), StatusCode::OK);
