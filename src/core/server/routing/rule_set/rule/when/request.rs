@@ -1,7 +1,9 @@
+use http_method::HttpMethod;
 use serde::Deserialize;
 
 mod body;
 mod headers;
+mod http_method;
 pub mod rule_op;
 pub mod url_path;
 mod util;
@@ -18,6 +20,8 @@ pub struct Request {
     pub url_path_config: Option<UrlPathConfig>,
     #[serde(skip)]
     pub url_path: Option<UrlPath>,
+    #[serde(rename = "method")]
+    pub http_method: Option<HttpMethod>,
     pub headers: Option<Headers>,
     pub body: Option<Body>,
 }
@@ -37,6 +41,13 @@ impl Request {
                 .unwrap()
                 .is_match(parsed_request.url_path.as_str());
 
+        let http_method_is_match = self.http_method.is_none()
+            || self
+                .http_method
+                .as_ref()
+                .unwrap()
+                .is_match(&parsed_request.component_parts.method);
+
         let headers_is_match = self.headers.is_none()
             || self.headers.as_ref().unwrap().is_match(
                 &parsed_request.component_parts.headers,
@@ -47,13 +58,17 @@ impl Request {
         let body_is_match =
             self.body.is_none() || self.body.as_ref().unwrap().is_match(&parsed_request);
 
-        url_path_is_match && headers_is_match && body_is_match
+        url_path_is_match && http_method_is_match && headers_is_match && body_is_match
     }
 
     /// validate
     pub fn validate(&self, rule_idx: usize, rule_set_idx: usize) -> bool {
-        if self.url_path.is_none() && self.headers.is_none() && self.body.is_none() {
-            log::error!("either of url_path, headers or body in when.request is required (rule #{} in rule set #{})", rule_idx + 1, rule_set_idx + 1);
+        if self.url_path.is_none()
+            && self.http_method.is_none()
+            && self.headers.is_none()
+            && self.body.is_none()
+        {
+            log::error!("either of url_path, method, headers or body in when.request is required (rule #{} in rule set #{})", rule_idx + 1, rule_set_idx + 1);
             return false;
         }
 
@@ -61,6 +76,8 @@ impl Request {
             Some(url_path) => url_path.validate(),
             None => true,
         };
+
+        let http_method_validate = true;
 
         let headers_validate = match self.headers.as_ref() {
             Some(headers) => {
@@ -92,7 +109,7 @@ impl Request {
             None => true,
         };
 
-        url_path_validate && headers_validate && body_validate
+        url_path_validate && http_method_validate && headers_validate && body_validate
     }
 }
 
@@ -101,6 +118,9 @@ impl std::fmt::Display for Request {
         let mut s: Vec<String> = vec![];
 
         if let Some(x) = self.url_path_config.as_ref() {
+            s.push(format!("{}", x));
+        }
+        if let Some(x) = self.http_method.as_ref() {
             s.push(format!("{}", x));
         }
         if let Some(x) = self.headers.as_ref() {
